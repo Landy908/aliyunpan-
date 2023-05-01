@@ -71,7 +71,8 @@
   },
   "publish": [
     {
-      "provider": "github"
+      "provider": "github",
+      "releaseType": "prerelease"
     }
   ]
 }
