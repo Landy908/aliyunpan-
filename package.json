@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "v3.10.25",
+  "version": "v3.10.26",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -13,12 +13,12 @@
     "build": "vue-tsc --noEmit && vite build && electron-builder"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=16.0.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "@arco-design/web-vue": "^2.43.2",
-    "@electron/remote": "^2.0.8",
+    "@arco-design/web-vue": "^2.45.3",
+    "@electron/remote": "^2.0.9",
     "@types/crypto-js": "^4.1.1",
     "@types/howler": "^2.2.7",
     "@types/lodash": "^4.14.184",
@@ -27,16 +27,16 @@
     "@types/uuid": "^9.0.1",
     "@vitejs/plugin-vue": "^3.1.0",
     "@vitejs/plugin-vue-jsx": "^2.0.1",
-    "ant-design-vue": "^3.2.12",
+    "ant-design-vue": "^3.2.20",
     "aria2-lib": "1.0.1",
-    "artplayer": "^5.0.4",
-    "axios": "^0.27.2",
+    "artplayer": "^5.0.6",
+    "axios": "^1.4.0",
     "crypto-js": "^4.1.1",
-    "dayjs": "^1.11.5",
-    "dexie": "^3.2.2",
+    "dayjs": "^1.11.7",
+    "dexie": "^3.2.3",
     "dlnacasts2": "^0.2.0",
     "dom-to-image": "^2.6.0",
-    "electron": "^22.3.7",
+    "electron": "^20.1.1",
     "electron-builder": "^24.3.0",
     "fix-path": "^4.0.0",
     "flv.js": "^1.6.2",
@@ -46,7 +46,7 @@
     "isomorphic-fetch": "^3.0.0",
     "jschardet": "^3.0.0",
     "lodash": "^4.17.21",
-    "pinia": "^2.0.22",
+    "pinia": "^2.0.35",
     "secp256k1": "^5.0.0",
     "socks-proxy-agent": "^7.0.0",
     "terser": "^5.15.0",

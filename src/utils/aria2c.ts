@@ -120,7 +120,7 @@ export async function AriaChangeToRemote() {
     const secret = settingStore.ariaPwd
 
     const options = { host, port, secure: settingStore.ariaHttps, secret, path: '/jsonrpc' }
-    Aria2EngineRemote = new Aria2({ WebSocket: global.WebSocket, fetch: global.fetch, ...options })
+    Aria2EngineRemote = new Aria2({ WebSocket: global.WebSocket, fetch: window.fetch.bind(window), ...options })
 
     Aria2EngineRemote.on('close', () => {
       if (IsAria2cOnlineRemote && !Aria2cChangeing) {
@@ -163,7 +163,7 @@ export async function AriaChangeToLocal() {
       if (Aria2EngineLocal == undefined) {
         port = window.WebRelaunchAria ? await window.WebRelaunchAria() : 16800
         const options = {host: '127.0.0.1', port, secure: false, secret: localPwd, path: '/jsonrpc'}
-        Aria2EngineLocal = new Aria2({WebSocket: global.WebSocket, fetch: global.fetch, ...options})
+        Aria2EngineLocal = new Aria2({WebSocket: global.WebSocket, fetch: window.fetch.bind(window), ...options})
         Aria2EngineLocal.on('close', () => {
           IsAria2cOnlineLocal = false
           if (useSettingStore().AriaIsLocal) {
