@@ -279,14 +279,17 @@ export default class AliUser {
             break
          }
       }
-      const reward = !sign_data['isReward'] ? '无奖励' : `获得${sign_data["reward"]["name"]} ${sign_data["reward"]["description"]}`
-      if (sign_data['isReward']) {
+      let reward = '无奖励'
+      if (sign_data['isReward'] !== 'luckyBottle') {
         const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'
         const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, token.user_id, '')
         if (AliHttp.IsSuccess(rewardResp.code)) {
-          if (!rewardResp.body || !rewardResp.body.result) {
+          if (!rewardResp.body || !rewardResp.body.result || !rewardResp.body.success) {
             message.error('签到后领取奖励失败，请前往手机端领取' + rewardResp.body?.message)
+            return false
           }
+          const result = rewardResp.body.result
+          reward = `获得${result["name"]} ${result["description"]}`
         }
       }
       message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)
