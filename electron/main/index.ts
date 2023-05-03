@@ -534,11 +534,11 @@ async function creatAria() {
     const options:SpawnOptions = { cwd: basePath, shell: true, windowsVerbatimArguments: true }
     const port = await portIsOccupied(16800)
     const subprocess = execFile(
-        ariaFullPath,
+       '\"'+ ariaFullPath + '\"',
       [
         '--stop-with-process=' + process.pid,
         '-D',
-        '--conf-path=' + confPath,
+        '--conf-path=' + '\"'+ confPath + '\"',
         '--rpc-listen-port=' + port
       ],
       options,
