@@ -56,6 +56,11 @@ jobs:
           npm install -g yarn
           yarn install
 
+      - name: Make Aria2c Executable
+        if: matrix.os != 'windows-latest'
+        run: |
+          chmod -R 777 ./static/engine/
+
       - name: Build Electron app
         uses: samuelmeuli/action-electron-builder@v1.6.0
         with:
