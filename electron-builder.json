@@ -20,7 +20,7 @@
       { "from": "./app.png", "to": "."}
     ],
     "target": [
-      { "target": "dmg", "arch": [ "x64", "arm64" ] },
+      { "target": "dmg", "arch": [ "x64", "arm64" ] }
     ]
   },
   "linux": {
@@ -56,12 +56,12 @@
   "dmg": {
     "window": { "width": 540, "height": 380 },
     "contents": [
-      {  "x": 410, "y": 230, "type": "link", "path": "/Applications" },
+      { "x": 410, "y": 230, "type": "link", "path": "/Applications" },
       { "x": 130, "y": 230, "type": "file" }
     ]
   },
   "portable": {
-    "artifactName": "${productName}-${version}-portable-${arch}.${ext}"
+    "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
@@ -72,7 +72,7 @@
   "publish": [
     {
       "provider": "github",
-      "releaseType": "prerelease"
+      "releaseType": "release"
     }
   ]
 }

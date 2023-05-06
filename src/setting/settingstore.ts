@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import DebugLog from '../utils/debuglog'
 import { getResourcesPath, getUserDataPath } from '../utils/electronhelper'
-import { useAppStore } from '../store'
+import {useAppStore, useUserStore} from '../store'
 import PanDAL from '../pan/pandal'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
+import UserDAL from "../user/userdal"
+import message from "../utils/message"
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
 
@@ -29,6 +31,10 @@ export interface SettingState {
   uiShowPanMedia: boolean
 
   uiExitOnClose: boolean
+
+  uiLaunchStart: boolean
+
+  uiLaunchStartShow: boolean
 
   uiEnableOpenApi: boolean
 
@@ -166,6 +172,8 @@ const setting: SettingState = {
   uiShowPanPath: true,
   uiShowPanMedia: false,
   uiExitOnClose: false,
+  uiLaunchStart: false,
+  uiLaunchStartShow: false,
   uiEnableOpenApi: false,
   uiOpenApi: 'inputToken',
   uiOpenApiClientId: '',
@@ -250,6 +258,8 @@ function _loadSetting(val: any) {
   setting.uiShowPanPath = defaultBool(val.uiShowPanPath, true)
   setting.uiShowPanMedia = defaultBool(val.uiShowPanMedia, false)
   setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
+  setting.uiLaunchStart = defaultBool(val.uiLaunchStart, false)
+  setting.uiLaunchStartShow = defaultBool(val.uiLaunchStartShow, false)
 
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
@@ -398,19 +408,27 @@ const useSettingStore = defineStore('setting', {
     updateStore(partial: Partial<SettingState>) {
       if (partial.uiTimeFolderFormate) partial.uiTimeFolderFormate = partial.uiTimeFolderFormate.replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
       this.$patch(partial)
+      if (Object.hasOwn(partial, 'uiLaunchStart')) {
+        window.WebToElectron({ cmd: { launchStartUp: this.uiLaunchStart, launchStartUpShow: this.uiLaunchStartShow } })
+      }
+      if (Object.hasOwn(partial, 'uiEnableOpenApi')
+          || Object.hasOwn(partial, 'uiOpenApiAccessToken')
+          || Object.hasOwn(partial, 'uiOpenApiRefreshToken')) {
+        this.updateOpenApiToken()
+      }
+      if (Object.hasOwn(partial, 'uiShowPanMedia')
+          || Object.hasOwn(partial, 'uiFolderSize')
+          || Object.hasOwn(partial, 'uiFileOrderDuli')) {
+        PanDAL.aReLoadOneDirToShow('', 'refresh', false)
+      }
       if (Object.hasOwn(partial, 'proxyUseProxy')) {
         this.WebSetProxy()
       }
       SaveSetting()
+      useAppStore().toggleTheme(setting.uiTheme)
       window.WinMsgToUpload({ cmd: 'SettingRefresh' })
       window.WinMsgToDownload({ cmd: 'SettingRefresh' })
-      useAppStore().toggleTheme(setting.uiTheme)
-
-      if (Object.hasOwn(partial, 'uiShowPanMedia') || Object.hasOwn(partial, 'uiFolderSize') || Object.hasOwn(partial, 'uiFileOrderDuli')) {
-        PanDAL.aReLoadOneDirToShow('', 'refresh', false)
-      }
     },
-
     updateFileColor(key: string, title: string) {
       if (!key) return
       const arr = setting.uiFileColorArray.concat()
@@ -440,6 +458,21 @@ const useSettingStore = defineStore('setting', {
         }
       }
       window.WebSetProxy({ proxyUrl: proxy })
+    },
+    updateOpenApiToken() {
+      UserDAL.GetUserTokenFromDB(useUserStore().user_id)
+          .then((token) => {
+        if (!token) {
+          message.info('未登录账号，该功能无法开启')
+          return
+        }
+        Object.assign(token, {
+          open_api_enable: this.uiEnableOpenApi,
+          open_api_access_token: this.uiOpenApiAccessToken,
+          open_api_refresh_token: this.uiOpenApiRefreshToken
+        })
+        UserDAL.SaveUserToken(token)
+      })
     }
   }
 })

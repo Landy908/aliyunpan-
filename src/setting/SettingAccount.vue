@@ -30,22 +30,6 @@ const cb = (val: any) => {
             }
         }
     }
-    if (Object.hasOwn(val, 'uiEnableOpenApi')
-        || Object.hasOwn(val, 'uiOpenApiAccessToken')
-        || Object.hasOwn(val, 'uiOpenApiRefreshToken')) {
-        UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
-            if (!token) {
-                message.info('未登录账号，该功能无法开启')
-                return
-            }
-            Object.assign(token, {
-                open_api_enable: val.uiEnableOpenApi || settingStore.uiEnableOpenApi,
-                open_api_access_token: val.uiOpenApiAccessToken || settingStore.uiOpenApiAccessToken,
-                open_api_refresh_token: val.uiOpenApiRefreshToken || settingStore.uiOpenApiRefreshToken
-            })
-            UserDAL.SaveUserToken(token)
-        })
-    }
     settingStore.updateStore(val)
 }
 

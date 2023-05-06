@@ -216,6 +216,27 @@ ipcMain.on('WebToElectron', (event, data) => {
     if (menuEdit) menuEdit.popup()
   } else if (data.cmd && data.cmd === 'menucopy') {
     if (menuCopy) menuCopy.popup()
+  } else if (data.cmd && (Object.hasOwn(data.cmd, 'launchStart')
+      || Object.hasOwn(data.cmd, 'launchStartShow'))) {
+    const launchStart = data.cmd.launchStartUp
+    const launchStartShow = data.cmd.launchStartUpShow
+    const appName = path.basename(process.execPath)
+    // 设置开机自启
+    const settings: Electron.Settings = {
+      openAtLogin: launchStart,
+      path: process.execPath
+    }
+    // 显示主窗口
+    if (process.platform === 'darwin') {
+      settings.openAsHidden = !launchStartShow
+    } else {
+      settings.args = [
+        '--processStart', `${appName}`,
+        '--process-start-args', `"--hidden"`
+      ]
+      !launchStartShow && settings.args.push('--openAsHidden')
+    }
+    app.setLoginItemSettings(settings)
   } else {
     event.sender.send('ElectronToWeb', 'mainsenddata')
   }

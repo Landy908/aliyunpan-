@@ -280,7 +280,7 @@ export default class AliUser {
          }
       }
       let reward = '无奖励'
-      if (sign_data['isReward'] !== 'luckyBottle') {
+      if (sign_data['type'] !== 'luckyBottle') {
         const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'
         const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, token.user_id, '')
         if (AliHttp.IsSuccess(rewardResp.code)) {
