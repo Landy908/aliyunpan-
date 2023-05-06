@@ -185,10 +185,13 @@ export default class UserDAL {
     PanDAL.aReLoadQuickFile(token.user_id)
     // 自动签到
     if (token.user_id && useSettingStore().uiLaunchAutoSign) {
-      const signInCount = await DB.getValueNumber('uiAutoSign')
-      if (signInCount !== new Date().getDay()) {
-        await this.UserSign(token.user_id).then(async signInCount => {
-          signInCount != -1 && await DB.saveValueNumber('uiAutoSign', signInCount)
+      const nowMonth = new Date().getMonth() + 1
+      const nowDay = new Date().getDay()
+      const signData = await DB.getValueObject('uiAutoSign')
+      // @ts-ignore
+      if (!signData || signData.signMon !== nowMonth || signData.signDay !== nowDay) {
+        await this.UserSign(token.user_id).then(async signDay => {
+          signDay && await DB.saveValueObject('uiAutoSign', { signMon: nowMonth, signDay: signDay })
         })
       }
     }
