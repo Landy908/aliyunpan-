@@ -150,15 +150,12 @@ export default class UserDAL {
     const loadingKey = 'userlogin_' + Date.now().toString()
     message.loading('加载用户信息中...', 0, loadingKey)
     UserTokenMap.set(token.user_id, token)
-
     // 加载用户信息
     await Promise.all([
         AliUser.ApiUserInfo(token),
         AliUser.ApiUserPic(token),
         AliUser.ApiUserVip(token)
     ])
-    // 刷新session
-    await AliUser.ApiSessionRefreshAccount(token, true)
     // 保存登录信息
     await DB.saveValueString('uiDefaultUser', token.user_id)
     useUserStore().userLogin(token.user_id)
@@ -169,22 +166,30 @@ export default class UserDAL {
       access_token: token.access_token,
       login: true
     })
+    // 刷新Session
+    await AliUser.ApiSessionRefreshAccount(token, true)
+    // 刷新OpenApiToken
     useSettingStore().updateStore( {
       uiEnableOpenApi: token.open_api_enable,
       uiOpenApiAccessToken: token.open_api_access_token,
       uiOpenApiRefreshToken: token.open_api_refresh_token
     })
+    // 刷新所有状态
     useAppStore().resetTab()
     useMyShareStore().$reset()
     useMyFollowingStore().$reset()
     useOtherFollowingStore().$reset()
     useFootStore().mSaveUserInfo(token)
-
+    // 刷新数据
     PanDAL.aReLoadDrive(token.user_id, token.default_drive_id)
     PanDAL.aReLoadQuickFile(token.user_id)
-    // PanDAL.aReLoadDirSizeFromDB(token.user_id, token.pic_drive_id)
-    // PanDAL.GetAllDirList(token.user_id, token.pic_drive_id)
-
+    // 自动签到
+    if (token.user_id && useSettingStore().uiLaunchAutoSign
+        && !await DB.getValueBool('uiAutoSign')) {
+      await this.UserSign(token.user_id).then(async succ => {
+        succ && await DB.saveValueBool('uiAutoSign', true)
+      })
+    }
     message.success('加载用户成功!', 2, loadingKey)
   }
 

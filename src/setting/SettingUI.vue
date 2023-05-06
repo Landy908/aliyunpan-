@@ -38,6 +38,11 @@ const handleCheckVer = () => {
       </a-radio-group>
     </div>
     <div class="settingspace"></div>
+    <div class="settinghead">:启动时自动签到</div>
+    <div class="settingrow">
+        <MySwitch :value="settingStore.uiLaunchAutoSign" @update:value="cb({ uiLaunchAutoSign: $event })">自动签到</MySwitch>
+    </div>
+    <div class="settingspace"></div>
     <div class="settinghead">:关闭时彻底退出</div>
     <div class="settingrow">
         <MySwitch :value="settingStore.uiExitOnClose" @update:value="cb({ uiExitOnClose: $event })">关闭窗口时彻底退出小白羊</MySwitch>
