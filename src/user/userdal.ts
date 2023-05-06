@@ -184,11 +184,13 @@ export default class UserDAL {
     PanDAL.aReLoadDrive(token.user_id, token.default_drive_id)
     PanDAL.aReLoadQuickFile(token.user_id)
     // 自动签到
-    if (token.user_id && useSettingStore().uiLaunchAutoSign
-        && !await DB.getValueBool('uiAutoSign')) {
-      await this.UserSign(token.user_id).then(async succ => {
-        succ && await DB.saveValueBool('uiAutoSign', true)
-      })
+    if (token.user_id && useSettingStore().uiLaunchAutoSign) {
+      const signInCount = await DB.getValueNumber('uiAutoSign')
+      if (signInCount !== new Date().getDay()) {
+        await this.UserSign(token.user_id).then(async signInCount => {
+          signInCount != -1 && await DB.saveValueNumber('uiAutoSign', signInCount)
+        })
+      }
     }
     message.success('加载用户成功!', 2, loadingKey)
   }
@@ -267,10 +269,10 @@ export default class UserDAL {
     }
   }
 
-  static async UserSign(user_id: string): Promise<boolean> {
+  static async UserSign(user_id: string): Promise<number> {
     const token = UserDAL.GetUserToken(user_id)
     if (!token || !token.access_token) {
-      return false
+      return -1
     }
     return AliUser.ApiUserSign(token)
   }

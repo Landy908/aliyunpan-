@@ -261,15 +261,15 @@ export default class AliUser {
     return false
   }
 
-  static async ApiUserSign(token: ITokenInfo): Promise<boolean> {
-    if (!token.user_id) return false
+  static async ApiUserSign(token: ITokenInfo): Promise<number> {
+    if (!token.user_id) return -1
     const signUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_list'
     const signResp = await AliHttp.Post(signUrl, {}, token.user_id, '')
     // console.log(JSON.stringify(resp))
     if (AliHttp.IsSuccess(signResp.code)) {
       if (!signResp.body || !signResp.body.result) {
         message.error("签到失败" + signResp.body?.message)
-        return false
+        return -1
       }
       let sign_data
       const { title, signInCount = 0, signInLogs = [] } = signResp.body.result
@@ -286,18 +286,18 @@ export default class AliUser {
         if (AliHttp.IsSuccess(rewardResp.code)) {
           if (!rewardResp.body || !rewardResp.body.result || !rewardResp.body.success) {
             message.error('签到后领取奖励失败，请前往手机端领取' + rewardResp.body?.message)
-            return false
+            return -1
           }
           const result = rewardResp.body.result
           reward = `获得${result["name"]} ${result["description"]}`
         }
       }
       message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)
-      return true
+      return signInCount
     } else {
       message.error("签到失败" + signResp.body?.message)
     }
-    return false
+    return -1
   }
 
 
