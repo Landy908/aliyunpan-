@@ -289,7 +289,7 @@ export default class AliUser {
             return -1
           }
           const result = rewardResp.body.result
-          reward = `获得${result["name"]} ${result["description"]}`
+          reward = `获得【${result["name"]}】 - ${result["description"]}`
         }
       }
       message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)

@@ -186,7 +186,7 @@ export default class UserDAL {
     // 自动签到
     if (token.user_id && useSettingStore().uiLaunchAutoSign) {
       const nowMonth = new Date().getMonth() + 1
-      const nowDay = new Date().getDay()
+      const nowDay = new Date().getDate()
       const signData = await DB.getValueObject('uiAutoSign')
       // @ts-ignore
       if (!signData || signData.signMon !== nowMonth || signData.signDay !== nowDay) {
