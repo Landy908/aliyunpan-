@@ -342,7 +342,7 @@ ipcMain.on('WebExecSync', (event, data) => {
       const basePath = path.resolve(app.getAppPath(), '..')
       if (process.platform === 'win32') {
         const exe = path.join(basePath, 'MPV', 'mpv.exe')
-        if (existsSync(exe) == false) {
+        if (!existsSync(exe)) {
           event.returnValue = { error: '找不到文件' + data.command + ' ' + exe }
           ShowError('找不到文件', data.command + ' ' + exe)
           return
@@ -350,7 +350,7 @@ ipcMain.on('WebExecSync', (event, data) => {
         cmdArguments.push('"' + exe + '"')
       } else if (process.platform === 'darwin') {
         const exe = path.join(basePath, 'mpv')
-        if (existsSync(exe) == false) {
+        if (!existsSync(exe)) {
           event.returnValue = { error: '找不到文件' + data.command + ' ' + exe }
           ShowError('找不到文件', data.command + ' ' + exe)
           return

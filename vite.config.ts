@@ -1,9 +1,6 @@
 import { rmSync } from 'fs'
 import path from 'path'
 import { defineConfig } from 'vite'
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import { ArcoResolver } from 'unplugin-vue-components/resolvers'
 import vue from '@vitejs/plugin-vue'
 import electron, { onstart } from 'vite-plugin-electron'
 import pkg from './package.json'
@@ -28,12 +25,6 @@ export default defineConfig({
           isCustomElement: (tag) => tag == 'Webview'
         }
       }
-    }),
-    AutoImport({
-      resolvers: [ArcoResolver()]
-    }),
-    Components({
-      resolvers: [ArcoResolver({ sideEffect: true })]
     }),
     electron({
       main: {
