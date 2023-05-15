@@ -1,6 +1,15 @@
 import { getCrxPath, getResourcesPath, getStaticPath, getUserDataPath, mkAriaConf } from './mainfile'
 import { release } from 'os'
-import { AppWindow, creatElectronWindow, createMainWindow, createTray, Referer, ShowError, ShowErrorAndExit, ua } from './window'
+import {
+  AppWindow,
+  creatElectronWindow,
+  createMainWindow,
+  createTray,
+  Referer,
+  ShowError,
+  ShowErrorAndExit,
+  ua
+} from './window'
 import Electron from 'electron'
 import { execFile, SpawnOptions } from 'child_process'
 import { portIsOccupied } from './utils'
@@ -44,7 +53,8 @@ try {
     const configData = readFileSync(userData, 'utf-8')
     if (configData) app.setPath('userData', configData)
   }
-} catch {}
+} catch {
+}
 
 const gotTheLock = app.requestSingleInstanceLock()
 if (DEBUGGING == false) {
@@ -173,7 +183,6 @@ app
   })
 
 
-
 let menuEdit: Electron.Menu | undefined
 let menuCopy: Electron.Menu | undefined
 
@@ -190,7 +199,7 @@ export function createMenu() {
   menuCopy.append(new MenuItem({ label: '全选', role: 'selectAll' }))
 }
 
-ipcMain.on('WebToElectron', (event, data) => {
+ipcMain.on('WebToElectron', async (event, data) => {
   let mainWindow = AppWindow.mainWindow
   if (data.cmd && data.cmd === 'close') {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide()
@@ -201,7 +210,8 @@ ipcMain.on('WebToElectron', (event, data) => {
     }
     try {
       app.exit()
-    } catch {}
+    } catch {
+    }
   } else if (data.cmd && data.cmd === 'minsize') {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize()
   } else if (data.cmd && data.cmd === 'maxsize') {
@@ -217,9 +227,9 @@ ipcMain.on('WebToElectron', (event, data) => {
   } else if (data.cmd && data.cmd === 'menucopy') {
     if (menuCopy) menuCopy.popup()
   } else if (data.cmd && (Object.hasOwn(data.cmd, 'launchStart')
-      || Object.hasOwn(data.cmd, 'launchStartShow'))) {
-    const launchStart = data.cmd.launchStartUp
-    const launchStartShow = data.cmd.launchStartUpShow
+    || Object.hasOwn(data.cmd, 'launchStartShow'))) {
+    const launchStart = data.cmd.launchStart
+    const launchStartShow = data.cmd.launchStartShow
     const appName = path.basename(process.execPath)
     // 设置开机自启
     const settings: Electron.Settings = {
@@ -355,7 +365,7 @@ ipcMain.on('WebExecSync', (event, data) => {
           ShowError('找不到文件', data.command + ' ' + exe)
           return
         }
-        cmdArguments.push("'" + exe + "'")
+        cmdArguments.push('\'' + exe + '\'')
       } else {
         cmdArguments.push('mpv')
       }
@@ -380,7 +390,8 @@ ipcMain.on('WebSaveTheme', (event, data) => {
   try {
     const themeJson = getUserDataPath('theme.json')
     writeFileSync(themeJson, `{"theme":"${data.theme || ''}"}`, 'utf-8')
-  } catch {}
+  } catch {
+  }
 })
 
 ipcMain.on('WebClearCookies', (event, data) => {
@@ -418,7 +429,8 @@ ipcMain.on('WebRelaunch', (event, data) => {
   app.relaunch()
   try {
     app.exit()
-  } catch {}
+  } catch {
+  }
 })
 
 ipcMain.handle('WebRelaunchAria', async (event, data) => {
@@ -441,7 +453,8 @@ ipcMain.on('WebShutDown', (event, data) => {
       if (data.quitApp) {
         try {
           app.exit()
-        } catch {}
+        } catch {
+        }
       }
       if (err) {
         // donothing
@@ -468,7 +481,8 @@ ipcMain.on('WebShutDown', (event, data) => {
       if (data.quitApp) {
         try {
           app.exit()
-        } catch {}
+        } catch {
+        }
       }
       if (err) {
         // donothing
@@ -491,7 +505,7 @@ ipcMain.on('WebSetProxy', (event, data) => {
 ipcMain.on('WebOpenWindow', (event, data) => {
   const win = creatElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main2', data.theme)
 
-  win.on('ready-to-show', function () {
+  win.on('ready-to-show', function() {
     win.webContents.send('setPage', data)
     win.setTitle('预览窗口')
     win.show()
@@ -523,7 +537,7 @@ ipcMain.on('WebOpenUrl', (event, data) => {
     }
   })
 
-  win.on('ready-to-show', function () {
+  win.on('ready-to-show', function() {
     win.setTitle('预览窗口')
     win.show()
   })
@@ -545,30 +559,24 @@ async function creatAria() {
     } else {
       ariaPath = 'aria2c'
     }
-    basePath = path.join(basePath, DEBUGGING ? path.join(process.platform, process.arch): '')
+    basePath = path.join(basePath, DEBUGGING ? path.join(process.platform, process.arch) : '')
     let ariaFullPath = path.join(basePath, ariaPath)
     if (!existsSync(ariaFullPath)) {
       ShowError('找不到Aria程序文件', ariaFullPath)
       return 0
     }
     // process.chdir(basePath)
-    const options:SpawnOptions = { cwd: basePath, shell: true, windowsVerbatimArguments: true }
+    const options: SpawnOptions = { cwd: basePath, shell: true, windowsVerbatimArguments: true }
     const port = await portIsOccupied(16800)
     const subprocess = execFile(
-       '\"'+ ariaFullPath + '\"',
+      '\"' + ariaFullPath + '\"',
       [
         '--stop-with-process=' + process.pid,
         '-D',
-        '--conf-path=' + '\"'+ confPath + '\"',
+        '--conf-path=' + '\"' + confPath + '\"',
         '--rpc-listen-port=' + port
       ],
-      options,
-        (error) => {
-          if (error) {
-            ShowError("启动Aria2c失败", error.message)
-            return 0
-          }
-        })
+      options)
     return port
   } catch (e: any) {
     console.log(e)

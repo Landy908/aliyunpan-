@@ -413,7 +413,7 @@ const useSettingStore = defineStore('setting', {
       if (partial.uiTimeFolderFormate) partial.uiTimeFolderFormate = partial.uiTimeFolderFormate.replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
       this.$patch(partial)
       if (Object.hasOwn(partial, 'uiLaunchStart')) {
-        window.WebToElectron({ cmd: { launchStartUp: this.uiLaunchStart, launchStartUpShow: this.uiLaunchStartShow } })
+        window.WebToElectron({ cmd: { launchStart: this.uiLaunchStart, launchStartShow: this.uiLaunchStartShow } })
       }
       if (Object.hasOwn(partial, 'uiEnableOpenApi')
           || Object.hasOwn(partial, 'uiOpenApiAccessToken')
