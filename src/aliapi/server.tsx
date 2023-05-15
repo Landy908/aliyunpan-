@@ -158,7 +158,7 @@ export default class ServerHttp {
           const remoteVer = tagName.replaceAll('v', '').replaceAll('.', '').trim()
           const fileSize = humanSize(updateData.size)
           const verInfo = this.dealText(response.data.body as string)
-          const verUrl = updateData.url || ''
+          const verUrl = 'https://ghproxy.com/' + updateData.url || ''
 
           const v1Int = parseInt(localVer), v2Int = parseInt(remoteVer)
           if (v2Int > v1Int) {
@@ -261,7 +261,7 @@ export default class ServerHttp {
       this.autoInstallNewVersion(resourcesPath)
       return true
     }
-    message.info('新版本正在后台下载中，请耐心等待。。。。',  100)
+    message.info('新版本正在后台下载中，请耐心等待。。。。',  10)
     return axios
       .get(appNewUrl, {
         withCredentials: false,
@@ -280,6 +280,7 @@ export default class ServerHttp {
         return true
       })
       .catch(() => {
+        message.error('新版本下载失败，请前往github下载最新版本', 6)
         rmSync(resourcesPath, { force: true })
         return false
       })
@@ -290,7 +291,7 @@ export default class ServerHttp {
     const options: SpawnOptions = { shell: true, windowsVerbatimArguments: true }
     execFile('\"' + resourcesPath + '\"', options, error => {
       if(error) {
-        message.info('安装失败，请前往文件夹手动安装', 10)
+        message.info('安装失败，请前往文件夹手动安装', 5)
         const resources = getResourcesPath('')
         shell.openPath(path.join(resources, '/'))
       }
