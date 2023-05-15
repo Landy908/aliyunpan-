@@ -76,7 +76,7 @@ const userData = getUserData()
     </div>
   </div>
 
-  <div class="settingcard">
+  <div class="settingcard" v-if='false'>
     <a-alert banner type="warning">默认 不会产生任何 上传到服务器的数据</a-alert>
     <div class="settingspace"></div>
     <div class="settinghead">:自动填写 分享链接提取码</div>

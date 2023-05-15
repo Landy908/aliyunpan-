@@ -159,7 +159,7 @@ export default class ShareDAL {
   
   
   static aLoadShareSite() {
-    if (useServerStore().shareSiteList.length == 0) ServerHttp.CheckUpgrade(false)
+    if (useServerStore().shareSiteList.length == 0) ServerHttp.CheckConfigUpgrade()
   }
 
   
