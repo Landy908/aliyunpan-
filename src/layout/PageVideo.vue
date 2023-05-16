@@ -266,7 +266,7 @@ const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
           name: fileList[i].name,
           file_id: fileList[i].file_id,
           play_cursor: fileList[i].play_cursor,
-          default: i == 0
+          default: fileList[i].file_id === pageVideo.file_id
         })
       }
     }
