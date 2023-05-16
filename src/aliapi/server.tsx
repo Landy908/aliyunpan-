@@ -146,11 +146,6 @@ export default class ServerHttp {
             && fileData.name.indexOf('dmg') > 0) {
             updateData = fileData
             break
-          } else if (process.platform === 'linux'
-            && fileData.name.indexOf(process.arch) > 0
-            && fileData.name.indexOf('AppImage') > 0) {
-            updateData = fileData
-            break
           }
         }
         if (tagName) {
