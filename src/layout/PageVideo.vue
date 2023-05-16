@@ -278,6 +278,7 @@ const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
       }
     }
   }
+  console.log(playList)
   art.controls.update({
     name: 'playList',
     index: 10,
@@ -292,6 +293,7 @@ const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
 }
 
 const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
+  await art.play()
   // 进度
   if (play_cursor) {
     art.currentTime = play_cursor
@@ -301,12 +303,12 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
       art.currentTime = info?.play_cursor
     } else if (info?.user_meta) {
       const meta = JSON.parse(info?.user_meta)
+      console.log(meta)
       if (meta.play_cursor) {
         art.currentTime = parseFloat(meta.play_cursor)
       }
     }
   }
-  await art.play()
 }
 
 const getSubTitleList = async (art: Artplayer, subtitles: { language: string; url: string }[]) => {
