@@ -188,10 +188,12 @@ export default class ServerHttp {
                   }
                 },
                 onCancel: async ()=> {
-                  let resourcesPath = getResourcesPath(updateData.name)
-                  if (existsSync(resourcesPath)) {
-                    rmSync(resourcesPath, { force: true })
-                    return true
+                  if (updateData.name) {
+                    let resourcesPath = getResourcesPath(updateData.name)
+                    if (existsSync(resourcesPath)) {
+                      rmSync(resourcesPath, { force: true })
+                      return true
+                    }
                   }
                 },
                 onClose: () => ServerHttp.showVer = false,
