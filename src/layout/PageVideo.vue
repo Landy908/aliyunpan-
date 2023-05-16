@@ -4,8 +4,8 @@ import FlvJs from 'flv.js'
 import HlsJs from 'hls.js'
 import AliFile from '../aliapi/file'
 import { useAppStore } from '../store'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { ICompilationList, IVideoPreviewUrl } from '../aliapi/models'
+import { onBeforeUnmount, onMounted } from 'vue'
+import { IVideoPreviewUrl } from '../aliapi/models'
 import AliDirFileList from '../aliapi/dirfilelist'
 import { type SettingOption } from 'artplayer/types/setting'
 
@@ -112,7 +112,7 @@ const createVideo = async (name: string) => {
   })
   // 获取用户配置
   const storage = ArtPlayerRef.storage
-
+  if (!storage.get('playListMode')) storage.set('playListMode', false)
   const volume = storage.get('videoVolume')
   if (volume) ArtPlayerRef.volume = parseFloat(volume)
   const muted = storage.get('videoMuted')
@@ -122,7 +122,7 @@ const createVideo = async (name: string) => {
     // 视频播放完毕
     ArtPlayerRef.on('video:ended', () => {
       updateVideoTime()
-      if (storage.get('autoPlayNext') === 'true') {
+      if (storage.get('autoPlayNext')) {
         const autoPlayNext = () => {
           const item = playList[++autoPlayNumber]
           if (autoPlayNumber >= playList.length) {
@@ -155,7 +155,7 @@ const createVideo = async (name: string) => {
   })
 }
 
-const getCurDirList = async (parent_file_id: string, filter?: RegExp): Promise<any[]> => {
+const getCurDirList = async (parent_file_id: string, category: string = '', filter?: RegExp): Promise<any[]> => {
   const dir = await AliDirFileList.ApiDirFileList(pageVideo.user_id, pageVideo.drive_id, parent_file_id, '', 'name asc', '')
   const fileList: any[] = []
   if (!dir.next_marker) {
@@ -163,12 +163,16 @@ const getCurDirList = async (parent_file_id: string, filter?: RegExp): Promise<a
       let fileModel = dir.items[i]
       if (fileModel.isDir) continue
       else fileList.push({
-        html: '在线:  ' + fileModel.name,
+        html: (category ? '' : '在线:  ') + fileModel.name,
+        category: fileModel.category,
         name: fileModel.name,
         file_id: fileModel.file_id,
         ext: fileModel.ext
       })
     }
+  }
+  if (category) {
+    return fileList.filter(file => file.category === category)
   }
   return filter ? fileList.filter(file => filter.test(file.ext)) : fileList
 }
@@ -179,7 +183,7 @@ const refreshSetting = async (art: Artplayer, item: selectorItem) => {
   pageVideo.file_name = item.html
   pageVideo.file_id = item.file_id || ''
   // 刷新信息
-  await getVideoInfo(art)
+  await getVideoInfo(art, item.play_cursor)
 }
 
 const defaultSetting = async (art: Artplayer) => {
@@ -187,13 +191,25 @@ const defaultSetting = async (art: Artplayer) => {
     name: 'autoPlayNext',
     width: 250,
     html: '自动连播',
-    tooltip: '关闭',
-    switch: false,
+    tooltip: art.storage.get('autoPlayNext') ? '开启' : '关闭',
+    switch: art.storage.get('autoPlayNext'),
     onSwitch: (item: SettingOption) => {
       item.tooltip = item.switch ? '关闭' : '开启'
-      art.subtitle.show = !item.switch
       art.notice.show = '自动连播' + item.tooltip
-      art.storage.set('autoPlayNext', item.switch ? 'false' : 'true')
+      art.storage.set('autoPlayNext', !item.switch)
+      return !item.switch
+    }
+  })
+  art.setting.add({
+    name: 'playListMode',
+    width: 250,
+    html: '列表模式',
+    tooltip: art.storage.get('playListMode') ? '同文件夹' : '同专辑',
+    switch: art.storage.get('playListMode'),
+    onSwitch: async (item: SettingOption) => {
+      item.tooltip = item.switch ? '同专辑' : '同文件夹'
+      art.storage.set('playListMode', !item.switch)
+      await getVideoPlayList(art)
       return !item.switch
     }
   })
@@ -232,18 +248,24 @@ const getVideoInfo = async (art: Artplayer, play_cursor?: number) => {
   }
 }
 
-const playList: selectorItem[] = []
+let playList: selectorItem[] = []
 const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
   if (!file_id) {
-    const data: ICompilationList[] | undefined = await AliFile.ApiListByFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, 100)
-    if (data && data.length > 1) {
-      for (let i = 0; i < data.length; i++) {
+    let fileList: any
+    if (!art.storage.get('playListMode')) {
+      fileList = await AliFile.ApiListByFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, 100)
+    } else {
+      fileList = await getCurDirList(pageVideo.parent_file_id, 'video') || []
+    }
+    if (fileList && fileList.length > 1) {
+      playList = []
+      for (let i = 0; i < fileList.length; i++) {
         playList.push({
-          url: data[i].url,
-          html: data[i].name,
-          name: data[i].name,
-          file_id: data[i].file_id,
-          play_cursor: data[i].play_cursor,
+          url: fileList[i].url,
+          html: fileList[i].name,
+          name: fileList[i].name,
+          file_id: fileList[i].file_id,
+          play_cursor: fileList[i].play_cursor,
           default: i == 0
         })
       }
@@ -256,16 +278,12 @@ const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
       }
     }
   }
-  let file_name = ''
-  if(pageVideo.file_name.length > 30) {
-    file_name = pageVideo.file_name.substring(0, 30) + '...'
-  }
   art.controls.update({
     name: 'playList',
     index: 10,
     position: 'right',
     style: { padding: '0 10px' },
-    html: file_name,
+    html: pageVideo.file_name,
     selector: playList,
     onSelect: async (item: selectorItem) => {
       await refreshSetting(art, item)
@@ -309,9 +327,12 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
     Artplayer.utils.setStyle(subtitle, 'fontSize', subtitleSize)
   }
   // 尝试加载当前文件夹字幕文件
-  const dir = await getCurDirList(pageVideo.parent_file_id, /srt|vtt|ass/) || []
+  const dir = await getCurDirList(pageVideo.parent_file_id, '', /srt|vtt|ass/) || []
   subSelector.push(...dir)
-  subSelector.length === 0 && subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
+  if(subSelector.length === 0) {
+    subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
+    art.subtitle.show = false
+  }
   const subDefault = subSelector.find((item) => item.default) || subSelector[0]
   // 字幕设置面板
   art.setting.update({
@@ -322,8 +343,8 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
     selector: [
       {
         html: '字幕开关',
-        tooltip: '开启',
-        switch: true,
+        tooltip: subDefault.url !== '' ? '开启' : '关闭',
+        switch: subDefault.url !== '',
         onSwitch: (item: SettingOption) => {
           item.tooltip = item.switch ? '关闭' : '开启'
           art.subtitle.show = !item.switch
