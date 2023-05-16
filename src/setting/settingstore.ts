@@ -463,20 +463,15 @@ const useSettingStore = defineStore('setting', {
       }
       window.WebSetProxy({ proxyUrl: proxy })
     },
-    updateOpenApiToken() {
-      UserDAL.GetUserTokenFromDB(useUserStore().user_id)
-          .then((token) => {
-        if (!token) {
-          message.info('未登录账号，该功能无法开启')
-          return
-        }
-        Object.assign(token, {
-          open_api_enable: this.uiEnableOpenApi,
-          open_api_access_token: this.uiOpenApiAccessToken,
-          open_api_refresh_token: this.uiOpenApiRefreshToken
-        })
-        UserDAL.SaveUserToken(token)
+    async updateOpenApiToken() {
+      const token = await UserDAL.GetUserTokenFromDB(useUserStore().user_id)
+      if (!token) return
+      Object.assign(token, {
+        open_api_enable: this.uiEnableOpenApi,
+        open_api_access_token: this.uiOpenApiAccessToken,
+        open_api_refresh_token: this.uiOpenApiRefreshToken
       })
+      UserDAL.SaveUserToken(token)
     }
   }
 })
