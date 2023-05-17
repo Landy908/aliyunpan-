@@ -8,6 +8,7 @@ import { onBeforeUnmount, onMounted } from 'vue'
 import { IVideoPreviewUrl } from '../aliapi/models'
 import AliDirFileList from '../aliapi/dirfilelist'
 import { type SettingOption } from 'artplayer/types/setting'
+import levenshtein from 'fast-levenshtein'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -383,9 +384,9 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
     art.subtitle.show = false
   }
   if (embedSubSelector.length === 0 && onlineSubSelector) {
-    const levenshtein = require('fast-levenshtein')
     const similarity = { distance: 999, index: 0}
     for (let i = 0; i < subSelector.length; i++) {
+      // 莱文斯坦距离算法(计算相似度)
       const distance = levenshtein.get(pageVideo.file_name, subSelector[i].html, { useCollator: true })
       if (similarity.distance > distance) {
         similarity.distance = distance
