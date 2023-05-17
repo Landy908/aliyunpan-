@@ -164,6 +164,7 @@ export default class UserDAL {
       user_id: token.user_id,
       name: token.user_name,
       access_token: token.access_token,
+      open_api_access_token: token.open_api_access_token,
       login: true
     })
     // 刷新Session

@@ -403,9 +403,6 @@ const useSettingStore = defineStore('setting', {
   getters: {
     AriaIsLocal(state: SettingState): boolean {
       return state.ariaState == 'local'
-    },
-    OpenApiAccessToken(state: SettingState): string {
-      return state.uiOpenApiAccessToken
     }
   },
   actions: {

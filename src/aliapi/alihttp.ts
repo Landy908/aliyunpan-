@@ -368,8 +368,8 @@ export default class AliHttp {
       }
       if (token) {
         let access_token = token.access_token
-        if (need_open_api && useSettingStore().uiEnableOpenApi && useSettingStore().OpenApiAccessToken) {
-          access_token = useSettingStore().OpenApiAccessToken
+        if (need_open_api && useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiAccessToken) {
+          access_token = useSettingStore().uiOpenApiAccessToken
         }
         headers['Authorization'] = token.token_type + ' ' + access_token
         headers['x-request-id'] = v4().toString()
