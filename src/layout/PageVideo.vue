@@ -395,7 +395,6 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
   subSelector = [...embedSubSelector, ...onlineSubSelector]
   if (subSelector.length === 0) {
     subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
-    art.subtitle.show = false
   }
   if (embedSubSelector.length === 0 && onlineSubSelector.length > 0) {
     const similarity = { distance: 999, index: 0}
@@ -412,6 +411,7 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
       let selectorItem = subSelector[similarity.index]
       let subtitleSize = art.storage.get('subtitleSize') || '30px'
       art.subtitle.style('fontSize', subtitleSize)
+      subSelector.forEach(v => v.default = false)
       selectorItem.default = true
       await loadOnlineSub(art, selectorItem)
     }
@@ -422,29 +422,34 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
     name: 'Subtitle',
     width: 250,
     html: '字幕设置',
-    tooltip: subDefault.html,
+    tooltip: art.subtitle.show ? (subDefault.url !== '' ? '字幕开启' : subDefault.html) : '字幕关闭',
     selector: [
       {
         html: '字幕开关',
         tooltip: subDefault.url !== '' ? '开启' : '关闭',
         switch: subDefault.url !== '',
         onSwitch: (item: SettingOption) => {
-          item.tooltip = item.switch ? '关闭' : '开启'
-          art.subtitle.show = !item.switch
-          art.notice.show = '字幕' + item.tooltip
-          let currentItem = Artplayer.utils.queryAll('.art-setting-panel.art-current .art-setting-item:nth-of-type(n+3)')
-          if (currentItem.length > 0) {
-            currentItem.forEach((current: HTMLElement) => {
-              if (item.switch) {
-                Artplayer.utils.removeClass(current, 'art-current')
-                Artplayer.utils.addClass(current, 'disable')
-                item.$parentItem.tooltip = ''
-              } else {
-                Artplayer.utils.removeClass(current, 'disable')
-              }
-            })
+          if (subDefault.url !== '') {
+            item.tooltip = item.switch ? '关闭' : '开启'
+            art.subtitle.show = !item.switch
+            art.notice.show = '字幕' + item.tooltip
+            let currentItem = Artplayer.utils.queryAll('.art-setting-panel.art-current .art-setting-item:nth-of-type(n+3)')
+            if (currentItem.length > 0) {
+              currentItem.forEach((current: HTMLElement) => {
+                if (item.switch) {
+                  !art.subtitle.url && Artplayer.utils.removeClass(current, 'art-current')
+                  Artplayer.utils.addClass(current, 'disable')
+                  item.$parentItem.tooltip = subDefault.url !== '' ? '字幕开启' : subDefault.html
+                } else {
+                  item.$parentItem.tooltip = '字幕开启'
+                  Artplayer.utils.removeClass(current, 'disable')
+                }
+              })
+            }
+            return !item.switch
+          } else {
+            return false
           }
-          return !item.switch
         }
       },
       {
