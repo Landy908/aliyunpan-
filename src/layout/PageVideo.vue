@@ -1,21 +1,22 @@
 <script setup lang='ts'>
+import { useAppStore } from '../store'
+import { onBeforeUnmount, onMounted } from 'vue'
 import Artplayer from 'artplayer'
 import FlvJs from 'flv.js'
 import HlsJs from 'hls.js'
 import AliFile from '../aliapi/file'
-import { useAppStore } from '../store'
-import { onBeforeUnmount, onMounted } from 'vue'
-import { IVideoPreviewUrl } from '../aliapi/models'
 import AliDirFileList from '../aliapi/dirfilelist'
-import { type SettingOption } from 'artplayer/types/setting'
 import levenshtein from 'fast-levenshtein'
+import { IVideoPreviewUrl } from '../aliapi/models'
+import { type SettingOption } from 'artplayer/types/setting'
+import { type Option } from 'artplayer/types/option'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
 let autoPlayNumber = 0
 let ArtPlayerRef: Artplayer
 
-const options = {
+const options: Option = {
   id: 'artPlayer',
   container: '#artPlayer',
   url: '',
@@ -29,6 +30,7 @@ const options = {
   setting: true,
   hotkey: true,
   pip: true,
+  airplay: true,
   mutex: true,
   fullscreen: true,
   fullscreenWeb: true,
@@ -36,9 +38,6 @@ const options = {
   screenshot: true,
   miniProgressBar: false,
   playsInline: true,
-  quality: [],
-  plugins: [],
-  whitelist: [],
   moreVideoAttr: {
     // @ts-ignore
     'webkit-playsinline': true,
@@ -400,7 +399,7 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
     subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
     art.subtitle.show = false
   }
-  if (embedSubSelector.length === 0 && onlineSubSelector) {
+  if (embedSubSelector.length === 0 && onlineSubSelector.length > 0) {
     const similarity = { distance: 999, index: 0}
     for (let i = 0; i < subSelector.length; i++) {
       // 莱文斯坦距离算法(计算相似度)
