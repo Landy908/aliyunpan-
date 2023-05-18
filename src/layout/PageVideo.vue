@@ -226,7 +226,7 @@ const defaultSetting = async (art: Artplayer) => {
     tooltip: '跳转到历史进度',
     switch: true,
     onSwitch: async (item: SettingOption) => {
-      item.tooltip = item.switch ? '关闭' : '播放历史'
+      item.tooltip = item.switch ? '关闭' : '跳转到历史进度'
       art.storage.set('autoJumpCursor', !item.switch)
       return !item.switch
     }
