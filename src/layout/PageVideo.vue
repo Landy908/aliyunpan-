@@ -54,7 +54,10 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
   if (HlsJs.isSupported()) {
     // @ts-ignore
     if (art.hls) art.hls.destroy()
-    const hls = new HlsJs()
+    const hls = new HlsJs({
+      maxBufferLength: 50,
+      maxBufferSize: 60 * 1000 * 1000,
+    })
     hls.loadSource(url)
     hls.attachMedia(video)
     hls.on(HlsJs.Events.ERROR, (event, data) => {
@@ -143,6 +146,7 @@ const createVideo = async (name: string) => {
   // 获取用户配置
   const storage = ArtPlayerRef.storage
   if (!storage.get('playListMode')) storage.set('playListMode', false)
+  if (!storage.get('autoJumpCursor')) storage.set('autoJumpCursor', true)
   const volume = storage.get('videoVolume')
   if (volume) ArtPlayerRef.volume = parseFloat(volume)
   const muted = storage.get('videoMuted')
@@ -218,6 +222,18 @@ const refreshSetting = async (art: Artplayer, item: selectorItem) => {
 }
 
 const defaultSetting = async (art: Artplayer) => {
+  art.setting.add({
+    name: 'autoJumpCursor',
+    width: 250,
+    html: '进度跳转',
+    tooltip: '播放历史',
+    switch: true,
+    onSwitch: async (item: SettingOption) => {
+      item.tooltip = item.switch ? '关闭' : '播放历史'
+      art.storage.set('autoJumpCursor', !item.switch)
+      return !item.switch
+    }
+  })
   art.setting.add({
     name: 'autoPlayNext',
     width: 250,
@@ -326,17 +342,19 @@ const getVideoPlayList = async (art: Artplayer, file_id?: string) => {
 
 const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
   await art.play()
-  // 进度
-  if (play_cursor) {
-    art.currentTime = play_cursor
-  } else {
-    const info = await AliFile.ApiFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
-    if (info?.play_cursor) {
-      art.currentTime = info?.play_cursor
-    } else if (info?.user_meta) {
-      const meta = JSON.parse(info?.user_meta)
-      if (meta.play_cursor) {
-        art.currentTime = parseFloat(meta.play_cursor)
+  if (art.storage.get('autoJumpCursor')) {
+    // 进度
+    if (play_cursor) {
+      art.currentTime = play_cursor
+    } else {
+      const info = await AliFile.ApiFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
+      if (info?.play_cursor) {
+        art.currentTime = info?.play_cursor
+      } else if (info?.user_meta) {
+        const meta = JSON.parse(info?.user_meta)
+        if (meta.play_cursor) {
+          art.currentTime = parseFloat(meta.play_cursor)
+        }
       }
     }
   }
@@ -346,7 +364,6 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
   art.notice.show = '正在加载在线字幕中...'
   const data = await AliFile.ApiFileDownloadUrl(pageVideo.user_id, pageVideo.drive_id, item.file_id, 14400)
   if (typeof data !== 'string' && data.url && data.url != '') {
-    art.notice.show = `加载${item.name}字幕文件成功`
     art.subtitle.switch(data.url, {
       name: item.name,
       type: item.ext,
@@ -355,7 +372,7 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
     })
     return item.html
   } else {
-    art.notice.show = `加载${item.name}字幕文件失败`
+    art.notice.show = `加载${item.name}字幕失败`
   }
 }
 
@@ -456,8 +473,6 @@ const getSubTitleList = async (art: Artplayer, subtitles: { language: string; ur
       ...subSelector
     ],
     onSelect: async (item: SettingOption, element: HTMLDivElement) => {
-      let subtitleSize = art.storage.get('subtitleSize') || '30px'
-      art.subtitle.style('fontSize', subtitleSize)
       if (art.subtitle.show) {
         if (!item.file_id) {
           art.notice.show = ''

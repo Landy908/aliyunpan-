@@ -151,7 +151,7 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
     const data = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
     if (data && data.url != '') {
       url = data.url
-      mode = '转码视频模式_没有字幕请切换原始文件模式'
+      mode = '转码视频模式'
     }
   }
   if (!url && !weifa) {
@@ -186,7 +186,7 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
       command = '"' + settingStore.uiVideoPlayerPath + '"'
       args = ['"' + url + '"'] //win 双引号包裹
       if (command.toLowerCase().indexOf('potplayer') > 0) {
-        args = ['"' + url + '"', '/new', '/referer=https://www.aliyundrive.com/']
+        args = ['"' + url + '"', '/new', '/referer=https://www.aliyundrive.com/', '/title="' + CleanStringForCmd(title) + '"']
       } else if (command.toLowerCase().indexOf('mpv') > 0) {
         args = ['"' + url + '"', '--referrer=https://www.aliyundrive.com/', '--title="' + CleanStringForCmd(title) + '"']
       }
