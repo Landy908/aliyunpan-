@@ -33,8 +33,15 @@ const cb = (val: any) => {
     settingStore.updateStore(val)
 }
 
-const openWebUrl = () => {
-    openExternal('https://alist.nn.ci/zh/guide/drivers/aliyundrive_open.html')
+const openWebUrl = (type: string) => {
+    switch (type) {
+      case 'developer':
+        openExternal('https://www.aliyundrive.com/developer')
+        break
+      case 'AList':
+        openExternal('https://alist.nn.ci/zh/guide/drivers/aliyundrive_open.html')
+        break
+    }
 }
 
 const copyCookies = async () => {
@@ -127,14 +134,14 @@ const refreshQrCode = async () => {
                 <i class="iconfont iconbulb" />
                 <template #content>
                     <div style="min-width: 400px">
-                        <span class="opred">OpenApi</span>：阿里云盘开放平台API
-                        获取AccessToken后填入即可<br />
+                        <span class="opblue">OpenApi</span>：阿里云盘开放平台API<br/>
+                        说明：获取AccessToken后填入即可，仅用于加速视频播放和文件下载<br/>
+                        官方文档：<span class="opblue" @click="openWebUrl('developer')">开发者门户</span>
+                        <br/>
                         <div class="hrspace"></div>
                         <span class="opred">注意</span>：手机扫码功能未测试，需要申请OpenApi
                         <div class="hrspace"></div>
-                        <span class="opred">推荐</span>：采用AList提供的获取AccessToken的方式
-                        <div class="hrspace"></div>
-                        <span class="opred">AList官方文档</span>: <span class="opblue" @click="openWebUrl">https://alist.nn.ci/zh/guide/drivers/aliyundrive_open.html</span>
+                        <span class="opred">推荐</span>：采用<span class="opblue" @click="openWebUrl('AList')">AList</span>提供的获取AccessToken的方式
                     </div>
                 </template>
             </a-popover>

@@ -54,7 +54,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
     // @ts-ignore
     if (art.hls) art.hls.destroy()
     const hls = new HlsJs({
-      maxBufferLength: 50,
+      maxBufferLength: 20,
       maxBufferSize: 60 * 1000 * 1000,
     })
     hls.loadSource(url)
@@ -172,10 +172,6 @@ const createVideo = async (name: string) => {
         autoPlayNext()
       }
     })
-    // 视频跳转
-    ArtPlayerRef.on('video:seeked', () => {
-      updateVideoTime()
-    })
     // 播放已暂停
     ArtPlayerRef.on('video:pause', () => {
       updateVideoTime()
@@ -188,26 +184,28 @@ const createVideo = async (name: string) => {
   })
 }
 
+const curDirList: any[] = []
 const getCurDirList = async (parent_file_id: string, category: string = '', filter?: RegExp): Promise<any[]> => {
-  const dir = await AliDirFileList.ApiDirFileList(pageVideo.user_id, pageVideo.drive_id, parent_file_id, '', 'name asc', '')
-  const fileList: any[] = []
-  if (!dir.next_marker) {
-    for (let i = 0, maxi = dir.items.length; i < maxi; i++) {
-      let fileModel = dir.items[i]
-      if (fileModel.isDir) continue
-      else fileList.push({
-        html: (category ? '' : '在线:  ') + fileModel.name,
-        category: fileModel.category,
-        name: fileModel.name,
-        file_id: fileModel.file_id,
-        ext: fileModel.ext
-      })
+  if (curDirList.length === 0) {
+    const dir = await AliDirFileList.ApiDirFileList(pageVideo.user_id, pageVideo.drive_id, parent_file_id, '', 'name asc', '')
+    if (!dir.next_marker) {
+      for (let i = 0, maxi = dir.items.length; i < maxi; i++) {
+        let fileModel = dir.items[i]
+        if (fileModel.isDir) continue
+        else curDirList.push({
+          html: (category ? '' : '在线:  ') + fileModel.name,
+          category: fileModel.category,
+          name: fileModel.name,
+          file_id: fileModel.file_id,
+          ext: fileModel.ext
+        })
+      }
     }
   }
   if (category) {
-    return fileList.filter(file => file.category === category)
+    return curDirList.filter(file => file.category === category)
   }
-  return filter ? fileList.filter(file => filter.test(file.ext)) : fileList
+  return filter ? curDirList.filter(file => filter.test(file.ext)) : curDirList
 }
 
 
@@ -224,8 +222,8 @@ const defaultSetting = async (art: Artplayer) => {
   art.setting.add({
     name: 'autoJumpCursor',
     width: 250,
-    html: '进度跳转',
-    tooltip: '播放历史',
+    html: '自动跳转',
+    tooltip: '跳转到历史进度',
     switch: true,
     onSwitch: async (item: SettingOption) => {
       item.tooltip = item.switch ? '关闭' : '播放历史'
