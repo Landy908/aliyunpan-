@@ -61,7 +61,6 @@
   },
   "nsis": {
     "oneClick": false,
-    "artifactName": "${productName}-Setup-${version}.${ext}",
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },

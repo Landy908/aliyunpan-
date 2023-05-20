@@ -1,11 +1,11 @@
 import { B64decode, b64decode, humanSize } from '../utils/format'
-import axios, { AxiosProgressEvent, AxiosResponse } from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import Config from '../config'
 import message from '../utils/message'
 import { IShareSiteModel, useServerStore } from '../store'
-import { Modal } from '@arco-design/web-vue'
+import { Modal, Button, Space } from '@arco-design/web-vue'
 import { h } from 'vue'
-import { getResourcesPath, openExternal } from '../utils/electronhelper'
+import { getAppNewPath, getResourcesPath, openExternal } from '../utils/electronhelper'
 import ShareDAL from '../share/share/ShareDAL'
 import DebugLog from '../utils/debuglog'
 import { writeFileSync, rmSync, existsSync } from 'fs'
@@ -89,7 +89,6 @@ export default class ServerHttp {
 
   static configUrl = b64decode('aHR0cHM6Ly9naXRlZS5jb20vUGluZ0t1L2FsaXl1bnBhbi1jb25maWcvcmF3L2RldmVsb3AvY29uZmlnMy5qc29u')
   static updateUrl = b64decode('aHR0cHM6Ly9hcGkuZ2l0aHViLmNvbS9yZXBvcy9vZG9tdS9hbGl5dW5wYW4vcmVsZWFzZXMvbGF0ZXN0')
-  static showVer = false
 
   static async CheckConfigUpgrade(): Promise<void> {
     axios
@@ -132,75 +131,110 @@ export default class ServerHttp {
           message.error('获取新版本出错')
           return
         }
-        let tagName = response.data.tag_name
-        let assets = response.data.assets
-        let html_url = response.data.html_url
+        let platform = process.platform
+        let tagName = response.data.tag_name  // 版本号
+        let assets = response.data.assets     // 文件
+        let html_url = response.data.html_url // 详情
+        let asarFileUrl = ''
         let updateData = { name: '', url: '', size: 0 }
         for (let asset of assets) {
-          const fileData = { name: asset.name, url: asset.browser_download_url, size: asset.size }
-          if (process.platform === 'win32' && fileData.name.indexOf('Setup') > 0) {
-            updateData = fileData
-            break
-          } else if (process.platform === 'darwin'
+          const fileData = {
+            name: asset.name,
+            url: asset.browser_download_url,
+            size: asset.size
+          }
+          if (platform === 'win32'
             && fileData.name.indexOf(process.arch) > 0
-            && fileData.name.indexOf('dmg') > 0) {
+            && fileData.name.indexOf('.exe') > 0) {
             updateData = fileData
-            break
+          } else if (platform === 'darwin'
+            && fileData.name.indexOf(process.arch) > 0
+            && fileData.name.endsWith('.dmg') > 0) {
+            updateData = fileData
+          } else if (fileData.name.endsWith('.asar') > 0) {
+            asarFileUrl = 'https://ghproxy.com/' + fileData.url
           }
         }
         if (tagName) {
-          const localVer = Config.appVersion.replaceAll('v', '').replaceAll('.', '').trim()
-          const remoteVer = tagName.replaceAll('v', '').replaceAll('.', '').trim()
+          const localVer = Config.appVersion.replaceAll('v', '').trim()
+          const remoteVer = tagName.replaceAll('v', '').trim()
           const fileSize = humanSize(updateData.size)
           const verInfo = this.dealText(response.data.body as string)
-          const verUrl = 'https://ghproxy.com/' + updateData.url || ''
-
-          const v1Int = parseInt(localVer), v2Int = parseInt(remoteVer)
-          if (v2Int > v1Int) {
-            if (!ServerHttp.showVer) {
-              ServerHttp.showVer = true
-              Modal.confirm({
-                okText: process.platform !== 'linux' ? '更新' : '详情',
-                cancelText: '取消',
-                title: () => h('div', {
-                  innerHTML: `有新版本<span class="vertip">${tagName}${process.platform !== 'linux' ? '【' + fileSize + '】' : ''}</span><i class="verupdate"></i>`,
-                  class: { vermodalhead: true },
-                  style: { maxWidth: '540px' }
-                }),
-                mask: true,
-                maskClosable: false,
-                escToClose: false,
-                alignCenter: true,
-                simple: true,
-                onOk: async () => {
-                  if (verUrl.length > 0 && process.platform !== 'linux') {
-                    // 下载安装
-                    await this.AutoDownload(verUrl, updateData.name)
-                    return
-                  } else {
-                    // 打开详情
-                    openExternal(html_url)
+          let verUrl = ''
+          if (updateData.url) {
+            verUrl = 'https://ghproxy.com/' + updateData.url
+          }
+          if (remoteVer > localVer) {
+            Modal.confirm({
+              mask: true,
+              alignCenter: true,
+              title: () => h('div', {
+                innerHTML: `有新版本<span class='vertip'>${tagName}</span><i class='verupdate'></i>`,
+                class: { vermodalhead: true },
+                style: { maxWidth: '540px' }
+              }),
+              content: () => h('div', {
+                innerHTML: verInfo,
+                class: { vermodal: true }
+              }),
+              onClose: () => {
+                if (updateData.name) {
+                  let resourcesPath = getResourcesPath(updateData.name)
+                  if (existsSync(resourcesPath)) {
+                    rmSync(resourcesPath, { force: true })
                   }
-                },
-                onCancel: async ()=> {
-                  if (updateData.name) {
-                    let resourcesPath = getResourcesPath(updateData.name)
-                    if (existsSync(resourcesPath)) {
-                      rmSync(resourcesPath, { force: true })
-                      return true
+                }
+                return true
+              },
+              footer: () => h(Space, {}, () => [
+                h(Button, {
+                  innerHTML: '取消',
+                  onClick: async () => {
+                    if (updateData.name) {
+                      let resourcesPath = getResourcesPath(updateData.name)
+                      if (existsSync(resourcesPath)) {
+                        rmSync(resourcesPath, { force: true })
+                      }
                     }
+                    try {
+                      // @ts-ignore
+                      document.querySelector('.arco-overlay-modal').remove()
+                    } catch (err) {
+                    }
+                    return true
                   }
-                },
-                onClose: () => ServerHttp.showVer = false,
-                content: () => h('div', {
-                  innerHTML: verInfo,
-                  class: { vermodal: true }
+                }),
+                h(Button, {
+                  type: 'outline',
+                  style: verUrl.length > 0 ? '' : 'display: none',
+                  innerHTML: process.platform !== 'linux' ? '全量更新' : '详情',
+                  onClick: async () => {
+                    if (verUrl.length > 0 && process.platform !== 'linux') {
+                      // 下载安装
+                      await this.AutoDownload(verUrl, updateData.name, false)
+                    } else {
+                      openExternal(html_url)
+                    }
+                    return true
+                  }
+                }),
+                h(Button, {
+                  type: 'primary',
+                  style: asarFileUrl.length > 0 ? '' : 'display: none',
+                  innerHTML: '热更新',
+                  onClick: async () => {
+                    if (asarFileUrl.length > 0 && process.platform !== 'linux') {
+                      // 下载安装
+                      await this.AutoDownload(asarFileUrl, updateData.name, true)
+                    }
+                    return true
+                  }
                 })
-              })
-            }
-          } else if (v2Int == v1Int) {
+              ])
+            })
+          } else if (remoteVer == localVer) {
             message.info('已经是最新版 ' + tagName, 6)
-          } else if (v2Int < v1Int) {
+          } else if (remoteVer < localVer) {
             message.info('您的本地版本 ' + Config.appVersion + ' 已高于服务器版本 ' + tagName, 6)
           }
         }
@@ -252,13 +286,13 @@ export default class ServerHttp {
     return resultTextArr.join('<br>')
   }
 
-  static async AutoDownload(appNewUrl: string, file_name: string): Promise<boolean> {
-    let resourcesPath = getResourcesPath(file_name)
-    if (existsSync(resourcesPath)) {
+  static async AutoDownload(appNewUrl: string, file_name: string, hot: boolean): Promise<boolean> {
+    let resourcesPath = hot ? getAppNewPath() : getResourcesPath(file_name)
+    if (!hot && existsSync(resourcesPath)) {
       this.autoInstallNewVersion(resourcesPath)
       return true
     }
-    message.info('新版本正在后台下载中，请耐心等待。。。。',  10)
+    message.info('新版本正在后台下载中，请耐心等待。。。。', 10)
     return axios
       .get(appNewUrl, {
         withCredentials: false,
@@ -268,12 +302,17 @@ export default class ServerHttp {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
           Expires: '0'
-        },
+        }
       })
       .then((response: AxiosResponse) => {
         writeFileSync(resourcesPath, Buffer.from(response.data))
-        this.Sleep(2000)
-        this.autoInstallNewVersion(resourcesPath)
+        if (!hot) {
+          this.Sleep(2000)
+          this.autoInstallNewVersion(resourcesPath)
+        } else {
+          message.info('热更新完毕，自动重启应用中...', 2)
+          window.WebRelaunch()
+        }
         return true
       })
       .catch(() => {
@@ -287,7 +326,7 @@ export default class ServerHttp {
     // 自动安装
     const options: SpawnOptions = { shell: true, windowsVerbatimArguments: true }
     execFile('\"' + resourcesPath + '\"', options, error => {
-      if(error) {
+      if (error) {
         message.info('安装失败，请前往文件夹手动安装', 5)
         const resources = getResourcesPath('')
         shell.openPath(path.join(resources, '/'))
