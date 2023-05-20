@@ -68,7 +68,7 @@
   "publish": [
     {
       "provider": "github",
-      "releaseType": "release"
+      "releaseType": "prerelease"
     }
   ]
 }
