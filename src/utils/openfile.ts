@@ -126,7 +126,11 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-
+  const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
+  if (!info) {
+    message.error('在线预览失败 获取文件信息出错，操作取消')
+    return
+  }
   if (weifa) {
     message.error('在线预览失败 无法预览违规文件')
     return

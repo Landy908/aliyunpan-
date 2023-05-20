@@ -6,7 +6,6 @@ import AliUser from './user'
 import message from '../utils/message'
 import DebugLog from '../utils/debuglog'
 import { v4 } from 'uuid'
-import { useSettingStore } from '../store'
 
 export interface IUrlRespData {
   code: number
@@ -40,7 +39,6 @@ function HttpCodeBreak(code: number): Boolean {
   if (code == 400) return true
   // if (code == 401) return true
   if (code >= 402 && code <= 429) return true
-  // if (code == 403) return true
   if (code == 404) return true
   if (code == 409) return true
   return false
@@ -74,7 +72,7 @@ export default class AliHttp {
       if (IsDebugHttp) console.log('CALLURLError ', error)
       const errorMessage = error.display_message || error.message || ''
       if (error.response) {
-        let { code, status, data = undefined, headers = undefined} = error.response
+        let { code, status, config, data = undefined, headers = undefined} = error.response
         if (code == 'ERR_NETWORK' || (status == 0 && !headers)) {
           DebugLog.mSaveWarning('HttpError0 message=' + errorMessage)
           return { code: 600, header: '', body: 'NetError 网络无法连接' } as IUrlRespData
@@ -100,28 +98,27 @@ export default class AliHttp {
           // 自动刷新Token
           if (data.code == 'AccessTokenInvalid') {
             if (token) {
-              if (!useSettingStore().uiEnableOpenApi && window.IsMainPage) {
-                return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                  return { code: 401, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
-                })
-              }
-              if (useSettingStore().uiEnableOpenApi) {
-                if (!useSettingStore().uiOpenApiRefreshToken) {
-                  message.error('自动刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
-                  return { code: 402, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
+              if (window.IsMainPage) {
+                const isOpenApi = config.url.includes('adrive/v1.0')
+                if (!isOpenApi) {
+                  return await AliUser.ApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
+                    if (isLogin) {
+                      return { code: 401, header: '', body: '' } as IUrlRespData
+                    }
+                    return { code: 403, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
+                  })
+                } else if (token.open_api_enable) {
+                  return await AliUser.OpenApiTokenRefreshAccount(token, true, true).then((flag: boolean) => {
+                    if (flag) {
+                      return { code: 401, header: '', body: '' } as IUrlRespData
+                    }
+                    return { code: 403, header: '', body: '刷新OpenApiToken失败，请检查配置' } as IUrlRespData
+                  })
                 }
-                return await AliUser.OpenApiTokenRefreshAccount(token, true).then((isLogin: boolean) => {
-                  return { code: 401, header: '', body: 'OpenApiRefreshToken失效或未填写，请获取后填入' } as IUrlRespData
-                })
               }
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
             }
-          }
-
-          if (data.code == 'Too Many Requests') {
-            message.error('获取OpenApiAccessToken失败，请勿重复请求')
-            return { code: 429, header: '', body: '获取OpenApiAccessToken失败，请勿重复请求' } as IUrlRespData
           }
 
           // 自动刷新Session
@@ -129,8 +126,11 @@ export default class AliHttp {
               || data.code == 'UserDeviceOffline'
               || data.code == 'DeviceSessionSignatureInvalid') {
             if (token) {
-              return await AliUser.ApiSessionRefreshAccount(token,  true).then((isLogin: boolean) => {
-                return { code: 401, header: '', body: '刷新Session失败' } as IUrlRespData
+              return await AliUser.ApiSessionRefreshAccount(token,  true).then((flag: boolean) => {
+                if (flag) {
+                  return { code: 401, header: '', body: '' } as IUrlRespData
+                }
+                return { code: 403, header: '', body: '刷新Session失败' } as IUrlRespData
               })
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
@@ -368,8 +368,8 @@ export default class AliHttp {
       }
       if (token) {
         let access_token = token.access_token
-        if (need_open_api && useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiAccessToken) {
-          access_token = useSettingStore().uiOpenApiAccessToken
+        if (need_open_api && token.open_api_enable && token.open_api_access_token) {
+          access_token = token.open_api_access_token
         }
         headers['Authorization'] = token.token_type + ' ' + access_token
         headers['x-request-id'] = v4().toString()

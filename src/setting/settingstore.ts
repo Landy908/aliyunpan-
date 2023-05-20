@@ -406,7 +406,7 @@ const useSettingStore = defineStore('setting', {
     }
   },
   actions: {
-    updateStore(partial: Partial<SettingState>) {
+    async updateStore(partial: Partial<SettingState>) {
       if (partial.uiTimeFolderFormate) partial.uiTimeFolderFormate = partial.uiTimeFolderFormate.replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
       this.$patch(partial)
       if (Object.hasOwn(partial, 'uiLaunchStart')) {
@@ -415,7 +415,7 @@ const useSettingStore = defineStore('setting', {
       if (Object.hasOwn(partial, 'uiEnableOpenApi')
           || Object.hasOwn(partial, 'uiOpenApiAccessToken')
           || Object.hasOwn(partial, 'uiOpenApiRefreshToken')) {
-        this.updateOpenApiToken()
+        await this.updateOpenApiToken()
       }
       if (Object.hasOwn(partial, 'uiShowPanMedia')
           || Object.hasOwn(partial, 'uiFolderSize')
@@ -467,6 +467,13 @@ const useSettingStore = defineStore('setting', {
         open_api_enable: this.uiEnableOpenApi,
         open_api_access_token: this.uiOpenApiAccessToken,
         open_api_refresh_token: this.uiOpenApiRefreshToken
+      })
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        refresh: true
       })
       UserDAL.SaveUserToken(token)
     }

@@ -53,14 +53,15 @@ export default class UserDAL {
       const token = tokenList[i]
       try {
         const expire_time = new Date(token.expire_time).getTime()
-        // 每3小时自动刷新
+        const open_api_expire_time = new Date(token.open_api_expires_in).getTime()
+        // 自动刷新Token(过期3分钟)
         if (expire_time - dateNow < 1000 * 60 * 3) {
           await AliUser.ApiTokenRefreshAccount(token, false)
-          await AliUser.OpenApiTokenRefreshAccount(token, false)
-        }
-        // 每1小时自动刷新
-        if (expire_time - dateNow < 1000 * 60) {
           await AliUser.ApiSessionRefreshAccount(token,  false)
+        }
+        // 自动刷新OpenApiToken(过期3分钟)
+        if (open_api_expire_time - dateNow < 1000 * 60 * 3) {
+          await AliUser.OpenApiTokenRefreshAccount(token, false)
         }
       } catch (err: any) {
         DebugLog.mSaveDanger('aRefreshAllUserToken', err)
@@ -79,6 +80,7 @@ export default class UserDAL {
       open_api_enable: false,
       open_api_access_token: '',
       open_api_refresh_token: '',
+      open_api_expires_in: 0,
 
       expires_in: 0,
       token_type: '',
@@ -168,13 +170,9 @@ export default class UserDAL {
       login: true
     })
     // 刷新Session
-    await AliUser.ApiSessionRefreshAccount(token, true)
+    await AliUser.ApiSessionRefreshAccount(token, false)
     // 刷新OpenApiToken
-    useSettingStore().updateStore( {
-      uiEnableOpenApi: token.open_api_enable,
-      uiOpenApiAccessToken: token.open_api_access_token,
-      uiOpenApiRefreshToken: token.open_api_refresh_token
-    })
+    await AliUser.OpenApiTokenRefreshAccount(token, false)
     // 刷新所有状态
     useAppStore().resetTab()
     useMyShareStore().$reset()

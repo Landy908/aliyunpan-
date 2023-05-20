@@ -80,6 +80,7 @@ export default defineComponent({
             open_api_enable: false,
             open_api_access_token: '',
             open_api_refresh_token: '',
+            open_api_expires_in: 0,
             expires_in: result.expiresIn,
             token_type: result.tokenType,
             user_id: result.userId,

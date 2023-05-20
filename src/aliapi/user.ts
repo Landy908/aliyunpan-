@@ -17,7 +17,8 @@ export const SessionLockMap = new Map<string, number>()
 export const SessionReTimeMap = new Map<string, number>()
 export default class AliUser {
 
-  static async ApiSessionRefreshAccount(token: ITokenInfo, showMessage: boolean) {
+  static async ApiSessionRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
+    if(!token.user_id) return false
     while (true) {
       const lock = SessionLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -25,7 +26,7 @@ export default class AliUser {
     }
     SessionLockMap.set(token.user_id, Date.now())
     const time = SessionReTimeMap.get(token.user_id) || 0
-    if (Date.now() - time < 1000 * 60) {
+    if (Date.now() - time < 1000 * 60 * 5) {
       SessionLockMap.delete(token.user_id)
       return true
     }
@@ -115,8 +116,17 @@ export default class AliUser {
   }
 
 
-  static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if (!token.open_api_refresh_token) return false
+  static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
+    if (!token.open_api_enable) return false
+    // 防止重复刷新
+    if (!forceRefresh && token.open_api_expires_in >= Date.now()) {
+      useSettingStore().updateStore( {
+        uiEnableOpenApi: token.open_api_enable,
+        uiOpenApiAccessToken: token.open_api_access_token,
+        uiOpenApiRefreshToken: token.open_api_refresh_token
+      })
+      return true
+    }
     while (true) {
       const lock = OpenApiTokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -124,7 +134,7 @@ export default class AliUser {
     }
     OpenApiTokenLockMap.set(token.user_id, Date.now())
     const time = OpenApiTokenReTimeMap.get(token.user_id) || 0
-    if (Date.now() - time < 1000 * 60 * 3) {
+    if (Date.now() - time < 1000 * 60 * 5) {
       OpenApiTokenLockMap.delete(token.user_id)
       return true
     }
@@ -148,6 +158,7 @@ export default class AliUser {
       })
       token.open_api_access_token = resp.body.access_token
       token.open_api_refresh_token = resp.body.refresh_token
+      token.open_api_expires_in = new Date().getTime() + resp.body.expires_in * 1000
       window.WebUserToken({
         user_id: token.user_id,
         name: token.user_name,
@@ -161,11 +172,14 @@ export default class AliUser {
       if (resp.body?.code != 'InvalidParameter.RefreshToken') {
         DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
       }
-      if (resp.body?.code == 429) {
-        message.error('重复获取OpenApiAccessToken，请稍后再试')
-      }
       if (showMessage) {
-        message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
+        if (!token.open_api_refresh_token) {
+          message.error('OpenApiRefreshToken失效或未填写，请检查配置')
+        } else if (resp.code === 429 || resp.body?.code === 'Too Many Requests') {
+          message.error('刷新OpenApiAccessToken次数过多，请稍后再试')
+        } else {
+          message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
+        }
       }
     }
     return false

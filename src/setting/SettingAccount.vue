@@ -14,22 +14,6 @@ const qrCodeLoading = ref(false)
 const qrCodeUrl = ref('')
 
 const cb = (val: any) => {
-    if (!Object.hasOwn(val, 'uiEnableOpenApi')) {
-        if (settingStore.uiOpenApiRefreshToken === '' && val.uiOpenApiAccessToken === '') {
-            message.info('AccessToken不能为空')
-            return
-        } else {
-            if (!settingStore.uiOpenApiRefreshToken
-                && settingStore.uiOpenApiAccessToken === ''
-                && val.uiOpenApiOauthUrl === '') {
-                message.info('Oauth令牌链接不能为空')
-                return
-            } else if (settingStore.uiOpenApiAccessToken === '' && val.uiOpenApiRefreshToken === '') {
-                message.info('RefreshToken不能为空')
-                return
-            }
-        }
-    }
     settingStore.updateStore(val)
 }
 
