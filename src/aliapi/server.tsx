@@ -220,7 +220,7 @@ export default class ServerHttp {
                 }),
                 h(Button, {
                   type: 'primary',
-                  style: asarFileUrl.length > 0 ? '' : 'display: none',
+                  style: asarFileUrl.length > 0 && process.platform !== 'linux' ? '' : 'display: none',
                   innerHTML: '热更新',
                   onClick: async () => {
                     if (asarFileUrl.length > 0 && process.platform !== 'linux') {
