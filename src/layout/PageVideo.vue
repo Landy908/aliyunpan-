@@ -185,11 +185,10 @@ const createVideo = async (name: string) => {
   })
 }
 
-const curDirFileList: any[] = [{ html: '', name: '', file_id: '' }]
+const curDirFileList: any[] = []
 const childDirFileList: any[] = []
 const getDirFileList = async (dir_id: string, hasDir: boolean, category: string = '', filter?: RegExp): Promise<any[]> => {
-  if (!dir_id) return []
-  if (curDirFileList.length === 0 || childDirFileList.length === 0) {
+  if (curDirFileList.length === 0 ||(hasDir && childDirFileList.length === 0)) {
     const dir = await AliDirFileList.ApiDirFileList(pageVideo.user_id, pageVideo.drive_id, dir_id, '', 'name asc', '')
     if (!dir.next_marker) {
       for (let item of dir.items) {
@@ -403,7 +402,15 @@ const getSubTitleList = async (art: Artplayer) => {
   let subSelector: selectorItem[]
   const hasDir = art.storage.get('subTitleListMode')
   // 加载二级目录(仅加载一个文件夹)
-  const file_id = !hasDir ? pageVideo.parent_file_id : curDirFileList.find(file => file.isDir).file_id || ''
+  let file_id = ''
+  if (hasDir) {
+    try {
+      file_id = curDirFileList.find(file => file.isDir).file_id
+    }catch(err) {}
+  } else {
+    file_id = pageVideo.parent_file_id
+  }
+  console.log(curDirFileList)
   let onlineSubSelector = await getDirFileList(file_id, hasDir, '', /srt|vtt|ass/) || []
   // console.log('onlineSubSelector', onlineSubSelector)
   subSelector = [...embedSubSelector, ...onlineSubSelector]
