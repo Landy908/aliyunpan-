@@ -316,8 +316,6 @@ const getVideoInfo = async (art: Artplayer, play_cursor?: number) => {
     }
     // 字幕列表
     await getSubTitleList(art)
-    // 进度
-    await getVideoCursor(art, play_cursor)
   }
 }
 
