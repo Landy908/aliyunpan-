@@ -57,8 +57,13 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
       maxBufferLength: 20,
       maxBufferSize: 60 * 1000 * 1000
     })
+    hls.detachMedia()
     hls.loadSource(url)
     hls.attachMedia(video)
+    hls.on(HlsJs.Events.MANIFEST_PARSED, async () => {
+      await art.play()
+      await getVideoCursor(art)
+    })
     hls.on(HlsJs.Events.ERROR, (event, data) => {
       const errorType = data.type
       const errorDetails = data.details
@@ -68,6 +73,8 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
           hls.recoverMediaError()
         } else if (errorType === HlsJs.ErrorTypes.NETWORK_ERROR) {
           art.emit('video:ended', data)
+        } else {
+          hls.destroy()
         }
       }
     })
@@ -188,7 +195,7 @@ const createVideo = async (name: string) => {
 const curDirFileList: any[] = []
 const childDirFileList: any[] = []
 const getDirFileList = async (dir_id: string, hasDir: boolean, category: string = '', filter?: RegExp): Promise<any[]> => {
-  if (curDirFileList.length === 0 ||(hasDir && childDirFileList.length === 0)) {
+  if (curDirFileList.length === 0 || (hasDir && childDirFileList.length === 0)) {
     const dir = await AliDirFileList.ApiDirFileList(pageVideo.user_id, pageVideo.drive_id, dir_id, '', 'name asc', '')
     if (!dir.next_marker) {
       for (let item of dir.items) {
@@ -218,7 +225,7 @@ const getDirFileList = async (dir_id: string, hasDir: boolean, category: string 
 
 const refreshSetting = async (art: Artplayer, item: any) => {
   // 刷新文件
-  pageVideo.html = item.html.length > 20 ? item.html.substring(0, 40) + '...' : item.html
+  pageVideo.html = item.html
   pageVideo.file_name = item.html
   pageVideo.file_id = item.file_id || ''
   // 刷新信息
@@ -350,9 +357,10 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
       index: 10,
       position: 'right',
       style: { padding: '0 10px' },
-      html: pageVideo.html,
+      html: pageVideo.html.length > 20 ? pageVideo.html.substring(0, 40) + '...' : pageVideo.html,
       selector: playList,
       onSelect: async (item: SettingOption) => {
+        updateVideoTime()
         await refreshSetting(art, item)
         return item.html.length > 20 ? item.html.substring(0, 40) + '...' : item.html
       }
@@ -361,7 +369,6 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
 }
 
 const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
-  await art.play()
   if (art.storage.get('autoJumpCursor')) {
     // 进度
     if (play_cursor) {
@@ -406,11 +413,11 @@ const getSubTitleList = async (art: Artplayer) => {
   if (hasDir) {
     try {
       file_id = curDirFileList.find(file => file.isDir).file_id
-    }catch(err) {}
+    } catch (err) {
+    }
   } else {
     file_id = pageVideo.parent_file_id
   }
-  console.log(curDirFileList)
   let onlineSubSelector = await getDirFileList(file_id, hasDir, '', /srt|vtt|ass/) || []
   // console.log('onlineSubSelector', onlineSubSelector)
   subSelector = [...embedSubSelector, ...onlineSubSelector]
