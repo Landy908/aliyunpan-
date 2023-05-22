@@ -7,7 +7,7 @@
     "name": "Odomu",
     "email": "linla1205@163.com"
   },
-  "license": "",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build && electron-builder"
@@ -70,6 +70,7 @@
     }
   },
   "keywords": [
+    "aliyunpan",
     "electron",
     "rollup",
     "vite",
