@@ -6,19 +6,22 @@
   "compression": "maximum",
   "directories": { "output": "release" },
   "files": [ "dist" ],
+  "extraResources": [
+    { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
+    { "from": "./static/crx", "to": "./crx"},
+    { "from": "./app.ico", "to": "."},
+    { "from": "./app.png", "to": "."}
+  ],
   "mac": {
     "type": "distribution",
     "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
     "darkModeSupport": true,
     "hardenedRuntime": true,
     "category": "public.app-category.utilities",
-    "extraResources": [
-      { "from": "./static/engine/darwin/${arch}", "to": "./engine" },
-      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
-      { "from": "./static/crx", "to": "./crx"},
-      { "from": "./app.ico", "to": "."},
-      { "from": "./app.png", "to": "."}
-    ],
+    "extraResources": {
+      "from": "./static/engine/darwin/${arch}",
+      "to": "./engine"
+    },
     "target": [
       { "target": "dmg", "arch": [ "x64", "arm64" ] }
     ]
@@ -26,13 +29,10 @@
   "linux": {
     "category": "Network",
     "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
-    "extraResources": [
-      { "from": "./static/engine/linux/${arch}", "to": "./engine"},
-      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
-      { "from": "./static/crx", "to": "./crx"},
-      { "from": "./app.ico", "to": "."},
-      { "from": "./app.png", "to": "."}
-    ],
+    "extraResources": {
+      "from": "./static/engine/linux/${arch}",
+      "to": "./engine"
+    },
     "target": [
       { "target": "AppImage", "arch": [  "x64", "arm64", "armv7l" ] },
       { "target": "deb", "arch": [ "x64",  "arm64", "armv7l" ] }
@@ -41,13 +41,10 @@
   "win": {
     "icon": "./app.ico",
     "artifactName": "${productName}-${version}-win-${arch}.${ext}",
-    "extraResources": [
-      { "from": "./static/engine/win32/${arch}", "to": "./engine"},
-      { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
-      { "from": "./static/crx", "to": "./crx"},
-      { "from": "./app.ico", "to": "."},
-      { "from": "./app.png", "to": "."}
-    ],
+    "extraResources": {
+      "from": "./static/engine/win32/${arch}",
+      "to": "./engine"
+    },
     "target": [
       { "target": "nsis", "arch": [ "x64", "ia32" ] }
     ]
@@ -61,6 +58,8 @@
   },
   "nsis": {
     "oneClick": false,
+    "perMachine": true,
+    "allowElevation": true,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },
