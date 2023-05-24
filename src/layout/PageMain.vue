@@ -22,6 +22,7 @@ import { throttle } from '../utils/debounce'
 import ServerHttp from '../aliapi/server'
 import Config from '../config'
 import { existsSync, readFileSync } from 'fs'
+import os from 'os'
 
 const panVisible = ref(true)
 const appStore = useAppStore()
@@ -133,6 +134,9 @@ onUnmounted(() => {
 })
 
 const getAppVersion = () => {
+  if (os.platform() === 'linux') {
+    return Config.appVersion
+  }
   let appVersion = ''
   const localVersion = getResourcesPath('localVersion')
   if (localVersion && existsSync(localVersion)) {

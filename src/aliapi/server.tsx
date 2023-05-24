@@ -157,9 +157,11 @@ export default class ServerHttp {
         }
         if (tagName) {
           let configVer = Config.appVersion.replaceAll('v', '').trim()
-          let localVersion = getResourcesPath('localVersion')
-          if (localVersion && existsSync(localVersion)) {
-            configVer = readFileSync(localVersion, 'utf-8').replaceAll('v', '').trim()
+          if (process.platform !== 'linux') {
+            let localVersion = getResourcesPath('localVersion')
+            if (localVersion && existsSync(localVersion)) {
+              configVer = readFileSync(localVersion, 'utf-8').replaceAll('v', '').trim()
+            }
           }
           const remoteVer = tagName.replaceAll('v', '').trim()
           const verInfo = this.dealText(response.data.body as string)

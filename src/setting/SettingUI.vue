@@ -14,6 +14,9 @@ const cb = (val: any) => {
 }
 
 const getAppVersion = () => {
+  if (os.platform() === 'linux') {
+    return Config.appVersion
+  }
   let appVersion = ''
   const localVersion = getResourcesPath('localVersion')
   if (localVersion && existsSync(localVersion)) {

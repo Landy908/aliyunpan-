@@ -132,14 +132,16 @@ ipcMain.on('WebUserToken', (event, data) => {
 app
   .whenReady()
   .then(() => {
-    const localVersion = getResourcesPath('localVersion')
-    if (localVersion && existsSync(localVersion)) {
-      const version = readFileSync(localVersion, 'utf-8')
-      if (version < app.getVersion()) {
+    if (process.platform !== 'linux') {
+      const localVersion = getResourcesPath('localVersion')
+      if (localVersion && existsSync(localVersion)) {
+        const version = readFileSync(localVersion, 'utf-8')
+        if (version < app.getVersion()) {
+          writeFileSync(localVersion, app.getVersion(), 'utf-8')
+        }
+      } else {
         writeFileSync(localVersion, app.getVersion(), 'utf-8')
       }
-    } else {
-      writeFileSync(localVersion, app.getVersion(), 'utf-8')
     }
     session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
       const should115Referer = details.url.indexOf('.115.com') > 0
