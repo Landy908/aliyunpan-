@@ -32,6 +32,8 @@ export interface SettingState {
 
   uiExitOnClose: boolean
 
+  uiLaunchAutoCheckUpdate: boolean
+
   uiLaunchAutoSign: boolean
 
   uiLaunchStart: boolean
@@ -174,6 +176,7 @@ const setting: SettingState = {
   uiShowPanPath: true,
   uiShowPanMedia: false,
   uiExitOnClose: false,
+  uiLaunchAutoCheckUpdate: false,
   uiLaunchAutoSign: false,
   uiLaunchStart: false,
   uiLaunchStartShow: false,
@@ -261,6 +264,7 @@ function _loadSetting(val: any) {
   setting.uiShowPanPath = defaultBool(val.uiShowPanPath, true)
   setting.uiShowPanMedia = defaultBool(val.uiShowPanMedia, false)
   setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
+  setting.uiLaunchAutoCheckUpdate = defaultBool(val.uiLaunchAutoCheckUpdate, true)
   setting.uiLaunchAutoSign = defaultBool(val.uiLaunchAutoSign, false)
   setting.uiLaunchStart = defaultBool(val.uiLaunchStart, false)
   setting.uiLaunchStartShow = defaultBool(val.uiLaunchStartShow, false)

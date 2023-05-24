@@ -5,14 +5,26 @@ import MySwitch from '../layout/MySwitch.vue'
 import Config from '../config'
 import ServerHttp from '../aliapi/server'
 import os from 'os'
+import { getResourcesPath, getUserDataPath } from '../utils/electronhelper'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {
   settingStore.updateStore(val)
 }
 
-const verLoading = ref(false)
+const getAppVersion = () => {
+  let appVersion = ''
+  const localVersion = getResourcesPath('localVersion')
+  if (localVersion && existsSync(localVersion)) {
+    appVersion = readFileSync(localVersion, 'utf-8')
+  } else {
+    appVersion = Config.appVersion
+  }
+  return appVersion
+}
 
+const verLoading = ref(false)
 const handleCheckVer = () => {
   verLoading.value = true
   ServerHttp.CheckUpgrade().then(() => {
@@ -23,7 +35,7 @@ const handleCheckVer = () => {
 
 <template>
   <div class="settingcard">
-    <div class="appver">阿里云盘小白羊版 {{ Config.appVersion }}</div>
+    <div class="appver">阿里云盘小白羊版 {{ getAppVersion() }}</div>
     <div class="appver">
       <a-button type="outline" size="mini" tabindex="-1" :loading="verLoading" @click="handleCheckVer">检查更新</a-button>
     </div>
@@ -36,6 +48,11 @@ const handleCheckVer = () => {
         <a-radio tabindex="-1" value="light">浅色模式</a-radio>
         <a-radio tabindex="-1" value="dark">深色模式</a-radio>
       </a-radio-group>
+    </div>
+    <div class="settingspace"></div>
+    <div class="settinghead">:启动时检查更新</div>
+    <div class="settingrow">
+      <MySwitch :value="settingStore.uiLaunchAutoCheckUpdate" @update:value="cb({ uiLaunchAutoCheckUpdate: $event })">自动检查更新</MySwitch>
     </div>
     <div class="settingspace"></div>
     <div class="settinghead">:启动时自动签到</div>

@@ -132,12 +132,19 @@ ipcMain.on('WebUserToken', (event, data) => {
 app
   .whenReady()
   .then(() => {
+    const localVersion = getResourcesPath('localVersion')
+    if (localVersion && existsSync(localVersion)) {
+      const version = readFileSync(localVersion, 'utf-8')
+      if (version < app.getVersion()) {
+        writeFileSync(localVersion, app.getVersion(), 'utf-8')
+      }
+    } else {
+      writeFileSync(localVersion, app.getVersion(), 'utf-8')
+    }
     session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
-
       const should115Referer = details.url.indexOf('.115.com') > 0
       const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
       const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0
-
       const shouldAliReferer = !should115Referer && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
       const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
       const shouldOpenApiToken = details.url.includes('adrive/v1.0')

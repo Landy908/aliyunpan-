@@ -29,6 +29,13 @@ export function PageMain() {
     .then(async () => {
       await Sleep(500)
 
+      // 启动时检查更新
+      if (useSettingStore().uiLaunchAutoCheckUpdate) {
+        ServerHttp.CheckUpgrade().catch((err: any) => {
+          DebugLog.mSaveDanger('CheckUpgrade', err)
+        })
+      }
+      // 重新启动未完成的下载和上传任务
       await DownDAL.aReloadDowning().catch((err: any) => {
         DebugLog.mSaveDanger('aReloadDowning', err)
       })

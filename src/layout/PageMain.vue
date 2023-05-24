@@ -21,6 +21,7 @@ import { B64decode } from '../utils/format'
 import { throttle } from '../utils/debounce'
 import ServerHttp from '../aliapi/server'
 import Config from '../config'
+import { existsSync, readFileSync } from 'fs'
 
 const panVisible = ref(true)
 const appStore = useAppStore()
@@ -131,9 +132,18 @@ onUnmounted(() => {
   window.removeEventListener('click', onHideRightMenu)
 })
 
+const getAppVersion = () => {
+  let appVersion = ''
+  const localVersion = getResourcesPath('localVersion')
+  if (localVersion && existsSync(localVersion)) {
+    appVersion = readFileSync(localVersion, 'utf-8')
+  } else {
+    appVersion = Config.appVersion
+  }
+  return appVersion
+}
 
 const verLoading = ref(false)
-
 const handleCheckVer = () => {
   verLoading.value = true
   ServerHttp.CheckUpgrade().then(() => {
@@ -236,7 +246,7 @@ const handleCheckVer = () => {
             <span class="footAria" title="Aria已离线" v-else> Aria ⚯ Offline </span>
           </div>
 
-          <div class="footerBar fix" style="padding: 0 8px; cursor: pointer" @click="handleCheckVer">{{ Config.appVersion }}</div>
+          <div class="footerBar fix" style="padding: 0 8px; cursor: pointer" @click="handleCheckVer">{{ getAppVersion() }}</div>
 
           <a-popover v-model:popup-visible="footStore.taskVisible" trigger="click" position="top" class="asynclist">
             <div class="footerBar fix" style="cursor: pointer">
