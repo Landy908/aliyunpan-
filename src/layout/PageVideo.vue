@@ -7,7 +7,6 @@ import HlsJs from 'hls.js'
 import AliFile from '../aliapi/file'
 import AliDirFileList from '../aliapi/dirfilelist'
 import levenshtein from 'fast-levenshtein'
-import { IVideoPreviewUrl } from '../aliapi/models'
 import { type SettingOption } from 'artplayer/types/setting'
 import { type Option } from 'artplayer/types/option'
 
@@ -62,7 +61,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
     hls.attachMedia(video)
     hls.on(HlsJs.Events.MANIFEST_PARSED, async () => {
       await art.play()
-      await getVideoCursor(art)
+      await getVideoCursor(art, pageVideo.play_cursor)
     })
     hls.on(HlsJs.Events.ERROR, (event, data) => {
       const errorType = data.type
@@ -159,7 +158,12 @@ const createVideo = async (name: string) => {
   const muted = storage.get('videoMuted')
   if (muted) ArtPlayerRef.muted = muted === 'true'
   // 监听事件
-  ArtPlayerRef.on('ready', () => {
+  ArtPlayerRef.on('ready', async () => {
+    // @ts-ignore
+    if (!ArtPlayerRef.hls && !ArtPlayerRef.flv) {
+      await ArtPlayerRef.play()
+      await getVideoCursor(ArtPlayerRef, pageVideo.play_cursor)
+    }
     // 视频播放完毕
     ArtPlayerRef.on('video:ended', () => {
       updateVideoTime()
@@ -226,10 +230,11 @@ const getDirFileList = async (dir_id: string, hasDir: boolean, category: string 
 const refreshSetting = async (art: Artplayer, item: any) => {
   // 刷新文件
   pageVideo.html = item.html
+  pageVideo.play_cursor = item.play_cursor
   pageVideo.file_name = item.html
   pageVideo.file_id = item.file_id || ''
   // 刷新信息
-  await getVideoInfo(art, item.play_cursor)
+  await getVideoInfo(art)
 }
 
 const defaultSetting = async (art: Artplayer) => {
@@ -273,10 +278,9 @@ const defaultSetting = async (art: Artplayer) => {
   })
 }
 
-const getVideoInfo = async (art: Artplayer, play_cursor?: number) => {
+const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
-  const data: IVideoPreviewUrl | undefined =
-    await AliFile.ApiVideoPreviewUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
+  const data: any = await AliFile.ApiVideoPreviewUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
   if (data) {
     // 画质
     const qualitySelector: selectorItem[] = []
@@ -295,12 +299,12 @@ const getVideoInfo = async (art: Artplayer, play_cursor?: number) => {
       style: { marginRight: '10px' },
       html: qualityDefault ? qualityDefault.html : '',
       selector: qualitySelector,
-      onSelect: (item: selectorItem) => {
-        art.switchQuality(item.url)
+      onSelect: async (item: selectorItem) => {
+        await art.switchQuality(item.url)
       }
     })
-    const subtitles = data.subtitles || []
     // 内嵌字幕
+    const subtitles = data.subtitles || []
     if (subtitles.length > 0) {
       for (let i = 0; i < subtitles.length; i++) {
         embedSubSelector.push({
@@ -388,7 +392,7 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
 const loadOnlineSub = async (art: Artplayer, item: any) => {
   const data = await AliFile.ApiFileDownloadUrl(pageVideo.user_id, pageVideo.drive_id, item.file_id, 14400)
   if (typeof data !== 'string' && data.url && data.url != '') {
-    art.subtitle.switch(data.url, {
+    await art.subtitle.switch(data.url, {
       name: item.name,
       type: item.ext,
       encoding: 'utf-8',

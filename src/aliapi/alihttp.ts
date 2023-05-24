@@ -107,7 +107,11 @@ export default class AliHttp {
                     }
                     return { code: 403, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
                   })
-                } else if (token.open_api_enable) {
+                }
+                if (isOpenApi && token.open_api_enable) {
+                  if (token.open_api_access_token && !token.open_api_refresh_token) {
+                    return { code: 403, header: '', body: '刷新OpenApiToken失败，未填写OpenApi【RefreshToken】无法自动刷新【AccessToken】' } as IUrlRespData
+                  }
                   return await AliUser.OpenApiTokenRefreshAccount(token, true, true).then((flag: boolean) => {
                     if (flag) {
                       return { code: 401, header: '', body: '' } as IUrlRespData

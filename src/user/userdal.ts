@@ -60,7 +60,7 @@ export default class UserDAL {
           await AliUser.ApiSessionRefreshAccount(token,  false)
         }
         // 自动刷新OpenApiToken(过期3分钟)
-        if (open_api_expire_time - dateNow < 1000 * 60 * 3) {
+        if (token.open_api_enable && (open_api_expire_time - dateNow < 1000 * 60 * 3)) {
           await AliUser.OpenApiTokenRefreshAccount(token, false)
         }
       } catch (err: any) {

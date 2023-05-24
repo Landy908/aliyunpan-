@@ -95,7 +95,11 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
 
   if (resp.state == '密码错误' && useSettingStore().yinsiZipPassword) {
 
-    password = await ServerHttp.PostToServer({ cmd: 'GetZipPwd', sha1: info.content_hash, size: info.size }).then((serdata) => {
+    password = await ServerHttp.PostToServer({
+      cmd: 'GetZipPwd',
+      sha1: info.content_hash,
+      size: info.size
+    }).then((serdata) => {
       if (serdata.password) return serdata.password
       return ''
     })
@@ -126,15 +130,13 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
-  if (!info) {
-    message.error('在线预览失败 获取文件信息出错，操作取消')
-    return
-  }
   if (weifa) {
     message.error('在线预览失败 无法预览违规文件')
     return
   }
+  // 获取文件信息
+  const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
+
   message.loading('Loading...', 2)
   const settingStore = useSettingStore()
   if (settingStore.uiAutoColorVideo && !dec) {
@@ -144,7 +146,14 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
   }
 
   if (settingStore.uiVideoPlayer == 'web') {
-    const pageVideo: IPageVideo = { user_id: token.user_id, drive_id, file_id, parent_file_id, file_name: name, html: name }
+    const pageVideo: IPageVideo = {
+      drive_id, file_id,
+      parent_file_id,
+      user_id: token.user_id,
+      file_name: name,
+      html: name,
+      play_cursor: info && info.play_cursor || 0
+    }
     window.WebOpenWindow({ page: 'PageVideo', data: pageVideo, theme: 'dark' })
     return
   }
@@ -175,11 +184,14 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
     window.WebOpenUrl({
       PageUrl: 'mpv://' + url
     })
-  } if (settingStore.uiVideoPlayer == 'potplayer') {
+  }
+  if (settingStore.uiVideoPlayer == 'potplayer') {
     window.WebOpenUrl({
       PageUrl: 'potplayer://' + url
     })
   } else {
+    let titleStr = CleanStringForCmd(title)
+    let referer = token.open_api_enable ? 'https://open.aliyundrive.com/' : 'https://www.aliyundrive.com/'
     let command = settingStore.uiVideoPlayerPath
     let args = ['"' + url + '"']
     if (url.indexOf('x-oss-additional-headers=referer') > 0) {
@@ -190,25 +202,26 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
       command = '"' + settingStore.uiVideoPlayerPath + '"'
       args = ['"' + url + '"'] //win 双引号包裹
       if (command.toLowerCase().indexOf('potplayer') > 0) {
-        args = ['"' + url + '"', '/new', '/referer=https://www.aliyundrive.com/', '/title="' + CleanStringForCmd(title) + '"']
+        args = ['"' + url + '"', '/new', '/referer="' + referer + '"', '/title="' + titleStr + '"']
       } else if (command.toLowerCase().indexOf('mpv') > 0) {
-        args = ['"' + url + '"', '--referrer=https://www.aliyundrive.com/', '--title="' + CleanStringForCmd(title) + '"']
+        args = ['"' + url + '"', '--referrer=' + referer + '"', '--title="' + titleStr + '"']
       }
     } else if (window.platform == 'darwin') {
-      if (command.includes("mpv.app")) {
-        command = "open -a '" + command + "'" + " --args "
+      if (command.includes('mpv.app')) {
+        command = 'open -a \'' + command + '\'' + ' --args '
       } else {
-        command = "open -a '" + command + "'"
+        command = 'open -a \'' + command + '\''
       }
-      args = ["'" + url + "'"] //mac 单引号包裹
+      args = ['\'' + url + '\''] //mac 单引号包裹
     } else if (window.platform == 'linux') {
       command = settingStore.uiVideoPlayerPath //不能加引号
-      args = ["'" + url + "'"] //linux 单引号包裹
+      args = ['\'' + url + '\''] //linux 单引号包裹
     } else {
       message.error('不支持的系统，操作取消')
       return
     }
-    window.WebExecSync({  command, args }, (rdata: any) => {})
+    window.WebExecSync({ command, args }, (rdata: any) => {
+    })
   }
 }
 
@@ -235,7 +248,15 @@ async function Image(drive_id: string, file_id: string, name: string): Promise<v
     return
   }
 
-  const pageImage: IPageImage = { user_id: token.user_id, drive_id, file_id, file_name: name, mode: useSettingStore().uiImageMode, imageidlist: imageidList, imagenamelist: imagenameList }
+  const pageImage: IPageImage = {
+    user_id: token.user_id,
+    drive_id,
+    file_id,
+    file_name: name,
+    mode: useSettingStore().uiImageMode,
+    imageidlist: imageidList,
+    imagenamelist: imagenameList
+  }
   window.WebOpenWindow({ page: 'PageImage', data: pageImage, theme: 'dark' })
 }
 
@@ -252,7 +273,14 @@ async function Office(drive_id: string, file_id: string, name: string): Promise<
     message.error('获取文件预览链接失败，操作取消')
     return
   }
-  const pageOffice: IPageOffice = { user_id: token.user_id, drive_id, file_id, file_name: name, preview_url: data.preview_url, access_token: data.access_token }
+  const pageOffice: IPageOffice = {
+    user_id: token.user_id,
+    drive_id,
+    file_id,
+    file_name: name,
+    preview_url: data.preview_url,
+    access_token: data.access_token
+  }
   window.WebOpenWindow({ page: 'PageOffice', data: pageOffice })
 }
 
@@ -289,7 +317,15 @@ async function Code(drive_id: string, file_id: string, name: string, codeExt: st
     return
   }
 
-  const pageCode: IPageCode = { user_id: token.user_id, drive_id, file_id, file_name: name, code_ext: codeExt, file_size: fileSize, download_url: data.url }
+  const pageCode: IPageCode = {
+    user_id: token.user_id,
+    drive_id,
+    file_id,
+    file_name: name,
+    code_ext: codeExt,
+    file_size: fileSize,
+    download_url: data.url
+  }
   window.WebOpenWindow({ page: 'PageCode', data: pageCode, theme: 'dark' })
 }
 
