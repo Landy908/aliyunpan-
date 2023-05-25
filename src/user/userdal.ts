@@ -207,14 +207,18 @@ export default class UserDAL {
     for (const [user_id, token] of UserTokenMap) {
       const isLogin = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, false))
       if (isLogin) {
-        await this.UserLogin(token).catch(() => {
-        })
+        await this.UserLogin(token)
         newUserID = user_id
         break
       }
     }
 
     if (!newUserID) {
+      await useSettingStore().updateStore({
+        uiEnableOpenApi: false,
+        uiOpenApiAccessToken: '',
+        uiOpenApiRefreshToken: ''
+      })
       useUserStore().userLogOff()
       usePanTreeStore().$reset()
       usePanFileStore().$reset()

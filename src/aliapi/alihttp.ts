@@ -96,7 +96,7 @@ export default class AliHttp {
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
-          if (data.code == 'AccessTokenInvalid') {
+          if (data.code == 'AccessTokenInvalid' || data.code == 'TokenVerifyFailed') {
             if (token) {
               if (window.IsMainPage) {
                 const isOpenApi = config.url.includes('adrive/v1.0')
