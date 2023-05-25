@@ -298,6 +298,13 @@ export function creatElectronWindow(width: number, height: number, center: boole
       preload: getAsarPath('dist/electron/preload/index.js')
     }
   })
+  win.webContents.on('before-input-event', (_, input: Electron.Input) => {
+    if (input.type === 'keyDown' && input.key === 'F12') {
+      win.webContents.isDevToolsOpened()
+        ? win.webContents.closeDevTools()
+        : win.webContents.openDevTools({ mode: 'bottom' })
+    }
+  })
   win.removeMenu()
   if (DEBUGGING) {
     const url = `http://localhost:${process.env.VITE_DEV_SERVER_PORT}`
@@ -312,7 +319,7 @@ export function creatElectronWindow(width: number, height: number, center: boole
   if (DEBUGGING && devTools) {
     if (width < 100) win.setSize(800, 600)
     win.show()
-    win.webContents.openDevTools({ mode: 'detach' })
+    win.webContents.openDevTools({ mode: 'bottom' })
   } else {
     win.webContents.on('devtools-opened', () => {
       if (win) win.webContents.closeDevTools()
