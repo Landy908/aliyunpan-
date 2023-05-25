@@ -230,7 +230,15 @@ export default class ServerHttp {
                   onClick: async () => {
                     if (asarFileUrl.length > 0 && process.platform !== 'linux') {
                       // 下载安装
-                      await this.AutoDownload(asarFileUrl, updateData.name, true, remoteVer)
+                      const flag = await this.AutoDownload(asarFileUrl, updateData.name, true)
+                      // 更新本地版本号
+                      if (flag && tagName) {
+                        message.info('热更新完毕，自动重启应用中...', 5)
+                        const localVersion = getResourcesPath('localVersion')
+                        localVersion && writeFileSync(localVersion, tagName, 'utf-8')
+                        await this.Sleep(2000)
+                        window.WebRelaunch()
+                      }
                     }
                     return true
                   }
@@ -245,6 +253,7 @@ export default class ServerHttp {
         }
       })
       .catch((err: any) => {
+        message.info('检查更新失败，请检查网络是否正常')
         DebugLog.mSaveDanger('CheckUpgrade', err)
       })
   }
@@ -291,13 +300,13 @@ export default class ServerHttp {
     return resultTextArr.join('<br>')
   }
 
-  static async AutoDownload(appNewUrl: string, file_name: string, hot: boolean, hotVer?: string): Promise<boolean> {
+  static async AutoDownload(appNewUrl: string, file_name: string, hot: boolean): Promise<boolean> {
     let resourcesPath = hot ? getAppNewPath() : getResourcesPath(file_name)
     if (!hot && existsSync(resourcesPath)) {
       this.autoInstallNewVersion(resourcesPath)
       return true
     }
-    message.info('新版本正在后台下载中，请耐心等待。。。。', 10)
+    message.info('新版本正在后台下载中，请耐心等待。。。。', 2)
     return axios
       .get(appNewUrl, {
         withCredentials: false,
@@ -314,15 +323,6 @@ export default class ServerHttp {
         if (!hot) {
           this.Sleep(2000)
           this.autoInstallNewVersion(resourcesPath)
-        } else {
-          // 更新本地版本号
-          if (hotVer) {
-            const localVersion = getResourcesPath('localVersion')
-            localVersion && writeFileSync(localVersion, hotVer, 'utf-8')
-          }
-          message.info('热更新完毕，自动重启应用中...', 5)
-          this.Sleep(1000)
-          window.WebRelaunch()
         }
         return true
       })
