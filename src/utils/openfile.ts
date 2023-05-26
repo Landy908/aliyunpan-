@@ -281,7 +281,7 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
         '--start=\'' + humanTime(play_cursor) + '\''
       ]
       if (subTitleUrl.length > 0) {
-        args.push('--sub-file="' + subTitleUrl + '"')
+        args.push('--sub-file=\'' + subTitleUrl + '\'')
       }
      }                                              
     } else {
