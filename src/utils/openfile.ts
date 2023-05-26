@@ -268,7 +268,8 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
           command = 'open -a \'' + command + '\''
         }
       }
-      args = [
+      if(command.toLowerCase().indexOf('mpv') > 0) {      
+        args = [
         '\'' + url + '\'',
         '--force-window=immediate',
         '--geometry=50%',
@@ -284,6 +285,7 @@ async function Video(drive_id: string, file_id: string, parent_file_id: string, 
       if (subTitleUrl.length > 0) {
         args.push('--sub-file="' + subTitleUrl + '"')
       }
+     }                                              
     } else {
       message.error('不支持的系统，操作取消')
       return
