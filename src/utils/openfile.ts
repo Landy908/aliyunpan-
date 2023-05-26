@@ -13,8 +13,6 @@ import message from './message'
 import { modalArchive, modalArchivePassword } from './modal'
 import { humanTime, Sleep } from './format'
 import levenshtein from 'fast-levenshtein'
-import path from 'path'
-import net from 'net'
 
 export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
   if (clickWait('menuOpenFile', 500)) return
