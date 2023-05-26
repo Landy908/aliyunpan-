@@ -56,27 +56,29 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
     }
     // 选择字幕
     let subTitleFileId = ''
-    if (useSettingStore().uiVideoSubtitleMode === 'auto') {
-      let listDataRaw = usePanFileStore().ListDataRaw || []
-      let subTitlesList = listDataRaw && listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
-      if (subTitlesList && subTitlesList.length > 0) {
-        let similarity = { distance: 999, index: 0 }
-        for (let i = 0; i < subTitlesList.length; i++) {
-          // 莱文斯坦距离算法(计算相似度)
-          const distance = levenshtein.get(file.name, subTitlesList[i].name, { useCollator: true })
-          if (similarity.distance > distance) {
-            similarity.distance = distance
-            similarity.index = i
+    if (useSettingStore().uiVideoPlayer === 'other') {
+      if (useSettingStore().uiVideoSubtitleMode === 'auto') {
+        let listDataRaw = usePanFileStore().ListDataRaw || []
+        let subTitlesList = listDataRaw && listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
+        if (subTitlesList && subTitlesList.length > 0) {
+          let similarity = { distance: 999, index: 0 }
+          for (let i = 0; i < subTitlesList.length; i++) {
+            // 莱文斯坦距离算法(计算相似度)
+            const distance = levenshtein.get(file.name, subTitlesList[i].name, { useCollator: true })
+            if (similarity.distance > distance) {
+              similarity.distance = distance
+              similarity.index = i
+            }
+          }
+          // 自动加载同名字幕
+          if (similarity.distance !== 999) {
+            subTitleFileId = subTitlesList[similarity.index].file_id
           }
         }
-        // 自动加载同名字幕
-        if (similarity.distance !== 999) {
-          subTitleFileId = subTitlesList[similarity.index].file_id
-        }
-      }
-    } else if (useSettingStore().uiVideoSubtitleMode === 'select'){
-      // TODO 手动选择字幕文件
-    } else {}
+      } else if (useSettingStore().uiVideoSubtitleMode === 'select'){
+        // TODO 手动选择字幕文件
+      } else {}
+    }
     Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
     return
   }
