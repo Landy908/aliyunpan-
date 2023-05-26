@@ -55,27 +55,27 @@ onUnmounted(() => {
       <a-menu :selected-keys="[appStore.GetAppTabMenu]" :style="{ width: '100%' }" class="xbyleftmenu" @update:selected-keys="appStore.toggleTabMenu('setting', $event[0])">
         <a-menu-item key="SettingUI">
           <template #icon><i class="iconfont iconui" /></template>
-          应用
+          应用设置
         </a-menu-item>
         <a-menu-item key="SettingAccount">
             <template #icon><i class="iconfont iconrobot" /></template>
-            账户
+            账户设置
         </a-menu-item>
         <a-menu-item key="SettingDown">
           <template #icon><i class="iconfont icondownload" /></template>
-          下载
+          下载文件
         </a-menu-item>
         <a-menu-item key="SettingUpload">
           <template #icon><i class="iconfont iconupload" /></template>
-          上传
+          上传文件
         </a-menu-item>
         <a-menu-item key="SettingPlay">
           <template #icon><i class="iconfont iconshipin" /></template>
-          在线播放
+          在线预览
         </a-menu-item>
         <a-menu-item key="SettingPan">
           <template #icon><i class="iconfont iconfile-folder" /></template>
-          网盘
+          网盘设置
         </a-menu-item>
         <a-menu-item key="SettingDebug">
           <template #icon><i class="iconfont iconlogoff" /></template>
@@ -100,38 +100,38 @@ onUnmounted(() => {
         <div id="SettingUI">
           <div>
             <div style="height: 10px"></div>
-            <a-divider orientation="center" class="settinghr">应用</a-divider>
+            <a-divider orientation="center" class="settinghr">应用设置</a-divider>
           </div>
           <SettingUI />
         </div>
         <div id="SettingAccount">
             <div>
-                <a-divider orientation="center" class="settinghr">账户</a-divider>
+                <a-divider orientation="center" class="settinghr">账户设置</a-divider>
             </div>
             <SettingAccount />
         </div>
         <div id="SettingDown">
           <div>
-            <a-divider orientation="center" class="settinghr">下载</a-divider>
+            <a-divider orientation="center" class="settinghr">下载文件</a-divider>
           </div>
           <SettingDown />
         </div>
 
         <div id="SettingUpload">
           <div>
-            <a-divider orientation="center" class="settinghr">上传</a-divider>
+            <a-divider orientation="center" class="settinghr">上传文件</a-divider>
           </div>
           <SettingUpload />
         </div>
         <div id="SettingPlay">
           <div>
-            <a-divider orientation="center" class="settinghr">在线播放</a-divider>
+            <a-divider orientation="center" class="settinghr">在线预览</a-divider>
           </div>
           <SettingPlay />
         </div>
         <div id="SettingPan">
           <div>
-            <a-divider orientation="center" class="settinghr">网盘</a-divider>
+            <a-divider orientation="center" class="settinghr">网盘设置</a-divider>
           </div>
           <SettingPan />
         </div>

@@ -145,13 +145,13 @@ export default class ServerHttp {
           }
           if (platform === 'win32'
             && fileData.name.indexOf(process.arch) > 0
-            && fileData.name.endsWith('.exe') > 0) {
+            && fileData.name.endsWith('.exe')) {
             updateData = fileData
           } else if (platform === 'darwin'
             && fileData.name.indexOf(process.arch) > 0
-            && fileData.name.endsWith('.dmg') > 0) {
+            && fileData.name.endsWith('.dmg')) {
             updateData = fileData
-          } else if (fileData.name.endsWith('.asar') > 0) {
+          } else if (fileData.name.endsWith('.asar')) {
             asarFileUrl = 'https://ghproxy.com/' + fileData.url
           }
         }
@@ -211,12 +211,12 @@ export default class ServerHttp {
                 }),
                 h(Button, {
                   type: 'outline',
-                  style: verUrl.length > 0 ? '' : 'display: none',
+                  style: asarFileUrl.length == 0 && verUrl.length > 0 ? '' : 'display: none',
                   innerHTML: process.platform !== 'linux' ? '全量更新' : '详情',
                   onClick: async () => {
                     if (verUrl.length > 0 && process.platform !== 'linux') {
                       // 下载安装
-                      await this.AutoDownload(verUrl, updateData.name, false)
+                      await this.AutoDownload(verUrl, html_url, updateData.name, false)
                     } else {
                       openExternal(html_url)
                     }
@@ -230,7 +230,7 @@ export default class ServerHttp {
                   onClick: async () => {
                     if (asarFileUrl.length > 0 && process.platform !== 'linux') {
                       // 下载安装
-                      const flag = await this.AutoDownload(asarFileUrl, updateData.name, true)
+                      const flag = await this.AutoDownload(asarFileUrl, html_url, updateData.name, true)
                       // 更新本地版本号
                       if (flag && tagName) {
                         message.info('热更新完毕，自动重启应用中...', 5)
@@ -300,10 +300,10 @@ export default class ServerHttp {
     return resultTextArr.join('<br>')
   }
 
-  static async AutoDownload(appNewUrl: string, file_name: string, hot: boolean): Promise<boolean> {
+  static async AutoDownload(appNewUrl: string, html_url: string, file_name: string, hot: boolean): Promise<boolean> {
     let resourcesPath = hot ? getAppNewPath() : getResourcesPath(file_name)
     if (!hot && existsSync(resourcesPath)) {
-      this.autoInstallNewVersion(resourcesPath)
+      await this.autoInstallNewVersion(resourcesPath)
       return true
     }
     message.info('新版本正在后台下载中，请耐心等待。。。。', 2)
@@ -318,22 +318,23 @@ export default class ServerHttp {
           Expires: '0'
         }
       })
-      .then((response: AxiosResponse) => {
+      .then(async (response: AxiosResponse) => {
         writeFileSync(resourcesPath, Buffer.from(response.data))
         if (!hot) {
-          this.Sleep(2000)
-          this.autoInstallNewVersion(resourcesPath)
+          await this.Sleep(2000)
+          await this.autoInstallNewVersion(resourcesPath)
         }
         return true
       })
       .catch(() => {
-        message.error('新版本下载失败，请前往github下载最新版本', 6)
+        message.error('新版本下载失败，请前往github下载最新版本', 5)
         rmSync(resourcesPath, { force: true })
+        openExternal(html_url)
         return false
       })
   }
 
-  static autoInstallNewVersion(resourcesPath: string) {
+  static async autoInstallNewVersion(resourcesPath: string) {
     // 自动安装
     const options: SpawnOptions = { shell: true, windowsVerbatimArguments: true }
     execFile('\"' + resourcesPath + '\"', options, error => {
@@ -343,6 +344,8 @@ export default class ServerHttp {
         shell.openPath(path.join(resources, '/'))
       }
     })
+    await this.Sleep(1000)
+    window.WebToElectron({ cmd: 'exit' })
   }
 }
 

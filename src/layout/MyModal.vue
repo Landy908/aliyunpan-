@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang='ts'>
 import { defineComponent } from 'vue'
 import { useModalStore } from '../store'
 import UserSpaceModal from '../user/UserSpaceModal.vue'
@@ -23,6 +23,7 @@ import ArchivePasswordModal from '../pan/topbtns/ArchivePasswordModal.vue'
 import AlphaModal from '../pan/topbtns/AlphaModal.vue'
 import UploadModal from '../pan/topbtns/UploadModal.vue'
 import DownloadModal from '../pan/topbtns/DownloadModal.vue'
+import SelectSubTitleModal from '../pan/topbtns/SelectSubTitleModal.vue'
 
 export default defineComponent({
   components: {
@@ -61,21 +62,25 @@ export default defineComponent({
 
   <UserSpaceModal :visible="modalStore.modalName == 'userspace'" />
   <CreatNewFileModal :visible="modalStore.modalName == 'creatfile'" />
-  <CreatNewDirModal :visible="modalStore.modalName == 'creatdir'" :dirtype="modalStore.modalData.dirtype || ''" :parentdirid="modalStore.modalData.parentdirid || ''" :callback="modalStore.modalData.callback" />
-  <CreatNewShareLinkModal :visible="modalStore.modalName == 'creatshare'" :sharetype="modalStore.modalData.sharetype || ''" :filelist="modalStore.modalData.filelist || []" />
+  <CreatNewDirModal :visible="modalStore.modalName == 'creatdir'" :dirtype="modalStore.modalData.dirtype || ''"
+                    :parentdirid="modalStore.modalData.parentdirid || ''" :callback='modalStore.modalData.callback' />
+  <CreatNewShareLinkModal :visible="modalStore.modalName == 'creatshare'"
+                          :sharetype="modalStore.modalData.sharetype || ''"
+                          :filelist='modalStore.modalData.filelist || []' />
 
   <DaoRuShareLinkModal :visible="modalStore.modalName == 'daorushare'" />
   <DaoRuShareLinkMultiModal :visible="modalStore.modalName == 'daorusharemulti'" />
 
-  <RenameModal :visible="modalStore.modalName == 'rename'" :istree="modalStore.modalData.istree || false" />
-  <RenameMultiModal :visible="modalStore.modalName == 'renamemulti'" :istree="modalStore.modalData.istree || false" />
-  <ShuXingModal :visible="modalStore.modalName == 'shuxing'" :istree="modalStore.modalData.istree || false" />
-  <ShuXingMultiModal :visible="modalStore.modalName == 'shuxingmulti'" :istree="modalStore.modalData.istree || false" />
+  <RenameModal :visible="modalStore.modalName == 'rename'" :istree='modalStore.modalData.istree || false' />
+  <RenameMultiModal :visible="modalStore.modalName == 'renamemulti'" :istree='modalStore.modalData.istree || false' />
+  <ShuXingModal :visible="modalStore.modalName == 'shuxing'" :istree='modalStore.modalData.istree || false' />
+  <ShuXingMultiModal :visible="modalStore.modalName == 'shuxingmulti'" :istree='modalStore.modalData.istree || false' />
   <SearchPanModal :visible="modalStore.modalName == 'searchpan'" />
 
   <DLNAPlayerModal :visible="modalStore.modalName == 'dlna'" />
   <M3U8DownloadModal :visible="modalStore.modalName == 'm3u8download'" />
-  <CopyFileTreeModal :visible="modalStore.modalName == 'copyfiletree'" :filelist="modalStore.modalData.filelist || []" />
+  <CopyFileTreeModal :visible="modalStore.modalName == 'copyfiletree'"
+                     :filelist='modalStore.modalData.filelist || []' />
   <ArchiveModal
     :visible="modalStore.modalName == 'archive'"
     :user_id="modalStore.modalData.user_id || ''"
@@ -95,19 +100,24 @@ export default defineComponent({
     :domain_id="modalStore.modalData.domain_id || ''"
     :ext="modalStore.modalData.ext || ''" />
 
-  <EditShareLinkModal :visible="modalStore.modalName == 'editshare'" :sharelist="modalStore.modalData.sharelist || []" />
+  <EditShareLinkModal :visible="modalStore.modalName == 'editshare'"
+                      :sharelist='modalStore.modalData.sharelist || []' />
   <ShowShareLinkModal
     :visible="modalStore.modalName == 'showshare'"
     :share_id="modalStore.modalData.share_id || ''"
     :share_pwd="modalStore.modalData.share_pwd || ''"
     :share_token="modalStore.modalData.share_token || ''"
-    :withsave="modalStore.modalData.withsave || false"
-    :file_id_list="modalStore.modalData.file_id_list || []" />
+    :withsave='modalStore.modalData.withsave || false'
+    :file_id_list='modalStore.modalData.file_id_list || []' />
 
-  <UploadModal :visible="modalStore.modalName == 'upload'" :file_id="modalStore.modalData.file_id || ''" :filelist="modalStore.modalData.filelist || []" />
-  <DownloadModal :visible="modalStore.modalName == 'download'" :istree="modalStore.modalData.istree || false" />
+  <UploadModal :visible="modalStore.modalName == 'upload'" :file_id="modalStore.modalData.file_id || ''"
+               :filelist='modalStore.modalData.filelist || []' />
+  <DownloadModal :visible="modalStore.modalName == 'download'" :istree='modalStore.modalData.istree || false' />
 
-  <SelectPanDirModal :visible="modalStore.modalName == 'selectpandir'" :selecttype="modalStore.modalData.selecttype || ''" :selectid="modalStore.modalData.selectid || ''" :callback="modalStore.modalData.callback" />
+  <SelectPanDirModal :visible="modalStore.modalName == 'selectpandir'"
+                     :selecttype="modalStore.modalData.selecttype || ''"
+                     :selectid="modalStore.modalData.selectid || ''"
+                     :callback='modalStore.modalData.callback' />
 </template>
 <style>
 .modalclass .arco-modal-body {
@@ -120,6 +130,7 @@ export default defineComponent({
   line-height: 25px;
   color: rgb(var(--primary-6));
 }
+
 .modaltitle .onerowtitle {
   font-size: 16px;
   line-height: 25px;
@@ -135,6 +146,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
 }
+
 .modalfoot .tips {
   font-size: 14px;
   line-height: 25px;
