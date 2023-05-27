@@ -1,0 +1,38 @@
+name: BUG提交 / BUG Report
+description: Report bugs to developers
+labels: ["BUG"]
+body:
+  - type: textarea
+    attributes:
+      label: 问题描述 / Describe Bugs
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 复现步骤 / How to reproduce
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 日志提交 / Relevant log output
+      description: 日志位于设置-运行日志-复制日志
+      placeholder: "请用```将日志内容包裹"
+  - type: input
+    attributes:
+      label: 软件版本 / App version
+      placeholder: "v3.10.30"
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: 系统类型 / System type
+      description: 运行环境
+      multiple: false
+      options:
+        - Windows
+        - Linux
+        - Mac
+        - Other
+    validations:
+      required: true 
+      
