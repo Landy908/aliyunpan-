@@ -56,10 +56,12 @@
       { "x": 130, "y": 230, "type": "file" }
     ]
   },
+  "portable": {
+    "artifactName": "${productName}-${version}-portable-${arch}.${ext}"
+  },
   "nsis": {
     "oneClick": false,
-    "perMachine": true,
-    "allowElevation": true,
+    "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },
