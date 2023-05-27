@@ -165,8 +165,8 @@ const createVideo = async (name: string) => {
       await getVideoCursor(ArtPlayerRef, pageVideo.play_cursor)
     }
     // 视频播放完毕
-    ArtPlayerRef.on('video:ended', () => {
-      updateVideoTime()
+    ArtPlayerRef.on('video:ended', async () => {
+      await updateVideoTime()
       if (storage.get('autoPlayNext')) {
         const autoPlayNext = () => {
           const item = playList[++autoPlayNumber]
@@ -185,8 +185,8 @@ const createVideo = async (name: string) => {
       }
     })
     // 播放已暂停
-    ArtPlayerRef.on('video:pause', () => {
-      updateVideoTime()
+    ArtPlayerRef.on('video:pause', async () => {
+      await updateVideoTime()
     })
     // 音量发生变化
     ArtPlayerRef.on('video:volumechange', () => {
@@ -362,7 +362,7 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
       html: pageVideo.html.length > 20 ? pageVideo.html.substring(0, 40) + '...' : pageVideo.html,
       selector: playList,
       onSelect: async (item: SettingOption) => {
-        updateVideoTime()
+        await updateVideoTime()
         await refreshSetting(art, item)
         return item.html.length > 20 ? item.html.substring(0, 40) + '...' : item.html
       }
@@ -537,16 +537,16 @@ const getSubTitleList = async (art: Artplayer) => {
   })
 }
 
-const updateVideoTime = () => {
-  AliFile.ApiUpdateVideoTime(
+const updateVideoTime = async () => {
+  await AliFile.ApiUpdateVideoTime(
     pageVideo.user_id,
     pageVideo.drive_id,
     pageVideo.file_id,
     ArtPlayerRef.currentTime
   )
 }
-const handleHideClick = () => {
-  updateVideoTime()
+const handleHideClick = async () => {
+  await updateVideoTime()
   window.close()
 }
 
