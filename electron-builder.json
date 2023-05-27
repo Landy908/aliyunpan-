@@ -1,6 +1,6 @@
 {
   "appId": "com.alixby.app",
-  "productName": "alixby",
+  "productName": "阿里云盘小白羊",
   "copyright": "copyright ©2023 Odomu",
   "asar": true,
   "compression": "maximum",
@@ -11,14 +11,15 @@
     { "from": "./static/crx", "to": "./crx"}
   ],
   "mac": {
-    "icon": "./icon.icns",
+    "icon": "./static/images/icon.icns",
     "type": "distribution",
-    "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+    "artifactName": "alixby-${version}-mac-${arch}.${ext}",
     "darkModeSupport": true,
     "hardenedRuntime": true,
     "category": "public.app-category.utilities",
     "extraResources": [
-      { "from": "./static/images/icon.icns", "to": "./images"},
+      { "from": "./static/images/icon.icns", "to": "./images/icon.icns"},
+      { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
       { "from": "./static/engine/darwin/${arch}", "to": "./engine"}
     ],
     "target": [
@@ -26,11 +27,12 @@
     ]
   },
   "linux": {
-    "icon": "./icon_64x64.png",
+    "icon": "./static/images/icon_256x256.png",
     "category": "Network",
-    "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+    "artifactName": "alixby-${version}-linux-${arch}.${ext}",
     "extraResources": [
-      { "from": "./static/images/icon_64x64.png", "to": "./images"},
+      { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
+      { "from": "./static/images/icon_256x256.png", "to": "./images/icon_256x256.png"},
       { "from": "./static/engine/linux/${arch}", "to": "./engine"}
     ],
     "target": [
@@ -39,10 +41,11 @@
     ]
   },
   "win": {
-    "icon": "./icon_256x256.ico",
-    "artifactName": "${productName}-${version}-win-${arch}.${ext}",
+    "icon": "./static/images/icon_256x256.ico",
+    "artifactName": "alixby-${version}-win-${arch}.${ext}",
     "extraResources": [
-      { "from": "./static/images/icon_256x256.ico", "to": "./images"},
+      { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
+      { "from": "./static/images/icon_256x256.ico", "to": "./images/icon_256x256.ico"},
       { "from": "./static/engine/win32/${arch}", "to": "./engine"}
     ],
     "target": [
@@ -55,9 +58,6 @@
       { "x": 410, "y": 230, "type": "link", "path": "/Applications" },
       { "x": 130, "y": 230, "type": "file" }
     ]
-  },
-  "portable": {
-    "artifactName": "${productName}-${version}-portable-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
