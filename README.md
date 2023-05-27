@@ -11,7 +11,7 @@
 **该项目只是满足个人的需求进行修改，部分功能能用就行😉**
 **没有过多的精力修改，很多功能不完善，更新非常慢👽**
 
-[![author](https://img.shields.io/badge/作者-@odomu-000000.svg?style=flat-square&logo=GitHub)](https://github.com/odomu) [![Build](https://github.com/odomu/aliyunpan/workflows/Build/badge.svg)](https://github.com/odomu/aliyunpan/actions) [![downloads](https://img.shields.io/github/downloads/odomu/aliyunpan/total.svg?style=flat-square)](https://github.com/odomu/aliyunpan/releases) [![](https://img.shields.io/github/release/odomu/aliyunpan.svg?style=flat-square)](https://github.com/odomu/aliyunpan/releases) ![](https://img.shields.io/github/license/odomu/aliyunpan.svg?style=flat-square)
+[![author](https://img.shields.io/badge/作者-@odomu-000000.svg?style=flat-square&logo=GitHub)](https://github.com/odomu) [![Build](https://github.com/odomu/aliyunpan/workflows/Build/badge.svg)](https://github.com/odomu/aliyunpan/actions) [![downloads](https://img.shields.io/github/downloads/odomu/aliyunpan/total.svg?style=flat-square)](https://github.com/odomu/aliyunpan/releases) [![](https://img.shields.io/github/release/odomu/aliyunpan.svg?style=flat-square)](https://github.com/odomu/aliyunpan/releases) ![](https://img.shields.io/github/license/odomu/aliyunpan.svg?style=flat-square) [![Telegram-group](https://img.shields.io/badge/Telegram-%E7%BE%A4%E7%BB%84-blue)](https://t.me/+n1YbKE0JNo41MWRh)
 
 #### 为什么要用小白羊？
 
