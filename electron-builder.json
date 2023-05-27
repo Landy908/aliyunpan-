@@ -8,43 +8,43 @@
   "files": [ "dist" ],
   "extraResources": [
     { "from": "./static/engine/aria2.conf", "to": "./engine/aria2.conf"},
-    { "from": "./static/crx", "to": "./crx"},
-    { "from": "./app.ico", "to": "."},
-    { "from": "./app.png", "to": "."}
+    { "from": "./static/crx", "to": "./crx"}
   ],
   "mac": {
+    "icon": "./icon.icns",
     "type": "distribution",
     "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
     "darkModeSupport": true,
     "hardenedRuntime": true,
     "category": "public.app-category.utilities",
-    "extraResources": {
-      "from": "./static/engine/darwin/${arch}",
-      "to": "./engine"
-    },
+    "extraResources": [
+      { "from": "./static/images/icon.icns", "to": "./images"},
+      { "from": "./static/engine/darwin/${arch}", "to": "./engine"}
+    ],
     "target": [
       { "target": "dmg", "arch": [ "x64", "arm64" ] }
     ]
   },
   "linux": {
+    "icon": "./icon_64x64.png",
     "category": "Network",
     "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
-    "extraResources": {
-      "from": "./static/engine/linux/${arch}",
-      "to": "./engine"
-    },
+    "extraResources": [
+      { "from": "./static/images/icon_64x64.png", "to": "./images"},
+      { "from": "./static/engine/linux/${arch}", "to": "./engine"}
+    ],
     "target": [
       { "target": "AppImage", "arch": [  "x64", "arm64", "armv7l" ] },
       { "target": "deb", "arch": [ "x64",  "arm64", "armv7l" ] }
     ]
   },
   "win": {
-    "icon": "./app.ico",
+    "icon": "./icon_256x256.ico",
     "artifactName": "${productName}-${version}-win-${arch}.${ext}",
-    "extraResources": {
-      "from": "./static/engine/win32/${arch}",
-      "to": "./engine"
-    },
+    "extraResources": [
+      { "from": "./static/images/icon_256x256.ico", "to": "./images"},
+      { "from": "./static/engine/win32/${arch}", "to": "./engine"}
+    ],
     "target": [
       { "target": "nsis", "arch": [ "x64", "ia32" ] }
     ]

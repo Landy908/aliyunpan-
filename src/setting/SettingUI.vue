@@ -38,7 +38,7 @@ const handleCheckVer = () => {
 
 <template>
   <div class="settingcard">
-    <div class="appver">阿里云盘小白羊版 {{ getAppVersion() }}</div>
+    <div class="appver">阿里云盘小白羊 {{ getAppVersion() }}</div>
     <div class="appver">
       <a-button type="outline" size="mini" tabindex="-1" :loading="verLoading" @click="handleCheckVer">检查更新</a-button>
     </div>

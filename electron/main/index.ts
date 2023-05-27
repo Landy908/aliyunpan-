@@ -1,4 +1,4 @@
-import { getCrxPath, getResourcesPath, getStaticPath, getUserDataPath, mkAriaConf } from './mainfile'
+import { getResourcesPath, getStaticPath, getUserDataPath, mkAriaConf } from './mainfile'
 import { release } from 'os'
 import {
   AppWindow,
@@ -105,10 +105,10 @@ app.on('will-quit', () => {
 })
 
 app.setAboutPanelOptions({
-  applicationName: '阿里云盘小白羊版',
+  applicationName: '阿里云盘小白羊',
   copyright: 'Odomu',
   website: 'https://github.com/odomu/aliyunpan',
-  iconPath: getResourcesPath('app.png'),
+  iconPath: getStaticPath('icon_64x64.png'),
   applicationVersion: '30'
 })
 
@@ -181,11 +181,12 @@ app
       })
     })
 
-    session.defaultSession.loadExtension(getCrxPath(), { allowFileAccess: true }).then((le) => {
-      createMenu()
-      createTray()
-      createMainWindow()
-    })
+    session.defaultSession.loadExtension(getStaticPath('crx'), { allowFileAccess: true })
+      .then((le) => {
+        createMenu()
+        createTray()
+        createMainWindow()
+      })
   })
   .catch((err: any) => {
     console.log(err)
@@ -502,7 +503,7 @@ ipcMain.on('WebOpenUrl', (event, data) => {
     center: true,
     minWidth: 680,
     minHeight: 500,
-    icon: getResourcesPath('app.ico'),
+    icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: true,
     hasShadow: true,
