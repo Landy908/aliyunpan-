@@ -79,7 +79,6 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
       } else if (useSettingStore().uiVideoSubtitleMode === 'select') {
         // 手动选择字幕文件
         modalSelectPanDir('select', parent_file_id, async (user_id: string, drive_id: string, dirID: string) => {
-          if (!drive_id || !dirID) return
           Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, dirID)
         }, '', /srt|vtt|ass/)
       } else {
@@ -217,9 +216,11 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   }
   // 加载网盘内字幕文件
   let subTitleUrl = ''
-  const data = await AliFile.ApiFileDownloadUrl(token.user_id, drive_id, subTitleFileId, 14400)
-  if (typeof data !== 'string' && data.url && data.url != '') {
-    subTitleUrl = data.url
+  if (subTitleFileId.length > 0) {
+    const data = await AliFile.ApiFileDownloadUrl(token.user_id, drive_id, subTitleFileId, 14400)
+    if (typeof data !== 'string' && data.url && data.url != '') {
+      subTitleUrl = data.url
+    }
   }
   // 自定义播放器
   let title = mode + '__' + name
