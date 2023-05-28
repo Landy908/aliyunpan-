@@ -70,6 +70,7 @@ export default defineComponent({
     const treeSelectedKeys = ref<string[]>([])
     const treeCheckedKeys = ref<{ checked: string[]; halfChecked: string[] }>({ checked: [], halfChecked: [] })
     const checkInfo = ref('')
+    const multiOpt = ref(false)
 
     const onRunReplaceName = throttle(() => {
       RunReplaceName(renameConfig, treeData.value, treeCheckedKeys.value.checked)
@@ -160,8 +161,7 @@ export default defineComponent({
     const handleOpen = () => {
       const cacheReg = localStorage.getItem('renamemulti')
       if (cacheReg) {
-        const regList: string[] = JSON.parse(cacheReg)
-        replaceData.value = regList
+        replaceData.value = JSON.parse(cacheReg)
       }
       let fileList: IAliGetFileModel[] = []
       if (props.istree) {
@@ -339,6 +339,7 @@ export default defineComponent({
       treeExpandedKeys,
       treeSelectedKeys,
       treeCheckedKeys,
+      multiOpt,
       treeSelectToExpand,
       handleTreeCheck,
       onLoadData,
@@ -403,7 +404,11 @@ export default defineComponent({
         })
         .then(() => {
           this.okLoading = false
-          modalCloseAll()
+          if (!this.multiOpt) {
+            modalCloseAll()
+          } else {
+            this.handleOpen()
+          }
         })
     },
     handleContextMenu(menuKey: string, treeNodeKey: string) {
@@ -469,6 +474,9 @@ export default defineComponent({
         })
       }
       this.treeCheckedKeys.checked = Array.from(checked)
+    },
+    handleMultiOpt() {
+      this.multiOpt = !this.multiOpt
     },
     handleSelectRow(visible: boolean, treeNodeKey: string) {
       if (visible) this.treeSelectedKeys = [treeNodeKey]
@@ -970,9 +978,12 @@ export default defineComponent({
                 <i class='iconfont iconreload-1-icon' />刷新
               </a-button>
               <a-button type='text' size='small' tabindex='-1' :disabled='okLoading'
-                        style='margin: 0px'
+                        style='margin: 0'
                         @click="handleContextMenu('all', '')">
                 <i :class="treeCheckedKeys.checked.length === treeData.length ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />全选
+              </a-button>
+              <a-button type='text' size='small' tabindex='-1' style='margin: 0' @click="handleMultiOpt">
+                <i :class="multiOpt ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />多次操作
               </a-button>
             </div>
             <div style='padding-top: 3px; color: rgb(var(--primary-6)); flex-shrink: 0'>{{ checkInfo }}</div>
