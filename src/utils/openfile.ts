@@ -78,7 +78,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
         Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
       } else if (useSettingStore().uiVideoSubtitleMode === 'select') {
         // 手动选择字幕文件
-        modalSelectPanDir('select', parent_file_id, async (user_id: string, drive_id: string, dirID: string) => {
+        modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, dirID: string, _dirName: string) => {
           Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, dirID)
         }, '', /srt|vtt|ass/)
       } else {
