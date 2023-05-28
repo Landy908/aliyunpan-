@@ -10,7 +10,7 @@ import { clickWait } from './debounce'
 import DebugLog from './debuglog'
 import { CleanStringForCmd } from './filehelper'
 import message from './message'
-import { modalArchive, modalArchivePassword } from './modal'
+import { modalArchive, modalArchivePassword, modalSelectPanDir } from './modal'
 import { humanTime, Sleep } from './format'
 import levenshtein from 'fast-levenshtein'
 
@@ -75,11 +75,17 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
             subTitleFileId = subTitlesList[similarity.index].file_id
           }
         }
-      } else if (useSettingStore().uiVideoSubtitleMode === 'select'){
-        // TODO 手动选择字幕文件
-      } else {}
+        Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
+      } else if (useSettingStore().uiVideoSubtitleMode === 'select') {
+        // 手动选择字幕文件
+        modalSelectPanDir('select', parent_file_id, async (user_id: string, drive_id: string, dirID: string) => {
+          if (!drive_id || !dirID) return
+          Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, dirID)
+        }, '', /srt|vtt|ass/)
+      } else {
+        Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
+      }
     }
-    Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
     return
   }
   if (file.category.startsWith('audio')) {

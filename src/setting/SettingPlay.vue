@@ -112,7 +112,7 @@ function handleSelectPlayer() {
                        @update:model-value='cb({ uiVideoSubtitleMode: $event })'>
           <a-radio tabindex='-1' value='close'>关闭字幕加载</a-radio>
           <a-radio tabindex='-1' value='auto'>自动加载同名字幕</a-radio>
-          <!-- <a-radio tabindex='-1' value='select'>手动选择字幕文件</a-radio> -->
+          <a-radio tabindex='-1' value='select'>手动选择字幕文件</a-radio>
         </a-radio-group>
       </div>
       <div class='settingspace'></div>
