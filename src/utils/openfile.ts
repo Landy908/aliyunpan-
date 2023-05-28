@@ -105,7 +105,6 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
     message.error('违规文件，操作取消')
     return
   }
-  message.loading('Loading...', 2)
   const user_id = useUserStore().user_id
   const token = await UserDAL.GetUserTokenFromDB(user_id)
   if (!token || !token.access_token) {
@@ -114,10 +113,11 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 
   const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
-  if (!info) {
-    message.error('在线预览失败 获取文件信息出错，操作取消')
+  if (info && typeof info == 'string') {
+    message.error('在线预览失败 获取文件信息出错：' + info)
     return
   }
+  message.loading('Loading...', 2)
   let password = ''
   let resp = await AliArchive.ApiArchiveList(user_id, drive_id, file_id, info.domain_id, info.file_extension || '', password)
 
@@ -127,7 +127,6 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 
   if (resp.state == '密码错误' && useSettingStore().yinsiZipPassword) {
-
     password = await ServerHttp.PostToServer({
       cmd: 'GetZipPwd',
       sha1: info.content_hash,
@@ -145,10 +144,8 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 
   if (resp.state == '密码错误') {
-
     modalArchivePassword(user_id, drive_id, file_id, file_name, parent_file_id, info.domain_id, info.file_extension || '')
   } else if (resp.state == 'Succeed' || resp.state == 'Running') {
-
     modalArchive(user_id, drive_id, file_id, file_name, parent_file_id, password)
   } else {
     message.error('在线解压失败 ' + resp.state + '，操作取消')
@@ -164,6 +161,10 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   }
   // 获取文件信息
   const info = await AliFile.ApiFileInfo(token.user_id, drive_id, file_id)
+  if (info && typeof info == 'string') {
+    message.error('在线预览失败 获取文件信息出错：' + info)
+    return
+  }
   let play_cursor: number = 0
   if (info?.play_cursor) {
     play_cursor = info?.play_cursor
@@ -392,10 +393,9 @@ async function Code(drive_id: string, file_id: string, name: string, codeExt: st
   message.loading('Loading...', 2)
   const data = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
   if (typeof data == 'string') {
-    message.error('获取文件预览链接失败，操作取消')
+    message.error('获取文件预览链接失败: ' + data)
     return
   }
-
   const pageCode: IPageCode = {
     user_id: token.user_id,
     drive_id,
