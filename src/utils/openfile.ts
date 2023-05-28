@@ -84,6 +84,8 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
       } else {
         Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
       }
+    } else {
+      Video(token, drive_id, file_id, parent_file_id, file.name, file.icon == 'iconweifa', file.description, subTitleFileId)
     }
     return
   }

@@ -264,6 +264,11 @@ export default defineComponent({
   methods: {
     handleHide() {
       modalCloseAll()
+      if (this.selecttype === 'select') {
+        if (this.callback) {
+          this.callback('', '', '', '')
+        }
+      }
     },
     handleCreatNew() {
       this.showCreatNewDir = true
