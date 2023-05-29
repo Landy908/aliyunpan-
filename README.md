@@ -15,7 +15,7 @@
 
 ### 赞赏码
 <p align="left">
-  <img height="360" src="https://gitee.com/odomu/aliyunpan/raw/master/wexin_reward.png" />
+  <img height="280" width="280" src="https://github.com/odomu/aliyunpan/assets/50035498/75efbbf3-36c0-4991-9dff-4ae319d09e7c" />
 </p>
 
 #### 为什么要用小白羊？
