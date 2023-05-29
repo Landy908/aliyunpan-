@@ -342,7 +342,7 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
       for (let i = 0; i < fileList.length; i++) {
         playList.push({
           url: fileList[i].url,
-          html: fileList[i].html,
+          html: fileList[i].name,
           name: fileList[i].name,
           file_id: fileList[i].file_id,
           play_cursor: fileList[i].play_cursor,

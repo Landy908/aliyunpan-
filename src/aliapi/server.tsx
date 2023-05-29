@@ -66,7 +66,6 @@ export default class ServerHttp {
       })
       .then((resp) => {
         if (resp.state == 'error' && resp.msg == '网络错误' && isfirst) {
-
           return ServerHttp.Sleep(2000).then(() => {
             return ServerHttp.Post(postData, false)
           })
@@ -87,7 +86,7 @@ export default class ServerHttp {
     )
   }
 
-  static configUrl = b64decode('aHR0cHM6Ly9naXRlZS5jb20vUGluZ0t1L2FsaXl1bnBhbi1jb25maWcvcmF3L2RldmVsb3AvY29uZmlnMy5qc29u')
+  static configUrl = b64decode('aHR0cHM6Ly9naXRlZS5jb20vb2RvbXUvYWxpeXVucGFuL3Jhdy9tYXN0ZXIvc2hhcmVTaXRlQ29uZmlnLmpzb24=')
   static updateUrl = b64decode('aHR0cHM6Ly9hcGkuZ2l0aHViLmNvbS9yZXBvcy9vZG9tdS9hbGl5dW5wYW4vcmVsZWFzZXMvbGF0ZXN0')
 
   static async CheckConfigUpgrade(): Promise<void> {
@@ -99,11 +98,11 @@ export default class ServerHttp {
       })
       .then(async (response: AxiosResponse) => {
         console.log('CheckConfigUpgrade', response)
-        if (response.data.SIP) {
-          const SIP = B64decode(response.data.SIP)
-          if (SIP.length > 0) ServerHttp.baseApi = SIP
-        }
-        if (response.data.SSList) {
+        // if (response.data.SIP) {
+        //   const SIP = B64decode(response.data.SIP)
+        //   if (SIP.length > 0) ServerHttp.baseApi = SIP
+        // }
+        if (response.data.SSList && response.data.SSList.length > 0) {
           const list: IShareSiteModel[] = []
           for (let i = 0, maxi = response.data.SSList.length; i < maxi; i++) {
             const item = response.data.SSList[i]
@@ -112,7 +111,7 @@ export default class ServerHttp {
           }
           ShareDAL.SaveShareSite(list)
         }
-        if (response.data.HELP) {
+        if (response.data.HELP && response.data.HELP.length > 0) {
           useServerStore().mSaveHelpUrl(response.data.HELP)
         }
       })
