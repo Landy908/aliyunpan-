@@ -1,6 +1,7 @@
 import { app, BrowserWindow, dialog, Menu, MessageChannelMain, nativeTheme, Tray, screen } from 'electron'
 import { getAsarPath, getStaticPath, getUserDataPath } from './mainfile'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
+import is from 'electron-is'
 
 const DEBUGGING = !app.isPackaged
 export const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.33'
@@ -73,7 +74,7 @@ export function createMainWindow() {
   })
 
   AppWindow.mainWindow.on('close', (event) => {
-    if (process.platform === 'darwin') {
+    if (is.macOS()) {
       // donothing
     } else {
       event.preventDefault()
@@ -89,14 +90,12 @@ export function createMainWindow() {
     AppWindow.mainWindow!.webContents.send('setPage', { page: 'PageMain' })
     AppWindow.mainWindow!.webContents.send('setTheme', { dark: nativeTheme.shouldUseDarkColors })
     AppWindow.mainWindow!.setTitle('阿里云盘小白羊')
-    if (process.platform === 'win32'
-        && process.argv && process.argv.join(' ').indexOf('--openAsHidden') < 0) {
+    if (is.windows() && process.argv && process.argv.join(' ').indexOf('--openAsHidden') < 0) {
       AppWindow.mainWindow!.show()
-    } else if (process.platform === 'darwin'
-        && !app.getLoginItemSettings().wasOpenedAsHidden){
+    } else if (is.macOS() && !app.getLoginItemSettings().wasOpenedAsHidden){
       AppWindow.mainWindow!.show()
     }
-    if (process.platform !== 'win32' && process.platform !== 'darwin'){
+    if (is.linux()){
       AppWindow.mainWindow!.show()
     }
     creatUploadPort()
@@ -327,7 +326,7 @@ export function creatElectronWindow(width: number, height: number, center: boole
   }
 
   win.webContents.on('did-create-window', (childWindow) => {
-    if (process.platform === 'win32') {
+    if (is.windows()) {
       childWindow.setMenu(null) 
     }
   })

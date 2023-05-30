@@ -5,7 +5,7 @@ import message from '../utils/message'
 import { IShareSiteModel, useServerStore } from '../store'
 import { Modal, Button, Space } from '@arco-design/web-vue'
 import { h } from 'vue'
-import { getAppNewPath, getResourcesPath, openExternal } from '../utils/electronhelper'
+import { getAppNewPath, getResourcesPath, getUserDataPath, openExternal } from '../utils/electronhelper'
 import ShareDAL from '../share/share/ShareDAL'
 import DebugLog from '../utils/debuglog'
 import { writeFileSync, rmSync, existsSync, readFileSync } from 'fs'
@@ -157,7 +157,7 @@ export default class ServerHttp {
         if (tagName) {
           let configVer = Config.appVersion.replaceAll('v', '').trim()
           if (process.platform !== 'linux') {
-            let localVersion = getResourcesPath('localVersion')
+            let localVersion = getUserDataPath('localVersion')
             if (localVersion && existsSync(localVersion)) {
               configVer = readFileSync(localVersion, 'utf-8').replaceAll('v', '').trim()
             }
@@ -233,7 +233,7 @@ export default class ServerHttp {
                       // 更新本地版本号
                       if (flag && tagName) {
                         message.info('热更新完毕，自动重启应用中...', 5)
-                        const localVersion = getResourcesPath('localVersion')
+                        const localVersion = getUserDataPath('localVersion')
                         localVersion && writeFileSync(localVersion, tagName, 'utf-8')
                         await this.Sleep(2000)
                         window.WebRelaunch()

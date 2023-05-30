@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import DebugLog from '../utils/debuglog'
 import { getResourcesPath, getUserDataPath } from '../utils/electronhelper'
-import {useAppStore, useUserStore} from '../store'
+import { ITokenInfo, useAppStore, useUserStore } from '../store'
 import PanDAL from '../pan/pandal'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import UserDAL from "../user/userdal"
 import message from "../utils/message"
+import { isEmpty } from 'lodash'
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
 
@@ -487,6 +488,9 @@ const useSettingStore = defineStore('setting', {
         open_api_access_token: token.open_api_access_token,
         refresh: true
       })
+      if (isEmpty(token.open_api_access_token)) {
+        token.open_api_expires_in = 0
+      }
       UserDAL.SaveUserToken(token)
     }
   }

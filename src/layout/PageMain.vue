@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useAppStore, useKeyboardStore, KeyboardState, useSettingStore, useUserStore, useWinStore, useFootStore, useServerStore } from '../store'
 import { onHideRightMenu, TestAlt, TestCtrl, TestKey, TestShift } from '../utils/keyboardhelper'
-import { getResourcesPath, openExternal } from '../utils/electronhelper'
+import { getResourcesPath, getUserDataPath, openExternal } from '../utils/electronhelper'
 import DebugLog from '../utils/debuglog'
 
 import Setting from '../setting/index.vue'
@@ -138,7 +138,7 @@ const getAppVersion = () => {
     return Config.appVersion
   }
   let appVersion = ''
-  const localVersion = getResourcesPath('localVersion')
+  const localVersion = getUserDataPath('localVersion')
   if (localVersion && existsSync(localVersion)) {
     appVersion = readFileSync(localVersion, 'utf-8')
   } else {

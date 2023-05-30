@@ -5,8 +5,8 @@ import MySwitch from '../layout/MySwitch.vue'
 import Config from '../config'
 import ServerHttp from '../aliapi/server'
 import os from 'os'
-import { getResourcesPath, getUserDataPath } from '../utils/electronhelper'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { getUserDataPath } from '../utils/electronhelper'
+import { existsSync, readFileSync } from 'fs'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {
@@ -18,7 +18,7 @@ const getAppVersion = () => {
     return Config.appVersion
   }
   let appVersion = ''
-  const localVersion = getResourcesPath('localVersion')
+  const localVersion = getUserDataPath('localVersion')
   if (localVersion && existsSync(localVersion)) {
     appVersion = readFileSync(localVersion, 'utf-8')
   } else {
