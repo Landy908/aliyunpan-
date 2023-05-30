@@ -330,7 +330,7 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
             dir.items.length = 0
             return '已暂停'
           }
-          if (dir.items.length > 0) DownDAL.aAddDownload(dir.items, dirfull, false, false)
+          if (dir.items.length > 0) DownDAL.aAddDownload(dir.items, dirfull, false)
           dir.items.length = 0
         }
       } while (dir.next_marker)
@@ -452,7 +452,7 @@ export function AriaHashFile(downitem: IStateDownFile): { DownID: string; Check:
 }
 
 
-export function FormateAriaError(code: string, message: string): string {
+export function FormatAriaError(code: string, message: string): string {
   switch (code) {
     case '0':
       return ''
