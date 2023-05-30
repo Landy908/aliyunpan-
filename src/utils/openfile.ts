@@ -112,13 +112,12 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-
+  message.loading('Loading...', 2)
   const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
   if (info && typeof info == 'string') {
     message.error('在线预览失败 获取文件信息出错：' + info)
     return
   }
-  message.loading('Loading...', 2)
   let password = ''
   let resp = await AliArchive.ApiArchiveList(user_id, drive_id, file_id, info.domain_id, info.file_extension || '', password)
 
@@ -160,6 +159,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     message.error('在线预览失败 无法预览违规文件')
     return
   }
+  message.loading('加载视频中...', 2)
   // 获取文件信息
   const info = await AliFile.ApiFileInfo(token.user_id, drive_id, file_id)
   if (info && typeof info == 'string') {
@@ -175,7 +175,6 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
       play_cursor = parseFloat(meta.play_cursor)
     }
   }
-  message.loading('加载视频中...', 2)
   const settingStore = useSettingStore()
   if (settingStore.uiAutoColorVideo && !dec) {
     AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, 'c5b89b8', [file_id])

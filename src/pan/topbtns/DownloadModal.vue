@@ -1,8 +1,10 @@
 <script lang="ts">
-import { modalCloseAll } from '../../utils/modal'
+import { modalCloseAll, modalDownload } from '../../utils/modal'
 import { defineComponent, ref } from 'vue'
 import useSettingStore from "../../setting/settingstore";
 import { menuDownload } from './topbtn'
+import { isEmpty } from 'lodash'
+import message from '../../utils/message'
 
 
 export default defineComponent({
@@ -31,7 +33,12 @@ export default defineComponent({
     }
 
     const handleOK = () => {
-      menuDownload(props.istree, true)
+      const savePath = settingStore.AriaIsLocal ? settingStore.downSavePath : settingStore.ariaSavePath
+      if (isEmpty(savePath)) {
+        message.error('未设置保存路径')
+        return
+      }
+      menuDownload(props.istree, false)
       modalCloseAll()
     }
 

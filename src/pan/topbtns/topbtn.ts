@@ -6,7 +6,16 @@ import AliTrash from '../../aliapi/trash'
 import { IPageVideoXBT } from '../../store/appstore'
 import DebugLog from '../../utils/debuglog'
 import message from '../../utils/message'
-import { modalCopyFileTree, modalCreatNewShareLink, modalDLNAPlayer, modalDownload, modalM3U8Download, modalSearchPan, modalSelectPanDir, modalUpload } from '../../utils/modal'
+import {
+  modalCopyFileTree,
+  modalCreatNewShareLink,
+  modalDLNAPlayer,
+  modalDownload,
+  modalM3U8Download,
+  modalSearchPan,
+  modalSelectPanDir,
+  modalUpload
+} from '../../utils/modal'
 import { ArrayKeyList } from '../../utils/utils'
 import PanDAL from '../pandal'
 import usePanFileStore from '../panfilestore'
@@ -16,6 +25,7 @@ import { Sleep } from '../../utils/format'
 import TreeStore from '../../store/treestore'
 import { copyToClipboard } from '../../utils/electronhelper'
 import DownDAL from '../../down/DownDAL'
+import { isEmpty } from 'lodash'
 
 const topbtnLock = new Set()
 
@@ -28,13 +38,21 @@ export function handleUpload(uploadType: string) {
   }
 
   if (uploadType == 'file') {
-    window.WebShowOpenDialogSync({ title: '选择多个文件上传到网盘', buttonLabel: '上传选中的文件', properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent'] }, (files: string[] | undefined) => {
+    window.WebShowOpenDialogSync({
+      title: '选择多个文件上传到网盘',
+      buttonLabel: '上传选中的文件',
+      properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
+    }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
         modalUpload(pantreeStore.selectDir.file_id, files)
       }
     })
   } else {
-    window.WebShowOpenDialogSync({ title: '选择多个文件夹上传到网盘', buttonLabel: '上传文件夹', properties: ['openDirectory', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent'] }, (files: string[] | undefined) => {
+    window.WebShowOpenDialogSync({
+      title: '选择多个文件夹上传到网盘',
+      buttonLabel: '上传文件夹',
+      properties: ['openDirectory', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
+    }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
         modalUpload(pantreeStore.selectDir.file_id, files)
       }
@@ -43,7 +61,7 @@ export function handleUpload(uploadType: string) {
 }
 
 
-export function menuDownload(istree: boolean, tips: boolean = false) {
+export function menuDownload(istree: boolean, tips: boolean = true) {
   const selectedData = PanDAL.GetPanSelectedData(istree)
   if (selectedData.isError) {
     message.error('下载操作失败 父文件夹错误')
@@ -53,22 +71,36 @@ export function menuDownload(istree: boolean, tips: boolean = false) {
     message.error('没有可以下载的文件')
     return
   }
+  const settingStore = useSettingStore()
+  const savePath = settingStore.AriaIsLocal ? settingStore.downSavePath : settingStore.ariaSavePath
+  const savePathFull = settingStore.downSavePathFull
+  const downSavePathDefault = settingStore.downSavePathDefault
+  if (isEmpty(savePath)) {
+    message.error('未设置保存路径')
+    modalDownload(istree)
+    return
+  }
   if (topbtnLock.has('menuDownload')) return
   topbtnLock.add('menuDownload')
   let files: IAliGetFileModel[] = []
   if (istree) {
-    files = [{ ...usePanTreeStore().selectDir, isDir: true, ext: '', category: '', icon: '', sizeStr: '', timeStr: '', starred: false, thumbnail: '' }]
+    files = [{
+      ...usePanTreeStore().selectDir,
+      isDir: true,
+      ext: '',
+      category: '',
+      icon: '',
+      sizeStr: '',
+      timeStr: '',
+      starred: false,
+      thumbnail: ''
+    }]
   } else {
     files = usePanFileStore().GetSelected()
   }
   try {
-    const settingStore = useSettingStore()
-    const savePath = settingStore.AriaIsLocal ? settingStore.downSavePath : settingStore.ariaSavePath
-    const savePathFull = settingStore.downSavePathFull
-    const downSavePathDefault = settingStore.downSavePathDefault
-    !savePath && message.error('未设置保存路径')
-    if(downSavePathDefault || tips) {
-      DownDAL.aAddDownload(files, savePath, savePathFull, true)
+    if (downSavePathDefault || !tips) {
+      DownDAL.aAddDownload(files, savePath, savePathFull)
     } else {
       modalDownload(istree)
     }
@@ -223,7 +255,17 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
 
   let files: IAliGetFileModel[] = []
   if (istree) {
-    files = [{ ...usePanTreeStore().selectDir, isDir: true, ext: '', category: '', icon: '', sizeStr: '', timeStr: '', starred: false, thumbnail: '' } as IAliGetFileModel]
+    files = [{
+      ...usePanTreeStore().selectDir,
+      isDir: true,
+      ext: '',
+      category: '',
+      icon: '',
+      sizeStr: '',
+      timeStr: '',
+      starred: false,
+      thumbnail: ''
+    } as IAliGetFileModel]
   } else {
     files = usePanFileStore().GetSelected()
   }
@@ -244,7 +286,7 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
     message.error('没有可以复制移动的文件')
     return
   }
-  modalSelectPanDir(copyby, parent_file_id, async function (user_id: string, drive_id: string, dirID: string) {
+  modalSelectPanDir(copyby, parent_file_id, async function(user_id: string, drive_id: string, dirID: string) {
     if (!drive_id || !dirID) return
 
     if (parent_file_id == dirID) {
@@ -484,7 +526,13 @@ export async function topRecoverSelectedFile() {
   const selectParentKeys: string[] = ['root', 'recover']
   for (let i = 0, maxi = files.length; i < maxi; i++) {
     const file = files[i]
-    resumeList.push({ drive_id: file.drive_id, file_id: file.file_id, content_hash: file.description, size: file.size, name: file.name })
+    resumeList.push({
+      drive_id: file.drive_id,
+      file_id: file.file_id,
+      content_hash: file.description,
+      size: file.size,
+      name: file.name
+    })
     if (selectParentKeys.includes(files[i].parent_file_id) == false) selectParentKeys.push(files[i].parent_file_id)
   }
 
@@ -570,7 +618,12 @@ export function menuVideoXBT() {
     message.error('违规视频无法预览')
     return
   }
-  const pageVideoXBT: IPageVideoXBT = { user_id: usePanTreeStore().user_id, drive_id: first.drive_id, file_id: first.file_id, file_name: first.name }
+  const pageVideoXBT: IPageVideoXBT = {
+    user_id: usePanTreeStore().user_id,
+    drive_id: first.drive_id,
+    file_id: first.file_id,
+    file_name: first.name
+  }
   window.WebOpenWindow({ page: 'PageVideoXBT', data: pageVideoXBT, theme: 'dark' })
 }
 
