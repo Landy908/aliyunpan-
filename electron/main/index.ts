@@ -130,7 +130,7 @@ app
       const localVersion = getUserDataPath('localVersion')
       if (localVersion && existsSync(localVersion)) {
         const version = readFileSync(localVersion, 'utf-8')
-        if (version < app.getVersion()) {
+        if (version !== app.getVersion()) {
           writeFileSync(localVersion, app.getVersion(), 'utf-8')
         }
       } else {

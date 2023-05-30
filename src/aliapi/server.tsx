@@ -9,7 +9,7 @@ import { getAppNewPath, getResourcesPath, getUserDataPath, openExternal } from '
 import ShareDAL from '../share/share/ShareDAL'
 import DebugLog from '../utils/debuglog'
 import { writeFileSync, rmSync, existsSync, readFileSync } from 'fs'
-import { execFile, SpawnOptions } from 'child_process'
+import { execFile, spawn, SpawnOptions } from 'child_process'
 import path from 'path'
 
 const { shell } = require('electron')
@@ -336,15 +336,15 @@ export default class ServerHttp {
   static async autoInstallNewVersion(resourcesPath: string) {
     // 自动安装
     const options: SpawnOptions = { shell: true, windowsVerbatimArguments: true }
-    execFile('\"' + resourcesPath + '\"', options, error => {
-      if (error) {
-        message.info('安装失败，请前往文件夹手动安装', 5)
-        const resources = getResourcesPath('')
-        shell.openPath(path.join(resources, '/'))
-      }
-    })
-    await this.Sleep(1000)
-    window.WebToElectron({ cmd: 'exit' })
+    const subProcess = await spawn(`${resourcesPath}`, options)
+    if (subProcess.pid && process.kill(subProcess.pid, 0)) {
+      await this.Sleep(1000)
+      window.WebToElectron({ cmd: 'exit' })
+    } else {
+      message.info('安装失败，请前往文件夹手动安装', 5)
+      const resources = getResourcesPath('')
+      shell.openPath(path.join(resources, '/'))
+    }
   }
 }
 
