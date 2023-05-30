@@ -45,7 +45,7 @@ export function getStaticPath(fileName: string) {
   let basePath = path.resolve(app.getAppPath(), '..')
   if (DEBUGGING) basePath = path.resolve(app.getAppPath(), './static')
   if (fileName.startsWith('icon')) {
-    if (fileName == 'icon_256x256.ico' && is.windows()) {
+    if (fileName == 'icon_256x256.ico' && !is.windows()) {
       fileName = path.join('images', 'icon_64x64.png')
     } else {
       fileName = path.join('images', fileName)
