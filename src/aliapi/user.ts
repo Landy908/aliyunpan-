@@ -8,6 +8,7 @@ import { IAliUserDriveCapacity, IAliUserDriveDetails } from './models'
 import { GetSignature } from './utils'
 import getUuid from 'uuid-by-string'
 import { useSettingStore } from '../store'
+import { isEmpty } from 'lodash'
 
 export const TokenReTimeMap = new Map<string, number>()
 export const TokenLockMap = new Map<string, number>()
@@ -117,9 +118,16 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_enable || !token.open_api_refresh_token) {
-      await useSettingStore().updateOpenApiToken()
+    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token)) {
+      await useSettingStore().updateStore({
+        uiEnableOpenApi: false,
+        uiOpenApiAccessToken: token.open_api_access_token,
+        uiOpenApiRefreshToken: token.open_api_refresh_token
+      })
       return false
+    }
+    if (isEmpty(token.open_api_access_token)) {
+      token.open_api_expires_in = 0
     }
     // 防止重复刷新
     if (!forceRefresh && token.open_api_expires_in >= Date.now()) {
@@ -296,6 +304,7 @@ export default class AliUser {
             break
          }
       }
+      if (!sign_data) return signInCount
       let reward = '无奖励'
       if (sign_data['type'] !== 'luckyBottle') {
         const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'

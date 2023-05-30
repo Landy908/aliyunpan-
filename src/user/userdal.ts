@@ -189,7 +189,8 @@ export default class UserDAL {
       const signData = await DB.getValueObject('uiAutoSign')
       // @ts-ignore
       if (!signData || signData.signMon !== nowMonth || signData.signDay !== nowDay) {
-        await this.UserSign(token.user_id).then(async signDay => {
+        // @ts-ignore
+        await this.UserSign(token.user_id, false).then(async signDay => {
           signDay && await DB.saveValueObject('uiAutoSign', { signMon: nowMonth, signDay: signDay })
         })
       }
@@ -202,7 +203,6 @@ export default class UserDAL {
     DB.deleteUser(user_id)
     UserTokenMap.delete(user_id)
 
-
     let newUserID = ''
     for (const [user_id, token] of UserTokenMap) {
       const isLogin = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, false))
@@ -212,13 +212,12 @@ export default class UserDAL {
         break
       }
     }
-
+    await useSettingStore().updateStore({
+      uiEnableOpenApi: false,
+      uiOpenApiAccessToken: '',
+      uiOpenApiRefreshToken: ''
+    })
     if (!newUserID) {
-      await useSettingStore().updateStore({
-        uiEnableOpenApi: false,
-        uiOpenApiAccessToken: '',
-        uiOpenApiRefreshToken: ''
-      })
       useUserStore().userLogOff()
       usePanTreeStore().$reset()
       usePanFileStore().$reset()
