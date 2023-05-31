@@ -126,6 +126,17 @@ ipcMain.on('WebUserToken', (event, data) => {
 app
   .whenReady()
   .then(() => {
+    try {
+      const localVersion = getResourcesPath('localVersion')
+      if (localVersion && existsSync(localVersion)) {
+        const version = readFileSync(localVersion, 'utf-8')
+        if (app.getVersion() > version) {
+          writeFileSync(localVersion, app.getVersion(), 'utf-8')
+        }
+      } else {
+        writeFileSync(localVersion, app.getVersion(), 'utf-8')
+      }
+    } catch (err) {}
     session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
       const should115Referer = details.url.indexOf('.115.com') > 0
       const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
@@ -205,10 +216,8 @@ async function creatAria() {
     }
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
-      shell: true,
       stdio: is.dev() ? 'pipe' : 'ignore',
-      windowsHide: false,
-      windowsVerbatimArguments: true
+      windowsHide: false
     }
     const args = [
       `--stop-with-process=${process.pid}`,
@@ -318,7 +327,6 @@ ipcMain.on('WebShowItemInFolder', (event, fullPath) => {
 
 ipcMain.on('WebPlatformSync', (event) => {
   const asarPath = app.getAppPath()
-  const basePath = path.resolve(asarPath, '..')
   const appPath = app.getPath('userData')
   event.returnValue = {
     platform: process.platform,

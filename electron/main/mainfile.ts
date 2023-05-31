@@ -16,7 +16,7 @@ export function getAsarPath(fileName: string) {
     const basePath = path.resolve(app.getAppPath())
     const baseNew = path.join(basePath, '..', 'app.new')
     const baseSave = path.join(basePath, '..', 'app.asar')
-    if (NewCopyed == false) {
+    if (!NewCopyed) {
       // 热更新asar
       if (existsSync(baseNew)) {
         try {
@@ -29,7 +29,7 @@ export function getAsarPath(fileName: string) {
         }
       }
     }
-    if (NewSaved == false) NewSaved = existsSync(baseSave)
+    if (!NewSaved) NewSaved = existsSync(baseSave)
     if (NewSaved) return path.join(baseSave, fileName)
     return path.join(basePath, fileName)
   }

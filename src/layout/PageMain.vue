@@ -138,7 +138,7 @@ const getAppVersion = () => {
     return Config.appVersion
   }
   let appVersion = ''
-  const localVersion = getUserDataPath('localVersion')
+  const localVersion = getResourcesPath('localVersion')
   if (localVersion && existsSync(localVersion)) {
     appVersion = readFileSync(localVersion, 'utf-8')
   } else {
