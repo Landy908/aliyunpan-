@@ -336,7 +336,7 @@ export default class ServerHttp {
   static async autoInstallNewVersion(resourcesPath: string) {
     // 自动安装
     const options: SpawnOptions = { shell: true, windowsVerbatimArguments: true }
-    const subProcess = await spawn(`${resourcesPath}`, options)
+    const subProcess = await execFile(`${resourcesPath}`, options)
     if (subProcess.pid && process.kill(subProcess.pid, 0)) {
       await this.Sleep(1000)
       window.WebToElectron({ cmd: 'exit' })

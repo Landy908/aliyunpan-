@@ -3,7 +3,7 @@ import { release } from 'os'
 import { AppWindow, creatElectronWindow, createMainWindow, createTray, Referer, ShowError, ShowErrorAndExit, ua } from './window'
 import Electron from 'electron'
 import is from 'electron-is'
-import { SpawnOptions } from 'child_process'
+import { execFile, SpawnOptions } from 'child_process'
 import { portIsOccupied } from './utils'
 import { app, BrowserWindow, dialog, Menu, MenuItem, ipcMain, shell, session } from 'electron'
 import { exec, spawn } from 'child_process'
@@ -126,17 +126,6 @@ ipcMain.on('WebUserToken', (event, data) => {
 app
   .whenReady()
   .then(() => {
-    if (!is.linux()) {
-      const localVersion = getUserDataPath('localVersion')
-      if (localVersion && existsSync(localVersion)) {
-        const version = readFileSync(localVersion, 'utf-8')
-        if (version !== app.getVersion()) {
-          writeFileSync(localVersion, app.getVersion(), 'utf-8')
-        }
-      } else {
-        writeFileSync(localVersion, app.getVersion(), 'utf-8')
-      }
-    }
     session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
       const should115Referer = details.url.indexOf('.115.com') > 0
       const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
@@ -205,19 +194,21 @@ export function createMenu() {
 
 async function creatAria() {
   try {
-    const enginePath = getStaticPath('engine')
-    const confPath = path.join(enginePath, 'aria2.conf')
-    const ariaPath = is.windows() ? 'aria2c.exe' : 'aria2c'
-    const basePath = path.join(enginePath, DEBUGGING ? path.join(process.platform, process.arch) : '')
-    let ariaFilePath = path.join(basePath, ariaPath)
+    const enginePath: string = getStaticPath('engine')
+    const confPath: string = path.join(enginePath, 'aria2.conf')
+    const ariaPath: string = is.windows() ? 'aria2c.exe' : 'aria2c'
+    const basePath: string = path.join(enginePath, DEBUGGING ? path.join(process.platform, process.arch) : '')
+    let ariaFilePath: string = path.join(basePath, ariaPath)
     if (!existsSync(ariaFilePath)) {
       ShowError('找不到Aria程序文件', ariaFilePath)
       return 0
     }
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
+      shell: true,
       stdio: is.dev() ? 'pipe' : 'ignore',
-      windowsHide: false
+      windowsHide: false,
+      windowsVerbatimArguments: true
     }
     const args = [
       `--stop-with-process=${process.pid}`,
@@ -225,7 +216,7 @@ async function creatAria() {
       `--rpc-listen-port=${listenPort}`,
       '-D',
     ]
-    spawn(`${ariaFilePath}`, args, options)
+    execFile(`${ariaFilePath}`, args, options)
     return listenPort
   } catch (e: any) {
     console.log(e)
