@@ -106,7 +106,11 @@ export default defineComponent({
             vipname: '',
             vipexpire: '',
             device_id: deviceId,
-            signature: signature
+            signature: signature,
+            signInfo: {
+              signMon: -1,
+              signDay: -1,
+            }
           }
 
           UserDAL.UserLogin(tk2)

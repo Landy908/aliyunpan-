@@ -4,6 +4,7 @@ import { useUserStore } from '../store'
 import UserDAL from '../user/userdal'
 import message from '../utils/message'
 import { modalUserSpace } from '../utils/modal'
+import AliUser from '../aliapi/user'
 export default defineComponent({
   setup() {
     const handleUserChange = (val: any, user_id: string) => {
@@ -17,7 +18,7 @@ export default defineComponent({
     }
 
     const handleSign = () => {
-      UserDAL.UserSign(useUserStore().user_id)
+      AliUser.ApiUserSign(useUserStore().user_id)
     }
 
     const handleUserSpace = () => {

@@ -5,7 +5,6 @@ import UserDAL from './userdal'
 export interface ITokenInfo {
   tokenfrom: 'token' | 'account'
 
-
   access_token: string
   refresh_token: string
 
@@ -20,6 +19,7 @@ export interface ITokenInfo {
   token_type: string
   user_id: string
   user_name: string
+
   avatar: string
   nick_name: string
   default_drive_id: string
@@ -32,7 +32,6 @@ export interface ITokenInfo {
   is_first_login: boolean
   need_rp_verify: boolean
 
-
   name: string
   spu_id: string
   is_expires: boolean
@@ -44,6 +43,11 @@ export interface ITokenInfo {
 
 
   pic_drive_id: string
+
+  signInfo: {
+    signMon: number;
+    signDay: number;
+  }
 }
 
 export interface UserState {
