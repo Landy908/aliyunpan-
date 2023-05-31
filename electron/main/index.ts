@@ -216,10 +216,8 @@ async function creatAria() {
     }
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
-      shell: true,
       stdio: is.dev() ? 'pipe' : 'ignore',
-      windowsHide: false,
-      windowsVerbatimArguments: true
+      windowsHide: false
     }
     const args = [
       `--stop-with-process=${process.pid}`,
@@ -227,7 +225,7 @@ async function creatAria() {
       `--rpc-listen-port=${listenPort}`,
       '-D',
     ]
-    spawn( `${ariaFilePath}`, args, options)
+    spawn(`${ariaFilePath}`, args, options)
     return listenPort
   } catch (e: any) {
     console.log(e)
