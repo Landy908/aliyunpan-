@@ -30,6 +30,8 @@ export default class UserDAL {
           if (token.user_id === defaultUser) {
             defaultUserAdd = true
             await this.UserLogin(token).catch(() => {})
+          } else {
+            await this.autoUserSign(token)
           }
         }
       }
@@ -164,7 +166,6 @@ export default class UserDAL {
     useUserStore().userLogin(token.user_id)
     // 登陆后自动签到
     await UserDAL.autoUserSign(token)
-    UserDAL.SaveUserToken(token)
     window.WebUserToken({
       user_id: token.user_id,
       name: token.user_name,
@@ -272,12 +273,13 @@ export default class UserDAL {
       if (!token.signInfo) token.signInfo = { signMon: -1, signDay: -1 }
       const signInfo = token.signInfo
       if (signInfo.signMon !== nowMonth || signInfo.signDay !== nowDay) {
-        const signDay = await AliUser.ApiUserSign(token.user_id)
+        const signDay = await AliUser.ApiUserSign(token)
         if (signDay) {
           signInfo.signMon = nowMonth
           signInfo.signDay = signDay
         }
       }
     }
+    UserDAL.SaveUserToken(token)
   }
 }

@@ -11,14 +11,14 @@ export default defineComponent({
       if (val) UserDAL.UserChange(user_id)
     }
     const handleRefreshUserInfo = () => {
-      UserDAL.UserRefreshByUserFace(useUserStore().user_id, false).then((success) => {
+      UserDAL.UserRefreshByUserFace(userStore.user_id, false).then((success) => {
         if (success) message.info('刷新用户信息成功')
         else message.error('刷新用户信息失败')
       })
     }
 
     const handleSign = () => {
-      AliUser.ApiUserSign(useUserStore().user_id)
+      AliUser.ApiUserSign(userStore.GetUserToken)
     }
 
     const handleUserSpace = () => {

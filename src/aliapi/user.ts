@@ -19,7 +19,7 @@ export const SessionReTimeMap = new Map<string, number>()
 export default class AliUser {
 
   static async ApiSessionRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
-    if(!token.user_id) return false
+    if (!token.user_id) return false
     while (true) {
       const lock = SessionLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -163,7 +163,7 @@ export default class AliUser {
     OpenApiTokenLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
       OpenApiTokenReTimeMap.set(token.user_id, Date.now())
-      useSettingStore().updateStore( {
+      useSettingStore().updateStore({
         uiOpenApiAccessToken: resp.body.access_token,
         uiOpenApiRefreshToken: resp.body.refresh_token
       })
@@ -202,7 +202,7 @@ export default class AliUser {
       client_secret: useSettingStore().uiOpenApiClientSecret,
       scopes: ['user:base', 'file:all:read', 'file:all:write'],
       width: 348,
-      height: 400,
+      height: 400
     }
     const url = 'https://open.aliyundrive.com/oauth/authorize/qrcode'
     const resp = await AliHttp.Post(url, postData, '', '')
@@ -231,7 +231,7 @@ export default class AliUser {
       }
     }
     if (AliHttp.IsSuccess(resp.code)) {
-      let statusCode = resp.body.status;
+      let statusCode = resp.body.status
       return {
         authCode: statusCode === 'LoginSuccess' ? resp.body.authCode : '',
         statusCode: statusCode,
@@ -244,7 +244,7 @@ export default class AliUser {
   }
 
   static async OpenApiLoginByAuthCode(token: ITokenInfo, authCode: string): Promise<any> {
-    if(!authCode) return false
+    if (!authCode) return false
     // 构造请求体
     const postData = {
       code: authCode,
@@ -286,14 +286,14 @@ export default class AliUser {
     return false
   }
 
-  static async ApiUserSign(user_id: string): Promise<number> {
-    if (!user_id) return -1
+  static async ApiUserSign(token: ITokenInfo): Promise<number> {
+    if (!token.user_id) return -1
     const signUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_list'
-    const signResp = await AliHttp.Post(signUrl, {}, user_id, '')
+    const signResp = await AliHttp.Post(signUrl, {}, token.user_id, '')
     // console.log(JSON.stringify(resp))
     if (AliHttp.IsSuccess(signResp.code)) {
       if (!signResp.body || !signResp.body.result) {
-        message.error("签到失败" + signResp.body?.message)
+        message.error('签到失败' + signResp.body?.message)
         return -1
       }
       const { signInCount = 0, signInLogs = [] } = signResp.body.result
@@ -306,30 +306,29 @@ export default class AliUser {
       for (let signInLog of signInLogs) {
         const calendarDay = signInLog['calendarDay']
         if (calendarDay && parseInt(calendarDay) === sign_day) {
-           sign_data = signInLog
-           break
+          sign_data = signInLog
+          break
         }
       }
       let reward = '无奖励'
       if (!sign_data['isReward']) {
         const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'
-        const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, user_id, '')
+        const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, token.user_id, '')
         if (AliHttp.IsSuccess(rewardResp.code)) {
           if (!rewardResp.body || !rewardResp.body.result || !rewardResp.body.success) {
             message.error('签到后领取奖励失败，请前往手机端领取' + rewardResp.body?.message)
             return -1
           }
           const result = rewardResp.body.result
-          reward = `获得【${result["name"]}】 - ${result["description"]}`
+          reward = `获得【${result['name']}】 - ${result['description']}`
         }
-        message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)
       } else {
-        reward = `获得【${sign_data['reward']["name"]}】 - ${sign_data['reward']["description"]}`
-        message.info(`本月累计签到${signInCount}次，本次签到 ${reward}`)
+        reward = `获得【${sign_data['reward']['name']}】 - ${sign_data['reward']['description']}`
       }
+      message.info(`【${token.nick_name || token.user_name}】本月累计签到${signInCount}次，本次签到 ${reward}`)
       return parseInt(sign_data['calendarDay'])
     } else {
-      message.error("签到失败" + signResp.body?.message)
+      message.error('签到失败' + signResp.body?.message)
     }
     return -1
   }
