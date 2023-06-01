@@ -223,7 +223,7 @@ async function creatAria() {
       `--stop-with-process=${process.pid}`,
       `--conf-path=${confPath}`,
       `--rpc-listen-port=${listenPort}`,
-      '-D',
+      '-D'
     ]
     execFile(`${ariaFilePath}`, args, options)
     return listenPort
@@ -341,36 +341,25 @@ ipcMain.on('WebPlatformSync', (event) => {
 
 ipcMain.on('WebSpawnSync', (event, data) => {
   try {
-    const options = { ...data.options }
-    options.detached = true
-    options.stdio = 'ignore'
-
-    if (data.command === 'mpv') {
-      let basePath = path.resolve(app.getAppPath(), '..')
-      if (DEBUGGING) basePath = app.getAppPath()
-      if (is.windows()) {
-        data.command = path.join(basePath, 'MPV', 'mpv.exe')
-      } else if (is.macOS()) {
-        data.command = path.join(basePath, 'mpv')
-      } else {
-        data.command = 'mpv'
-      }
+    const options: SpawnOptions = {
+      stdio: 'ignore',
+      ...data.options
     }
-
-    if ((is.windows() || is.macOS()) && existsSync(data.command) == false) {
+    if ((is.windows() || is.macOS()) && !existsSync(data.command)) {
       event.returnValue = { error: '找不到文件' + data.command }
       ShowError('找不到文件', data.command)
     } else {
-      const subprocess = spawn(data.command, data.args, options)
-      const ret = {
-        data: data,
-        exitCode: subprocess.exitCode,
-        pid: subprocess.pid,
-        spawnfile: subprocess.spawnfile,
-        command: data.command
+      const command = is.windows() ? `${data.command}` : `open -a ${data.command} ${data.command.includes('mpv.app') ? '--args ' : ''}`
+      const subProcess = spawn(command, data.args, options)
+      const isRunning = process.kill(subProcess.pid, 0)
+      subProcess.unref()
+      event.returnValue = {
+        pid: subProcess.pid,
+        isRunning: isRunning,
+        execCmd: data,
+        options: options,
+        exitCode: subProcess.exitCode
       }
-      subprocess.unref()
-      event.returnValue = ret
     }
   } catch (err: any) {
     event.returnValue = { error: err }
