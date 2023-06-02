@@ -43,7 +43,7 @@
   "win": {
     "icon": "./static/images/icon_256x256.ico",
     "artifactName": "alixby-${version}-win-${arch}.${ext}",
-    "requestedExecutionLevel": "requireAdministrator",
+    "requestedExecutionLevel": "asInvoker",
     "extraResources": [
       { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
       { "from": "./static/images/icon_256x256.ico", "to": "./images/icon_256x256.ico"},
@@ -70,7 +70,7 @@
   "publish": [
     {
       "provider": "github",
-      "releaseType": "draft"
+      "releaseType": "prerelease"
     }
   ]
 }
