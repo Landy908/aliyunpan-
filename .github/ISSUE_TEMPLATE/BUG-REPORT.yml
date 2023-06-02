@@ -9,8 +9,10 @@ body:
       options:
         - label: 不存在相似或相关的issue / No similar or related issues
           required: true
-        - label: 最新依然存在此问题 / Latest beta app does not work
-          required: true
+        - label: 最新版本是否存在此问题 / Latest app does not work
+          required: false
+        - label: 旧版本是否存在此问题 / Oldest app does not work
+          required: false
   - type: textarea
     attributes:
       label: 问题描述 / Describe Bugs
