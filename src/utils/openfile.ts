@@ -268,7 +268,10 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
       url: url,
       otherArgs: [
         '--force-window=immediate',
-        '--geometry=50%',
+        '--hwdec=auto',
+        '--geometry=80%',
+        '--autofit-larger=100%x100%',
+        '--autofit-smaller=640',
         '--audio-pitch-correction=yes',
         '--keep-open-pause=no',
         '--alang=[en,eng,zh,chi,chs,sc,zho]',

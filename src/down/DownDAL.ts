@@ -3,17 +3,17 @@ import path from 'path'
 import TreeStore from '../store/treestore'
 import { useUserStore, useSettingStore, useDownedStore, useDowningStore, useFootStore } from '../store'
 import { ClearFileName } from '../utils/filehelper'
-import DB from '../utils/db'
 import {
   AriaAddUrl,
   AriaConnect, AriaDeleteList,
   AriaGetDowningList,
-  AriaHashFile,
+  AriaHashFile, AriaStopList,
   FormatAriaError,
   IsAria2cRemote
 } from '../utils/aria2c'
 import { humanSize, humanSizeSpeed } from '../utils/format'
 import { Howl } from 'howler'
+import DBDown from '../utils/dbdown'
 
 export interface IStateDownFile {
   DownID: string
@@ -95,7 +95,7 @@ export default class DownDAL {
     const downingStore = useDowningStore()
     if (downingStore.ListLoading) return
     downingStore.ListLoading = true
-    const stateDownFiles = await DB.getDowningAll()
+    const stateDownFiles = await DBDown.getDowningAll()
     // 首次从DB中加载数据，如果上次意外停止则重新开始，如果手动暂停则保持
     for (const stateDownFile of stateDownFiles) {
       if (!stateDownFile.Down.IsStop && stateDownFile.Down.DownState != '队列中') {
@@ -114,8 +114,8 @@ export default class DownDAL {
       }
     }
     downingStore.ListDataRaw = stateDownFiles
-    downingStore.mRefreshListDataShow(true)
     downingStore.ListLoading = false
+    downingStore.mRefreshListDataShow(true)
   }
 
   static async aReloadDowned() {
@@ -123,15 +123,15 @@ export default class DownDAL {
     if (downedStore.ListLoading) return
     downedStore.ListLoading = true
     const max = useSettingStore().debugDownedListMax
-    const showlist = await DB.getDownedByTop(max)
-    const count = await DB.getDownedTaskCount()
+    const showlist = await DBDown.getDownedByTop(max)
+    const count = await DBDown.getDownedTaskCount()
     downedStore.aLoadListData(showlist, count)
     downedStore.ListLoading = false
   }
 
   static async aClearDowned() {
     const max = useSettingStore().debugDownedListMax
-    return await DB.deleteDownedOutCount(max)
+    return await DBDown.deleteDownedOutCount(max)
   }
 
   /**
@@ -301,6 +301,7 @@ export default class DownDAL {
                   FailedMessage: ''
                 })
               } else if (ret == '已暂停') {
+                console.log('已暂停')
                 downingStore.mUpdateDownState({
                   DownID,
                   IsDowning: false,
@@ -470,17 +471,36 @@ export default class DownDAL {
       }
     }
 
-    if (saveList.length > 0) DB.saveDownings(JSON.parse(JSON.stringify(saveList)))
+    if (saveList.length > 0) DBDown.saveDownings(JSON.parse(JSON.stringify(saveList)))
     if (dellist.length > 0) AriaDeleteList(dellist).then()
     if (SaveTimeWait > 10) SaveTimeWait = 0
     else SaveTimeWait++
     useFootStore().mSaveDownTotalSpeedInfo(hasSpeed && humanSizeSpeed(hasSpeed) || '')
   }
 
-  /**
-   * 查询是否下载中
-   */
+  static deleteDowning(isAll: boolean, downingList: IStateDownFile[], gidList: string[]) {
+    // 处理待删除状态
+    const downIDList = downingList
+      .filter(list => list.Down.DownState === '待删除')
+      .map(item => item.DownID)
+    console.log('downIDList', downIDList)
+    DBDown.deleteDownings(JSON.parse(JSON.stringify(downIDList)))
+    AriaStopList(gidList).then(r => {})
+    AriaDeleteList(gidList).then(r => {})
+  }
+
+  static stopDowning(downList: IStateDownFile[], gidList: string[]) {
+    DBDown.saveDownings(JSON.parse(JSON.stringify(downList)))
+    AriaStopList(gidList).then(r => {})
+  }
+
   static QueryIsDowning() {
+    const downingList = useDowningStore().ListDataRaw
+    for (let i = 0, maxi = downingList.length; i < maxi; i++) {
+      if(!downingList[i].Down.IsDowning) {
+        return true
+      }
+    }
     return false
   }
 }

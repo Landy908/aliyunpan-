@@ -37,7 +37,7 @@ app.commandLine.appendSwitch('ignore-certificate-errors')
 app.commandLine.appendSwitch('proxy-bypass-list', '<local>')
 app.commandLine.appendSwitch('wm-window-animations-disabled')
 
-app.setAppUserModelId('com.github.liupan1890')
+app.setAppUserModelId('com.github.odomu')
 app.name = 'alixby3'
 const DEBUGGING = !app.isPackaged
 
@@ -100,7 +100,7 @@ app.on('will-quit', () => {
 
 app.setAboutPanelOptions({
   applicationName: '阿里云盘小白羊',
-  copyright: 'Odomu',
+  copyright: 'copyright ©2023 Odomu',
   website: 'https://github.com/odomu/aliyunpan',
   iconPath: getStaticPath('icon_64x64.png'),
   applicationVersion: '30'
