@@ -116,6 +116,13 @@ function handleSelectPlayer() {
         </a-radio-group>
       </div>
       <div class='settingspace'></div>
+      <div class='settinghead'>:播放器退出设置</div>
+      <div class='settingrow'>
+        <MySwitch :value='settingStore.uiVideoPlayerExit' @update:value='cb({ uiVideoPlayerExit: $event })'>
+          跟随软件一同退出
+        </MySwitch>
+      </div>
+      <div class='settingspace'></div>
       <div class='settinghead'>:网页播放历史</div>
       <div class='settingrow'>
         <MySwitch :value='settingStore.uiVideoPlayerHistory' @update:value='cb({ uiVideoPlayerHistory: $event })'>

@@ -225,7 +225,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     }
   }
   // 构造播放参数
-  let title = mode + '__' + name
+  let title = mode + '_' + name
   let titleStr = CleanStringForCmd(title)
   let referer = token.open_api_enable ? 'https://open.aliyundrive.com/' : 'https://www.aliyundrive.com/'
   let playCursor = humanTime(play_cursor)
@@ -242,7 +242,10 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   }
   const commandLowerCase = command.toLowerCase()
   let playerArgs: any = { url, otherArgs: [] }
-  let options: SpawnOptions = {}
+  let options: SpawnOptions = {
+    // 跟随软件退出
+    detached: !settingStore.uiVideoPlayerExit
+  }
   if (commandLowerCase.indexOf('potplayer') > 0) {
     playerArgs = {
       url: url,
