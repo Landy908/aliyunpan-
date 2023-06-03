@@ -92,13 +92,16 @@ export default class AliHttp {
             'UserDeviceIllegality',
             'UserDeviceOffline',
             'DeviceSessionSignatureInvalid',
-            'TokenVerifyFailed'
+            'TokenVerifyFailed',
+            'AccessTokenInvalid',
+            'AccessTokenExpired',
+            'I400JD',
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
           if (data.code == 'AccessTokenInvalid'
-            || data.code == 'TokenVerifyFailed'
             || data.code == 'AccessTokenExpired'
+            || data.code == 'TokenVerifyFailed'
             || data.code == 'I400JD') {
             if (token) {
               if (window.IsMainPage) {
