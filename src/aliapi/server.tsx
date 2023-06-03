@@ -117,7 +117,7 @@ export default class ServerHttp {
       })
   }
 
-  static async CheckUpgrade(): Promise<void> {
+  static async CheckUpgrade(showMessage: boolean = true): Promise<void> {
     axios
       .get(ServerHttp.updateUrl, {
         withCredentials: false,
@@ -127,7 +127,7 @@ export default class ServerHttp {
       .then(async (response: AxiosResponse) => {
         console.log('CheckUpgrade', response)
         if (!response.data || !response.data.assets || !response.data.html_url) {
-          message.error('获取新版本出错')
+          showMessage && message.error('获取新版本出错')
           return
         }
         let platform = process.platform
@@ -254,13 +254,13 @@ export default class ServerHttp {
                 })
               ])
             })
-          } else if (remoteVer <= configVer) {
+          } else if (showMessage && remoteVer <= configVer) {
             message.info('已经是最新版 ' + tagName, 6)
           }
         }
       })
       .catch((err: any) => {
-        message.info('检查更新失败，请检查网络是否正常')
+        showMessage && message.info('检查更新失败，请检查网络是否正常')
         DebugLog.mSaveDanger('CheckUpgrade', err)
       })
   }
