@@ -95,7 +95,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
     return
   }
   const codeExt = PrismExt(file.ext)
-  if (file.size < 100 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
+  if (file.size < 512 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
     Code(drive_id, file_id, file.name, codeExt, file.size)
     return
   }
