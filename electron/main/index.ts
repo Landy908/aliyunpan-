@@ -353,7 +353,12 @@ ipcMain.on('WebSpawnSync', (event, data) => {
       event.returnValue = { error: '找不到文件' + data.command }
       ShowError('找不到文件', data.command)
     } else {
-      const command = is.windows() ? `${data.command}` : `open -a ${data.command} ${data.command.includes('mpv.app') ? '--args ' : ''}`
+      let command
+      if (is.macOS()) {
+        command = `open -a ${data.command} ${data.command.includes('mpv.app') ? '--args ' : ''}`
+      } else {
+        command = `${data.command}`
+      }
       const subProcess = spawn(command, data.args, options)
       const isRunning = process.kill(subProcess.pid, 0)
       subProcess.unref()
