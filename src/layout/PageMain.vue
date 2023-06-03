@@ -119,7 +119,6 @@ const onMouseDown = (event: MouseEvent) => {
   if (document.body.getElementsByClassName('arco-modal-container').length) return
   const isInput = nodeName == 'INPUT' || nodeName == 'TEXTAREA' || false
   if (!isInput) {
-    onHideRightMenu()
     mouseStore.KeyDown(event)
   }
 }
