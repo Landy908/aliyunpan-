@@ -38,7 +38,6 @@ export default defineComponent({
           message.error('严重错误：无法打开登录弹窗，请退出小白羊后重新运行')
           return
         }
-        webview.openDevTools({ mode: 'bottom', activate: false })
         // webview.openDevTools({ mode: 'detach', activate: false })
         webview.loadURL(Config.loginUrl, { httpReferrer: 'https://www.aliyundrive.com/' })
 
