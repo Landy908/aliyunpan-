@@ -1,7 +1,15 @@
 <!-- eslint-disable no-irregular-whitespace -->
 <script setup lang='ts'>
 import { IAliGetFileModel } from '../aliapi/alimodels'
-import { KeyboardState, useAppStore, useFootStore, useKeyboardStore, usePanFileStore, useSettingStore } from '../store'
+import {
+  KeyboardState, MouseState,
+  useAppStore,
+  useFootStore,
+  useKeyboardStore,
+  useMouseStore,
+  usePanFileStore,
+  useSettingStore
+} from '../store'
 import useWinStore from '../store/winstore'
 import {
   onShowRightMenu,
@@ -39,6 +47,8 @@ import DirTopPath from './menus/DirTopPath.vue'
 import message from '../utils/message'
 import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
+import { TestButton } from '../utils/mosehelper'
+import usePanTreeStore from './pantreestore'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -87,8 +97,7 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
         document.getElementById('searchpanInput')?.focus()
       }, 300)
     })
-  )
-    return
+  ) return
   if (TestCtrl('f', state.KeyDownEvent, () => inputsearch.value.focus())) return
   if (TestKey('f3', state.KeyDownEvent, () => inputsearch.value.focus())) return
   if (TestKey(' ', state.KeyDownEvent, () => inputsearch.value.focus())) return
@@ -110,9 +119,18 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, panfileStore)) return
 })
 
+const mouseStore = useMouseStore()
+mouseStore.$subscribe((_m: any, state: MouseState) => {
+  if (appStore.appTab != 'pan') return
+  console.log('MouseState', state)
+  if (TestButton(3, state.MouseEvent, () => handleBack())) return
+})
 const handleRefresh = () => PanDAL.aReLoadOneDirToShow('', 'refresh', false)
 const handleDingWei = () => PanDAL.aTreeScrollToDir('refresh')
-const handleBack = () => PanDAL.aReLoadOneDirToShow('', 'back', false)
+const handleBack = () => {
+  if (!usePanTreeStore().PanHistoryCount) return
+  PanDAL.aReLoadOneDirToShow('', 'back', false)
+}
 const handleHome = () => PanDAL.aReLoadOneDirToShow('', 'root', false)
 const handleSelectAll = () => panfileStore.mSelectAll()
 

@@ -5,7 +5,15 @@ import { Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
 import usePanTreeStore, { fileiconfn } from './pantreestore'
 import MySwitchTab from '../layout/MySwitchTab.vue'
-import { KeyboardState, useAppStore, useKeyboardStore, usePanFileStore, useSettingStore, useWinStore } from '../store'
+import {
+  KeyboardState,
+  MouseState,
+  useAppStore,
+  useKeyboardStore,
+  usePanFileStore,
+  useSettingStore,
+  useWinStore
+} from '../store'
 import PanDAL from './pandal'
 import { onShowRightMenu, onHideRightMenuScroll, TestCtrl } from '../utils/keyboardhelper'
 import DirLeftMenu from './menus/DirLeftMenu.vue'
