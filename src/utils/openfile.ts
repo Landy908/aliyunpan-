@@ -227,7 +227,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   // 构造播放参数
   let title = mode + '_' + name
   let titleStr = CleanStringForCmd(title)
-  let referer = token.open_api_enable ? 'https://open.aliyundrive.com/' : 'https://www.aliyundrive.com/'
+  let referer = token.open_api_enable ? 'https://openapi.aliyundrive.com/' : 'https://www.aliyundrive.com/'
   let playCursor = humanTime(play_cursor)
   if (url.indexOf('x-oss-additional-headers=referer') > 0) {
     message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')

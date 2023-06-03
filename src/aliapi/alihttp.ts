@@ -50,7 +50,7 @@ const IsDebugHttp = false
 export default class AliHttp {
   static LimitMax = 100
   static baseApi = 'https://api.aliyundrive.com/'
-  static baseOpenApi = 'https://open.aliyundrive.com/'
+  static baseOpenApi = 'https://openapi.aliyundrive.com/'
   
   static IsSuccess(code: number): Boolean {
     return code >= 200 && code <= 300
@@ -96,7 +96,10 @@ export default class AliHttp {
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
-          if (data.code == 'AccessTokenInvalid' || data.code == 'TokenVerifyFailed') {
+          if (data.code == 'AccessTokenInvalid'
+            || data.code == 'TokenVerifyFailed'
+            || data.code == 'AccessTokenExpired'
+            || data.code == 'I400JD') {
             if (token) {
               if (window.IsMainPage) {
                 const isOpenApi = config.url.includes('adrive/v1.0')

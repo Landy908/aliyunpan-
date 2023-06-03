@@ -118,7 +118,7 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token)) {
+    if (!token.open_api_enable) {
       await useSettingStore().updateStore({
         uiEnableOpenApi: false,
         uiOpenApiAccessToken: token.open_api_access_token,
@@ -149,7 +149,7 @@ export default class AliUser {
       OpenApiTokenLockMap.delete(token.user_id)
       return true
     }
-    let url = 'https://open.aliyundrive.com/oauth/access_token'
+    let url = 'https://openapi.aliyundrive.com/oauth/access_token'
     if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiOauthUrl !== '') {
       url = useSettingStore().uiOpenApiOauthUrl
     }
@@ -163,7 +163,8 @@ export default class AliUser {
     OpenApiTokenLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
       OpenApiTokenReTimeMap.set(token.user_id, Date.now())
-      useSettingStore().updateStore({
+      // 刷新设置
+      await useSettingStore().updateStore({
         uiOpenApiAccessToken: resp.body.access_token,
         uiOpenApiRefreshToken: resp.body.refresh_token
       })
@@ -204,7 +205,7 @@ export default class AliUser {
       width: 348,
       height: 400
     }
-    const url = 'https://open.aliyundrive.com/oauth/authorize/qrcode'
+    const url = 'https://openapi.aliyundrive.com/oauth/authorize/qrcode'
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body.qrCodeUrl
@@ -252,7 +253,7 @@ export default class AliUser {
       client_id: useSettingStore().uiOpenApiClientId,
       client_secret: useSettingStore().uiOpenApiClientSecret
     }
-    const url = 'https://open.aliyundrive.com/oauth/access_token'
+    const url = 'https://openapi.aliyundrive.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
       return {

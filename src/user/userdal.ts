@@ -56,10 +56,10 @@ export default class UserDAL {
         // 自动刷新Token(过期3分钟)
         if (expire_time - dateNow < 1000 * 60 * 3) {
           await AliUser.ApiTokenRefreshAccount(token, false)
-          await AliUser.ApiSessionRefreshAccount(token,  false)
+          await AliUser.ApiSessionRefreshAccount(token, false)
         }
-        // 自动刷新OpenApiToken(过期3分钟)
-        if (token.open_api_enable && (open_api_expire_time - dateNow < 1000 * 60 * 3)) {
+        // 自动刷新OpenApiToken(过期1s)
+        if (token.open_api_enable && (open_api_expire_time - dateNow < 1000)) {
           await AliUser.OpenApiTokenRefreshAccount(token, false)
         }
       } catch (err: any) {
@@ -109,7 +109,7 @@ export default class UserDAL {
       signature: '',
       signInfo: {
         signMon: -1,
-        signDay: -1,
+        signDay: -1
       }
     }
   }
@@ -157,9 +157,9 @@ export default class UserDAL {
     UserTokenMap.set(token.user_id, token)
     // 加载用户信息
     await Promise.all([
-        AliUser.ApiUserInfo(token),
-        AliUser.ApiUserPic(token),
-        AliUser.ApiUserVip(token)
+      AliUser.ApiUserInfo(token),
+      AliUser.ApiUserPic(token),
+      AliUser.ApiUserVip(token)
     ])
     // 保存登录信息
     await DB.saveValueString('uiDefaultUser', token.user_id)
@@ -191,7 +191,7 @@ export default class UserDAL {
 
 
   static async UserLogOff(user_id: string): Promise<boolean> {
-    DB.deleteUser(user_id)
+    await DB.deleteUser(user_id)
     UserTokenMap.delete(user_id)
 
     let newUserID = ''
@@ -230,7 +230,7 @@ export default class UserDAL {
     const isLogin = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, false))
     if (!isLogin) {
       message.warning('该账号需要重新登陆[' + token.name + ']')
-      DB.deleteUser(user_id)
+      await DB.deleteUser(user_id)
       UserTokenMap.delete(user_id)
       return false
     }
@@ -244,21 +244,28 @@ export default class UserDAL {
     if (!token || !token.access_token) {
       return false
     }
-
-    let time = Date.now() - (new Date(token.expire_time).getTime() - token.expires_in * 1000)
-    time = time / 1000
-
-    if (!force || time < 600) {
-      await Promise.all([AliUser.ApiUserInfo(token), AliUser.ApiUserPic(token), AliUser.ApiUserVip(token)])
+    let expires_in = new Date(token.expire_time).getTime() - token.expires_in * 1000
+    let time = Date.now() - expires_in
+    if (!force || time / 1000 < 600) {
+      await Promise.all([
+        AliUser.ApiUserInfo(token),
+        AliUser.ApiUserPic(token),
+        AliUser.ApiUserVip(token)
+      ])
       UserDAL.SaveUserToken(token)
       return true
     } else {
       // 刷新token和session
       const isToken = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, true))
+      if (!isToken) return false
       const isSession = token.user_id && (await AliUser.ApiSessionRefreshAccount(token, true))
-      if (!isToken || !isSession) return false
+      const isOpenApiToken = token.user_id && (await AliUser.OpenApiTokenRefreshAccount(token, true, true))
       // 刷新用户信息
-      await Promise.all([AliUser.ApiUserInfo(token), AliUser.ApiUserPic(token), AliUser.ApiUserVip(token)])
+      await Promise.all([
+        AliUser.ApiUserInfo(token),
+        AliUser.ApiUserPic(token),
+        AliUser.ApiUserVip(token)
+      ])
       useUserStore().userLogin(token.user_id)
       UserDAL.SaveUserToken(token)
       return true
