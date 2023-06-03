@@ -60,8 +60,13 @@ export function GetFocusNext<T>(list: any[], keyName: string, focusKey: T, posit
 export function MouseSelectOne<T>(list: any[], keyName: string,
                                   selectedOld: Set<T>, focusKey: T, selectKey: T, Key: T,
                                   Ctrl: boolean, Shift: boolean, defaultValue: T): { selectedNew: Set<T>; selectedLast: T; focusLast: T } {
-  if (Key == defaultValue) return { selectedNew: new Set<T>(), selectedLast: defaultValue, focusLast: defaultValue }
-
+  if (Key == defaultValue) {
+    return {
+      selectedNew: new Set<T>(),
+      selectedLast: defaultValue,
+      focusLast: defaultValue
+    }
+  }
   if (Shift) {
     if (!selectKey) selectKey = list[0][keyName]
     let posToSelect = -1

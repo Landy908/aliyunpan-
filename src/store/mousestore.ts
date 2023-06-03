@@ -7,6 +7,7 @@ export interface MouseMessage {
   Alt: boolean;
   button: number;
   buttons: number;
+  srcElement: EventTarget | null;
 }
 
 export interface MouseState {
@@ -37,7 +38,8 @@ const useMouseStore = defineStore('mouse', {
         Shift: event.shiftKey,
         Alt: event.altKey,
         button: event.button,
-        buttons: event.buttons
+        buttons: event.buttons,
+        srcElement: event.srcElement
       }
     }
   }

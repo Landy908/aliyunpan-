@@ -282,13 +282,11 @@ const usePanFileStore = defineStore('panfile', {
       this.$patch({ ListDataShow: showList, ListDataGrid: gridList, ListSelected: newSelected })
     },
 
-
     mSelectAll() {
-      this.$patch({
-        ListSelected: SelectAll(this.ListDataShow, KEY, this.ListSelected),
-        ListFocusKey: '',
-        ListSelectKey: ''
-      })
+      let selectKey = this.ListDataShow[0].file_id
+      let ListSelected = SelectAll(this.ListDataShow, KEY, this.ListSelected)
+      if (this.ListDataShow.length === this.ListSelected.size) selectKey = ''
+      this.$patch({ ListSelected: ListSelected, ListFocusKey: selectKey, ListSelectKey: selectKey })
       this.mRefreshListDataShow(false)
     },
 
