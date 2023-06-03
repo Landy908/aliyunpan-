@@ -116,14 +116,6 @@ const onKeyDown = (event: KeyboardEvent) => {
 const onMouseDown = (event: MouseEvent) => {
   const ele = (event.srcElement || event.target) as any
   const nodeName = ele && ele.nodeName
-  // 鼠标左右按键按下
-  if (event.button === 0 || event.button === 1) {
-    event.preventDefault()
-    event.stopPropagation()
-    event.cancelBubble = true
-    event.returnValue = false
-    if (nodeName && !'BODY|DIV'.includes(nodeName)) ele.blur()
-  }
   if (document.body.getElementsByClassName('arco-modal-container').length) return
   const isInput = nodeName == 'INPUT' || nodeName == 'TEXTAREA' || false
   if (!isInput) {
