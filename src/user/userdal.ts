@@ -203,12 +203,12 @@ export default class UserDAL {
         break
       }
     }
-    await useSettingStore().updateStore({
-      uiEnableOpenApi: false,
-      uiOpenApiAccessToken: '',
-      uiOpenApiRefreshToken: ''
-    })
     if (!newUserID) {
+      await useSettingStore().updateStore({
+        uiEnableOpenApi: false,
+        uiOpenApiAccessToken: '',
+        uiOpenApiRefreshToken: ''
+      })
       useUserStore().userLogOff()
       usePanTreeStore().$reset()
       usePanFileStore().$reset()
@@ -247,6 +247,7 @@ export default class UserDAL {
     let expires_in = new Date(token.expire_time).getTime() - token.expires_in * 1000
     let time = Date.now() - expires_in
     if (!force || time / 1000 < 600) {
+      // 仅刷新个人信息
       await Promise.all([
         AliUser.ApiUserInfo(token),
         AliUser.ApiUserPic(token),
