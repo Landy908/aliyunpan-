@@ -281,10 +281,6 @@ ipcMain.on('WebToElectron', async (event, data) => {
       !launchStartShow && settings.args.push('--openAsHidden')
     }
     app.setLoginItemSettings(settings)
-  } else if (data.cmd && data.cmd === 'openDevTools') {
-    mainWindow.webContents.isDevToolsOpened()
-      ? mainWindow.webContents.closeDevTools()
-      : mainWindow.webContents.openDevTools({ mode: 'undocked' })
   } else {
     event.sender.send('ElectronToWeb', 'mainsenddata')
   }

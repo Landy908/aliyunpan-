@@ -301,13 +301,6 @@ export function creatElectronWindow(width: number, height: number, center: boole
   if (DEBUGGING) {
     const url = `http://localhost:${process.env.VITE_DEV_SERVER_PORT}`
     win.loadURL(url, { userAgent: ua, httpReferrer: Referer })
-    win.webContents.on('before-input-event', (_, input: Electron.Input) => {
-      if (input.type === 'keyDown' && input.key === 'F12') {
-        win.webContents.isDevToolsOpened()
-          ? win.webContents.closeDevTools()
-          : win.webContents.openDevTools({ mode: 'undocked' })
-      }
-    })
   } else {
     win.loadURL('file://' + getAsarPath('dist/' + page + '.html'), {
       userAgent: ua,
@@ -319,8 +312,20 @@ export function creatElectronWindow(width: number, height: number, center: boole
     if (width < 100) win.setSize(800, 600)
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })
+  } else {
+    win.webContents.on('devtools-opened', () => {
+      if (win && win.webContents.getType() === 'webview') {
+        win.webContents.closeDevTools()
+      }
+    })
   }
-
+  win.webContents.on('before-input-event', (_, input: Electron.Input) => {
+    if (input.type === 'keyDown' && input.control && input.shift && input.key === 'F12') {
+      win.webContents.isDevToolsOpened()
+        ? win.webContents.closeDevTools()
+        : win.webContents.openDevTools({ mode: 'undocked' })
+    }
+  })
   win.webContents.on('did-create-window', (childWindow) => {
     if (is.windows()) {
       childWindow.setMenu(null) 

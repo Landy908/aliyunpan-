@@ -10,9 +10,6 @@ const winStore = useWinStore()
 
 const logHeight = computed(() => winStore.height - 316)
 
-const handleOpenDevTools = () => {
-  window.WebToElectron({ cmd: 'openDevTools' })
-}
 const handleSaveLogRefresh = () => {
   DebugLog.aLoadFromDB()
 }
@@ -35,10 +32,6 @@ const handleSaveLogCopy = () => {
 
 <template>
   <div class="settingcard">
-    <div class="settinghead">:开发者工具</div>
-    <div class="settingrow">
-      <a-button type="outline" size="small" tabindex="-1" @click="handleOpenDevTools">DevTools</a-button>
-    </div>
     <div class="settingspace"></div>
     <div class="settinghead">:运行日志</div>
     <a-list

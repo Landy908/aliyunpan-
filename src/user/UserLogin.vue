@@ -41,7 +41,7 @@ const handleOpen = () => {
       message.error('严重错误：无法打开登录弹窗，请退出小白羊后重新运行')
       return
     }
-    // webview.openDevTools({ mode: 'undocked', activate: false })
+    webview.openDevTools({ mode: 'bottom', activate: false })
     webview.loadURL(Config.loginUrl, { httpReferrer: 'https://www.aliyundrive.com/' })
     webview.addEventListener('did-fail-load', () => {
       loginLoading.value = false
