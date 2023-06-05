@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.23.060520",
+  "version": "3.23.60522",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:version": "npm run build && node version.mjs",
+    "build:version": "node version.mjs",
     "build:electron": "npm run build && electron-builder",
     "build:test": "npm run build && electron-builder --dir"
   },

@@ -6,7 +6,7 @@ import fs from 'fs'
 const packageJsonStr = fs.readFileSync('./package.json').toString()
 try {
   const packageJson = JSON.parse(packageJsonStr)
-  packageJson.version = `3.${dayjs().format('YY.MMDDHH')}`
+  packageJson.version = `3.${dayjs().format('YY.MDDHH')}`
   console.info('版本升级为' + packageJson.version)
   fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))
   execSync(`git add package.json`)
