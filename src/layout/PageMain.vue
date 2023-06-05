@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
   useAppStore,
   useKeyboardStore,
@@ -31,9 +31,9 @@ import MyModal from './MyModal.vue'
 import { B64decode } from '../utils/format'
 import { throttle } from '../utils/debounce'
 import ServerHttp from '../aliapi/server'
-import Config from '../config'
 import { existsSync, readFileSync } from 'fs'
 import os from 'os'
+import { getPkgVersion } from '../utils/utils'
 
 const panVisible = ref(true)
 const appStore = useAppStore()
@@ -149,19 +149,20 @@ onUnmounted(() => {
   window.removeEventListener('click', onHideRightMenu)
 })
 
-const getAppVersion = () => {
+const getAppVersion = computed(() => {
+  const pkgVersion = getPkgVersion()
   if (os.platform() === 'linux') {
-    return Config.appVersion
+    return pkgVersion
   }
   let appVersion = ''
   const localVersion = getResourcesPath('localVersion')
   if (localVersion && existsSync(localVersion)) {
     appVersion = readFileSync(localVersion, 'utf-8')
   } else {
-    appVersion = Config.appVersion
+    appVersion = pkgVersion
   }
   return appVersion
-}
+})
 
 const verLoading = ref(false)
 const handleCheckVer = () => {
@@ -266,7 +267,7 @@ const handleCheckVer = () => {
             <span class="footAria" title="Aria已离线" v-else> Aria ⚯ Offline </span>
           </div>
 
-          <div class="footerBar fix" style="padding: 0 8px; cursor: pointer" @click="handleCheckVer">{{ getAppVersion() }}</div>
+          <div class="footerBar fix" style="padding: 0 8px; cursor: pointer" @click="handleCheckVer">{{ getAppVersion }}</div>
 
           <a-popover v-model:popup-visible="footStore.taskVisible" trigger="click" position="top" class="asynclist">
             <div class="footerBar fix" style="cursor: pointer">

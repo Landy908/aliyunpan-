@@ -1,31 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
-import Config from '../config'
 import ServerHttp from '../aliapi/server'
 import os from 'os'
 import { getResourcesPath } from '../utils/electronhelper'
 import { existsSync, readFileSync } from 'fs'
+import { getPkgVersion } from '../utils/utils'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {
   settingStore.updateStore(val)
 }
 
-const getAppVersion = () => {
+const getAppVersion = computed(() => {
+  const pkgVersion = getPkgVersion()
   if (os.platform() === 'linux') {
-    return Config.appVersion
+    return pkgVersion
   }
   let appVersion = ''
   const localVersion = getResourcesPath('localVersion')
   if (localVersion && existsSync(localVersion)) {
     appVersion = readFileSync(localVersion, 'utf-8')
   } else {
-    appVersion = Config.appVersion
+    appVersion = pkgVersion
   }
   return appVersion
-}
+})
 
 const verLoading = ref(false)
 const handleCheckVer = () => {
@@ -38,7 +39,7 @@ const handleCheckVer = () => {
 
 <template>
   <div class="settingcard">
-    <div class="appver">阿里云盘小白羊 {{ getAppVersion() }}</div>
+    <div class="appver">阿里云盘小白羊 {{ getAppVersion }}</div>
     <div class="appver">
       <a-button type="outline" size="mini" tabindex="-1" :loading="verLoading" @click="handleCheckVer">检查更新</a-button>
     </div>

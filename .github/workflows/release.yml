@@ -7,13 +7,12 @@ on:
 
 jobs:
   release:
-    name: build and release
-    runs-on: ${{ matrix.os }}
-
+    name: Build Release
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
 
     permissions:
       contents: write
@@ -37,6 +36,16 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           chmod -R 777 ./static/engine/
+
+      - name: Create Release Draft
+        uses: softprops/action-gh-release@c9b46fe7aad9f02afd89b12450b780f52dacfb2d
+        with:
+          name: '阿里云盘小白羊${{ github.ref }}'
+          body: ''
+          draft: false
+          prerelease: true
+        env:
+          github_token: ${{ secrets.github_token }}
 
       - name: Build Electron App
         uses: samuelmeuli/action-electron-builder@v1.6.0
