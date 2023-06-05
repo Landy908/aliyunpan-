@@ -48,6 +48,8 @@ jobs:
           npm install -g yarn
           yarn install
           yarn build:electron
+        env:
+          github_token: ${{ secrets.github_token }}
 
       - name: Upload Asar To Artifacts
         uses: actions/upload-artifact@v3
