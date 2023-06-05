@@ -283,7 +283,7 @@ export function creatElectronWindow(width: number, height: number, center: boole
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {
       spellcheck: false,
-      devTools: DEBUGGING,
+      devTools: true,
       webviewTag: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
@@ -295,13 +295,6 @@ export function creatElectronWindow(width: number, height: number, center: boole
       enableWebSQL: true,
       disableBlinkFeatures: 'OutOfBlinkCors,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure',
       preload: getAsarPath('dist/electron/preload/index.js')
-    }
-  })
-  win.webContents.on('before-input-event', (_, input: Electron.Input) => {
-    if (input.type === 'keyDown' && input.key === 'F12') {
-      win.webContents.isDevToolsOpened()
-        ? win.webContents.closeDevTools()
-        : win.webContents.openDevTools({ mode: 'bottom' })
     }
   })
   win.removeMenu()
@@ -321,10 +314,18 @@ export function creatElectronWindow(width: number, height: number, center: boole
     win.webContents.openDevTools({ mode: 'bottom' })
   } else {
     win.webContents.on('devtools-opened', () => {
-      if (win) win.webContents.closeDevTools()
+      if (win && win.webContents.getType() === 'webview') {
+        win.webContents.closeDevTools()
+      }
     })
   }
-
+  win.webContents.on('before-input-event', (_, input: Electron.Input) => {
+    if (input.type === 'keyDown' && input.control && input.shift && input.key === 'F12') {
+      win.webContents.isDevToolsOpened()
+        ? win.webContents.closeDevTools()
+        : win.webContents.openDevTools({ mode: 'undocked' })
+    }
+  })
   win.webContents.on('did-create-window', (childWindow) => {
     if (is.windows()) {
       childWindow.setMenu(null) 

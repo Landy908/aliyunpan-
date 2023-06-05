@@ -95,7 +95,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
     return
   }
   const codeExt = PrismExt(file.ext)
-  if (file.size < 100 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
+  if (file.size < 512 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
     Code(drive_id, file_id, file.name, codeExt, file.size)
     return
   }
@@ -227,7 +227,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   // 构造播放参数
   let title = mode + '_' + name
   let titleStr = CleanStringForCmd(title)
-  let referer = token.open_api_enable ? 'https://open.aliyundrive.com/' : 'https://www.aliyundrive.com/'
+  let referer = token.open_api_enable ? 'https://openapi.aliyundrive.com/' : 'https://www.aliyundrive.com/'
   let playCursor = humanTime(play_cursor)
   if (url.indexOf('x-oss-additional-headers=referer') > 0) {
     message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')
@@ -268,7 +268,10 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
       url: url,
       otherArgs: [
         '--force-window=immediate',
-        '--geometry=50%',
+        '--hwdec=auto',
+        '--geometry=80%',
+        '--autofit-larger=100%x100%',
+        '--autofit-smaller=640',
         '--audio-pitch-correction=yes',
         '--keep-open-pause=no',
         '--alang=[en,eng,zh,chi,chs,sc,zho]',

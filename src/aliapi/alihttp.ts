@@ -50,7 +50,7 @@ const IsDebugHttp = false
 export default class AliHttp {
   static LimitMax = 100
   static baseApi = 'https://api.aliyundrive.com/'
-  static baseOpenApi = 'https://open.aliyundrive.com/'
+  static baseOpenApi = 'https://openapi.aliyundrive.com/'
   
   static IsSuccess(code: number): Boolean {
     return code >= 200 && code <= 300
@@ -92,11 +92,15 @@ export default class AliHttp {
             'UserDeviceIllegality',
             'UserDeviceOffline',
             'DeviceSessionSignatureInvalid',
-            'TokenVerifyFailed'
+            'AccessTokenInvalid',
+            'AccessTokenExpired',
+            'I400JD',
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
-          if (data.code == 'AccessTokenInvalid' || data.code == 'TokenVerifyFailed') {
+          if (data.code == 'AccessTokenInvalid'
+            || data.code == 'AccessTokenExpired'
+            || data.code == 'I400JD') {
             if (token) {
               if (window.IsMainPage) {
                 const isOpenApi = config.url.includes('adrive/v1.0')
@@ -107,8 +111,7 @@ export default class AliHttp {
                     }
                     return { code: 403, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
                   })
-                }
-                if (isOpenApi && token.open_api_enable) {
+                } else {
                   if (token.open_api_access_token.length > 0 && token.open_api_refresh_token.length === 0) {
                     return { code: 403, header: '', body: '刷新OpenApiToken失败,未填写【RefreshToken】' } as IUrlRespData
                   }

@@ -31,7 +31,7 @@ export function PageMain() {
 
       // 启动时检查更新
       if (useSettingStore().uiLaunchAutoCheckUpdate) {
-        ServerHttp.CheckUpgrade().catch((err: any) => {
+        ServerHttp.CheckUpgrade(false).catch((err: any) => {
           DebugLog.mSaveDanger('CheckUpgrade', err)
         })
       }

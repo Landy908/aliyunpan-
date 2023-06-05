@@ -1,5 +1,6 @@
 import { deflateRawSync, inflateRawSync } from 'zlib'
 import crypto from 'crypto'
+import pkg from '../../package.json'
 
 export function ArrayCopyReverse(arr: any[]): any[] {
   const copy: any[] = []
@@ -102,13 +103,12 @@ export function HanToPin(input: string): string {
 
 
 export function GetOssExpires(downUrl: string) {
-  if (!downUrl || downUrl.includes('x-oss-expires=') == false) return 0
+  if (!downUrl || !downUrl.includes('x-oss-expires=')) return 0
   try {
     
     let expires = downUrl.substring(downUrl.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
     expires = expires.substring(0, expires.indexOf('&'))
-    const lastTime = parseInt(expires) - Math.floor(Date.now() / 1000) 
-    return lastTime
+    return parseInt(expires) - Math.floor(Date.now() / 1000)
   } catch {
     return 0
   }
@@ -126,4 +126,8 @@ export function md5Code(key: string) {
   const buffa = Buffer.from(key)
   const md5a = crypto.createHash('md5').update(buffa).digest('hex')
   return md5a
+}
+
+export function getPkgVersion() {
+  return pkg.version
 }
