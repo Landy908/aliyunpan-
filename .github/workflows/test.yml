@@ -27,6 +27,10 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
+      - name: Get LOCALAPPDATA Directory
+        id: local-app-data-path
+        run: echo "::set-output name=local_dir::$(%LOCALAPPDATA%)"
+
       - name: Cache Yarn
         uses: actions/cache@v3
         with:
@@ -46,7 +50,7 @@ jobs:
       - name: Cache Electron
         uses: actions/cache@v3
         with:
-          path: %LOCALAPPDATA%/electron/Cache
+          path: ${{ steps.local-app-data-path.outputs.local_dir }}/electron/Cache
           key: ${{ runner.os }}-electron-cache-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-electron-cache-
@@ -54,7 +58,7 @@ jobs:
       - name: Cache Electron-Builder
         uses: actions/cache@v3
         with:
-          path: %LOCALAPPDATA%/electron-builder/Cache
+          path: ${{ steps.local-app-data-path.outputs.local_dir }}/electron-builder/Cache
           key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-electron-builder-cache-
