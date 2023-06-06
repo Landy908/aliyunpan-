@@ -217,6 +217,7 @@ async function creatAria() {
     const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
+      shell: true,
       stdio: is.dev() ? 'pipe' : 'ignore',
       windowsHide: false
     }
