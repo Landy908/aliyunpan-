@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**/ISSUE_TEMPLATE/**'
 jobs:
   build:
     name: Build Test
@@ -67,6 +70,7 @@ jobs:
         run: |
           npm install -g yarn
           yarn install
+          yarn build:version
           yarn build:electron
         env:
           github_token: ${{ secrets.github_token }}
