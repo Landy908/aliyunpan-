@@ -214,7 +214,7 @@ async function creatAria() {
       ShowError('找不到Aria程序文件', ariaFilePath)
       return 0
     }
-    const argsToStr = (args: string) => isWindows ? `"${args}"` : `'${args}'`
+    const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
       stdio: is.dev() ? 'pipe' : 'ignore',
