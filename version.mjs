@@ -5,7 +5,6 @@ import fs from 'fs'
 process.env.TZ = 'Asia/Shanghai'
 const packageJsonStr = fs.readFileSync('./package.json').toString()
 try {
-  dayjs.tz.setDefault("America/New_York")
   const packageJson = JSON.parse(packageJsonStr)
   packageJson.version = `3.${dayjs().format('YY.MDDHH')}`
   console.info('版本升级为' + packageJson.version)
