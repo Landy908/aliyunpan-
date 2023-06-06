@@ -12,14 +12,12 @@
  <a href="https://github.com/odomu" target="_blank">
    <img src="https://img.shields.io/badge/作者-@odomu-000000.svg?style=flat-square&logo=GitHub" />
  </a>
- <a href="https://github.com/odomu/aliyunpan/actions" target="_blank">
-   <img src="https://github.com/odomu/aliyunpan/workflows/Build/badge.svg" />
- </a>
  <a href="https://github.com/odomu/aliyunpan/releases" target="_blank">
-   <img src="https://img.shields.io/github/downloads/odomu/aliyunpan/total.svg?style=flat-square" />
+   <img src="https://img.shields.io/github/downloads/odomu/aliyunpan/total?style=flat-square" />
  </a>
- <a href="https://github.com/odomu/aliyunpan/releases" target="_blank">
-   <img src="https://img.shields.io/github/release/odomu/aliyunpan.svg?style=flat-square" />
+ <a href="https://github.com/odomu/aliyunpan/releases/latest" target="_blank">
+   <img src="https://img.shields.io/github/downloads/odomu/aliyunpan/latest/total?style=flat-square">
+ </a>
  </a>
  <a href="LICENSE" target="_blank">
    <img src="https://img.shields.io/github/license/odomu/aliyunpan.svg?style=flat-square" />
@@ -57,5 +55,6 @@
 [![Star History Chart](https://api.star-history.com/svg?repos=odomu/aliyunpan&type=Date)](https://star-history.com/#odomu/aliyunpan&Date)
 
 ## 鸣谢
-感谢原作者<img src="https://img.shields.io/badge/@liupan1890-000000.svg?style=flat-square&logo=GitHub" />
+感谢原作者
+ <a href="https://github.com/liupan1890" target="_blank"><img src="https://img.shields.io/badge/@liupan1890-000000.svg?style=flat-square&logo=GitHub" /></a>
 开发出该软件，该项目只是在此基础上继续更新优化
