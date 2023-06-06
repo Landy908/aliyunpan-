@@ -214,15 +214,16 @@ async function creatAria() {
       ShowError('找不到Aria程序文件', ariaFilePath)
       return 0
     }
+    const argsToStr = (args: string) => isWindows ? `"${args}"` : `'${args}'`
     const listenPort = await portIsOccupied(16800)
     const options: SpawnOptions = {
       stdio: is.dev() ? 'pipe' : 'ignore',
       windowsHide: false
     }
     const args = [
-      `--stop-with-process=${process.pid}`,
-      `--conf-path=${confPath}`,
-      `--rpc-listen-port=${listenPort}`,
+      `--stop-with-process=${argsToStr(process.pid)}`,
+      `--conf-path=${argsToStr(confPath)}`,
+      `--rpc-listen-port=${argsToStr(listenPort)}`,
       '-D'
     ]
     execFile(`${ariaFilePath}`, args, options)
@@ -346,15 +347,16 @@ ipcMain.on('WebSpawnSync', (event, data) => {
       shell: true,
       ...data.options
     }
+    const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
     if ((is.windows() || is.macOS()) && !existsSync(data.command)) {
       event.returnValue = { error: '找不到文件' + data.command }
       ShowError('找不到文件', data.command)
     } else {
       let command
       if (is.macOS()) {
-        command = `open -a ${data.command} ${data.command.includes('mpv.app') ? '--args ' : ''}`
+        command = `open -a ${argsToStr(data.command)} ${data.command.includes('mpv.app') ? '--args ' : ''}`
       } else {
-        command = `${data.command}`
+        command = `${argsToStr(data.command)}`
       }
       const subProcess = spawn(command, data.args, options)
       const isRunning = process.kill(subProcess.pid, 0)
