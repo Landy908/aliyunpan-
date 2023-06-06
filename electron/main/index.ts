@@ -219,7 +219,8 @@ async function creatAria() {
     const options: SpawnOptions = {
       shell: true,
       stdio: is.dev() ? 'pipe' : 'ignore',
-      windowsHide: false
+      windowsHide: false,
+      windowsVerbatimArguments: true
     }
     const args = [
       `--stop-with-process=${argsToStr(process.pid)}`,
@@ -227,7 +228,7 @@ async function creatAria() {
       `--rpc-listen-port=${argsToStr(listenPort)}`,
       '-D'
     ]
-    execFile(`${ariaFilePath}`, args, options)
+    execFile(`${argsToStr(ariaFilePath)}`, args, options)
     return listenPort
   } catch (e: any) {
     console.log(e)
