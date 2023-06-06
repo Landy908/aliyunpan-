@@ -343,6 +343,7 @@ ipcMain.on('WebSpawnSync', (event, data) => {
   try {
     const options: SpawnOptions = {
       stdio: 'ignore',
+      shell: true,
       ...data.options
     }
     if ((is.windows() || is.macOS()) && !existsSync(data.command)) {
