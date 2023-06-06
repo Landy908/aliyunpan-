@@ -58,7 +58,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
     hls.loadSource(url)
     hls.attachMedia(video)
     hls.on(HlsJs.Events.MANIFEST_PARSED, async () => {
-      await art.play()
+      await art.play().catch((err) => {})
       await getVideoCursor(art, pageVideo.play_cursor)
     })
     hls.on(HlsJs.Events.ERROR, (event, data) => {
@@ -141,7 +141,7 @@ const createVideo = async (name: string) => {
   ArtPlayerRef.on('ready', async () => {
     // @ts-ignore
     if (!ArtPlayerRef.hls) {
-      await ArtPlayerRef.play()
+      await ArtPlayerRef.play().catch((err) => {})
       await getVideoCursor(ArtPlayerRef, pageVideo.play_cursor)
     }
     // 视频播放完毕
