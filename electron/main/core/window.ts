@@ -1,12 +1,12 @@
-import { app, BrowserWindow, dialog, Menu, MessageChannelMain, nativeTheme, Tray, screen } from 'electron'
-import { getAsarPath, getStaticPath, getUserDataPath } from './mainfile'
+import { app, BrowserWindow, Menu, MenuItem, MessageChannelMain, nativeTheme, screen, Tray } from 'electron'
+import { getAsarPath, getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import is from 'electron-is'
+import { ShowErrorAndRelaunch } from './dialog'
 
 const DEBUGGING = !app.isPackaged
 export const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.33'
 export const Referer = 'https://www.aliyundrive.com/'
-
 export const AppWindow: {
   mainWindow: BrowserWindow | undefined
   uploadWindow: BrowserWindow | undefined
@@ -24,10 +24,51 @@ export const AppWindow: {
   winHeight: 0,
   winTheme: ''
 }
+export const AppMenu: {
+  menuEdit: Electron.Menu | undefined
+  menuCopy: Electron.Menu | undefined
+} = {
+  menuEdit: undefined,
+  menuCopy: undefined
+}
+
+let timerUpload: NodeJS.Timeout | undefined
+const debounceUpload = (fn: any, wait: number) => {
+  if (timerUpload) {
+    clearTimeout(timerUpload)
+  }
+  timerUpload = setTimeout(() => {
+    fn()
+    timerUpload = undefined
+  }, wait)
+}
+let timerDownload: NodeJS.Timeout | undefined
+const debounceDownload = (fn: any, wait: number) => {
+  if (timerDownload) {
+    clearTimeout(timerDownload)
+  }
+  timerDownload = setTimeout(() => {
+    fn()
+    timerDownload = undefined
+  }, wait)
+}
+let timerResize: NodeJS.Timeout | undefined
+const debounceResize = (fn: any, wait: number) => {
+  if (timerResize) clearTimeout(timerResize)
+  timerResize = setTimeout(() => {
+    fn()
+    timerResize = undefined
+  }, wait)
+}
+nativeTheme.on('updated', () => {
+  if (AppWindow.mainWindow && !AppWindow.mainWindow.isDestroyed())
+    AppWindow.mainWindow.webContents.send('setTheme', {
+      dark: nativeTheme.shouldUseDarkColors
+    })
+})
 
 export function createMainWindow() {
-  Menu.setApplicationMenu(null) 
-  
+  Menu.setApplicationMenu(null)
   try {
     const configJson = getUserDataPath('config.json')
     if (existsSync(configJson)) {
@@ -44,7 +85,6 @@ export function createMainWindow() {
     }
   } catch {}
   if (AppWindow.winWidth <= 0) {
-    
     try {
       const size = screen.getPrimaryDisplay().workAreaSize
       let width = size.width * 0.677
@@ -59,7 +99,7 @@ export function createMainWindow() {
       AppWindow.winHeight = 600
     }
   }
-  AppWindow.mainWindow = creatElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
+  AppWindow.mainWindow = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
 
   AppWindow.mainWindow.on('resize', () => {
     debounceResize(function () {
@@ -102,78 +142,30 @@ export function createMainWindow() {
     creatDownloadPort()
   })
 
-  AppWindow.mainWindow.webContents.on('render-process-gone', function (event, details) {
+  AppWindow.mainWindow.webContents.on('render-process-gone', function(event, details) {
     if (details.reason == 'crashed' || details.reason == 'oom' || details.reason == 'killed') {
-      ShowErrorAndRelanch('(⊙o⊙)？小白羊遇到错误崩溃了', details.reason)
+      ShowErrorAndRelaunch('(⊙o⊙)？小白羊遇到错误崩溃了', details.reason)
     }
   })
 
-  creatUpload()
-  creatDownload()
-}
-nativeTheme.on('updated', () => {
-  if (AppWindow.mainWindow && !AppWindow.mainWindow.isDestroyed())
-    AppWindow.mainWindow.webContents.send('setTheme', {
-      dark: nativeTheme.shouldUseDarkColors
-    })
-})
-
-function ShowErrorAndRelanch(title: string, errmsg: string) {
-  dialog
-    .showMessageBox({
-      type: 'error',
-      buttons: ['ok'],
-      title: title + '，小白羊将自动退出',
-      message: '错误信息:' + errmsg
-    })
-    .then((_) => {
-      setTimeout(() => {
-        app.relaunch()
-        try {
-          app.exit()
-        } catch {}
-      }, 100)
-    })
-}
-export function ShowErrorAndExit(title: string, errmsg: string) {
-  dialog
-    .showMessageBox({
-      type: 'error',
-      buttons: ['ok'],
-      title: title + '，小白羊将自动退出',
-      message: '错误信息:' + errmsg
-    })
-    .then((_) => {
-      setTimeout(() => {
-        try {
-          app.exit()
-        } catch {}
-      }, 100)
-    })
+  createUpload()
+  createDownload()
 }
 
-export function ShowError(title: string, errmsg: string) {
-  dialog
-    .showMessageBox({
-      type: 'error',
-      buttons: ['ok'],
-      title: title,
-      message: '错误信息:' + errmsg
-    })
-    .then((_) => {})
+export function createMenu() {
+  AppMenu.menuEdit = new Menu()
+  AppMenu.menuEdit.append(new MenuItem({ label: '剪切', role: 'cut' }))
+  AppMenu.menuEdit.append(new MenuItem({ label: '复制', role: 'copy' }))
+  AppMenu.menuEdit.append(new MenuItem({ label: '粘贴', role: 'paste' }))
+  AppMenu.menuEdit.append(new MenuItem({ label: '删除', role: 'delete' }))
+  AppMenu.menuEdit.append(new MenuItem({ label: '全选', role: 'selectAll' }))
+  AppMenu.menuCopy = new Menu()
+  AppMenu.menuCopy.append(new MenuItem({ label: '复制', role: 'copy' }))
+  AppMenu.menuCopy.append(new MenuItem({ label: '全选', role: 'selectAll' }))
 }
 
-let timerResize: NodeJS.Timeout | undefined
-const debounceResize = (fn: any, wait: number) => {
-  if (timerResize) clearTimeout(timerResize)
-  timerResize = setTimeout(() => {
-    fn()
-    timerResize = undefined
-  }, wait)
-}
 
 export function createTray() {
-  
   const trayMenuTemplate = [
     {
       label: '显示主界面',
@@ -199,16 +191,11 @@ export function createTray() {
     }
   ]
 
-  
   const icon = getStaticPath('icon_256x256.ico')
   AppWindow.appTray = new Tray(icon)
-  
   const contextMenu = Menu.buildFromTemplate(trayMenuTemplate)
-  
   AppWindow.appTray.setToolTip('阿里云盘小白羊')
-  
   AppWindow.appTray.setContextMenu(contextMenu)
-
   AppWindow.appTray.on('click', () => {
     if (AppWindow.mainWindow && AppWindow.mainWindow.isDestroyed() == false) {
       if (AppWindow.mainWindow.isMinimized()) AppWindow.mainWindow.restore()
@@ -220,53 +207,7 @@ export function createTray() {
   })
 }
 
-export function creatUpload() {
-  if (AppWindow.uploadWindow && AppWindow.uploadWindow.isDestroyed() == false) return
-  AppWindow.uploadWindow = creatElectronWindow(10, 10, false, 'main', 'dark', false)
-
-  AppWindow.uploadWindow.on('ready-to-show', function () {
-    creatUploadPort()
-    AppWindow.uploadWindow!.webContents.send('setPage', { page: 'PageWorker', data: { type: 'upload' } })
-    AppWindow.uploadWindow!.setTitle('阿里云盘小白羊上传进程')
-  })
-
-  AppWindow.uploadWindow.webContents.on('render-process-gone', function (event, details) {
-    if (details.reason == 'crashed' || details.reason == 'oom' || details.reason == 'killed' || details.reason == 'integrity-failure') {
-      try {
-        AppWindow.uploadWindow?.destroy()
-      } catch {}
-      AppWindow.uploadWindow = undefined
-      creatUpload()
-    }
-  })
-  AppWindow.uploadWindow.hide()
-}
-
-export function creatDownload() {
-  if (AppWindow.downloadWindow && AppWindow.downloadWindow.isDestroyed() == false) return
-  AppWindow.downloadWindow = creatElectronWindow(10, 10, false, 'main', 'dark', false)
-
-  AppWindow.downloadWindow.on('ready-to-show', function () {
-    creatDownloadPort()
-    AppWindow.downloadWindow!.webContents.send('setPage', { page: 'PageWorker', data: { type: 'download' } })
-    AppWindow.downloadWindow!.setTitle('阿里云盘小白羊下载进程')
-  })
-
-  AppWindow.downloadWindow.webContents.on('render-process-gone', function (event, details) {
-    if (details.reason == 'crashed' || details.reason == 'oom' || details.reason == 'killed' || details.reason == 'integrity-failure') {
-      try {
-        AppWindow.downloadWindow?.destroy()
-      } catch {}
-      AppWindow.downloadWindow = undefined
-      creatDownload()
-    }
-  })
-
-  AppWindow.downloadWindow.webContents.closeDevTools()
-  AppWindow.downloadWindow.hide()
-}
-
-export function creatElectronWindow(width: number, height: number, center: boolean, page: string, theme: string, devTools: boolean = true) {
+export function createElectronWindow(width: number, height: number, center: boolean, page: string, theme: string, devTools: boolean = true) {
   const win = new BrowserWindow({
     show: false,
     width: width,
@@ -343,8 +284,9 @@ function creatUploadPort() {
     }
   }, 1000)
 }
+
 function creatDownloadPort() {
-  debounceDownload(function () {
+  debounceDownload(function() {
     if (AppWindow.mainWindow && AppWindow.downloadWindow && AppWindow.downloadWindow.isDestroyed() == false) {
       const { port1, port2 } = new MessageChannelMain()
       AppWindow.mainWindow.webContents.postMessage('setDownloadPort', undefined, [port1])
@@ -352,23 +294,52 @@ function creatDownloadPort() {
     }
   }, 1000)
 }
-let timerUpload: NodeJS.Timeout | undefined
-const debounceUpload = (fn: any, wait: number) => {
-  if (timerUpload) {
-    clearTimeout(timerUpload)
-  }
-  timerUpload = setTimeout(() => {
-    fn()
-    timerUpload = undefined
-  }, wait)
+
+
+function createUpload() {
+  if (AppWindow.uploadWindow && AppWindow.uploadWindow.isDestroyed() == false) return
+  AppWindow.uploadWindow = createElectronWindow(10, 10, false, 'main', 'dark', false)
+
+  AppWindow.uploadWindow.on('ready-to-show', function() {
+    creatUploadPort()
+    AppWindow.uploadWindow!.webContents.send('setPage', { page: 'PageWorker', data: { type: 'upload' } })
+    AppWindow.uploadWindow!.setTitle('阿里云盘小白羊上传进程')
+  })
+
+  AppWindow.uploadWindow.webContents.on('render-process-gone', function(event, details) {
+    if (details.reason == 'crashed' || details.reason == 'oom' || details.reason == 'killed' || details.reason == 'integrity-failure') {
+      try {
+        AppWindow.uploadWindow?.destroy()
+      } catch {
+      }
+      AppWindow.uploadWindow = undefined
+      createUpload()
+    }
+  })
+  AppWindow.uploadWindow.hide()
 }
-let timerDownload: NodeJS.Timeout | undefined
-const debounceDownload = (fn: any, wait: number) => {
-  if (timerDownload) {
-    clearTimeout(timerDownload)
-  }
-  timerDownload = setTimeout(() => {
-    fn()
-    timerDownload = undefined
-  }, wait)
+
+function createDownload() {
+  if (AppWindow.downloadWindow && AppWindow.downloadWindow.isDestroyed() == false) return
+  AppWindow.downloadWindow = createElectronWindow(10, 10, false, 'main', 'dark', false)
+
+  AppWindow.downloadWindow.on('ready-to-show', function() {
+    creatDownloadPort()
+    AppWindow.downloadWindow!.webContents.send('setPage', { page: 'PageWorker', data: { type: 'download' } })
+    AppWindow.downloadWindow!.setTitle('阿里云盘小白羊下载进程')
+  })
+
+  AppWindow.downloadWindow.webContents.on('render-process-gone', function(event, details) {
+    if (details.reason == 'crashed' || details.reason == 'oom' || details.reason == 'killed' || details.reason == 'integrity-failure') {
+      try {
+        AppWindow.downloadWindow?.destroy()
+      } catch {
+      }
+      AppWindow.downloadWindow = undefined
+      createDownload()
+    }
+  })
+
+  AppWindow.downloadWindow.webContents.closeDevTools()
+  AppWindow.downloadWindow.hide()
 }
