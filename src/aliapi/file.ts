@@ -125,7 +125,10 @@ export default class AliFile {
       message.warning('视频正在转码中，稍后重试')
       return undefined
     }
-
+    if (resp.body.code == 'ExceedCapacityForbidden') {
+      message.warning('容量超限限制播放，需要扩容或者删除不必要的文件释放空间')
+      return undefined
+    }
     const data: IVideoPreviewUrl = {
       drive_id: drive_id,
       file_id: file_id,
