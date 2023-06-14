@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
 import DebugLog from '../utils/debuglog'
-import { getResourcesPath, getUserDataPath } from '../utils/electronhelper'
-import { ITokenInfo, useAppStore, useUserStore } from '../store'
+import { getUserDataPath } from '../utils/electronhelper'
+import { useAppStore, useUserStore } from '../store'
 import PanDAL from '../pan/pandal'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import UserDAL from "../user/userdal"
-import message from "../utils/message"
+import UserDAL from '../user/userdal'
 import { isEmpty } from 'lodash'
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
@@ -188,7 +187,7 @@ const setting: SettingState = {
   uiOpenApi: 'inputToken',
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
-  uiOpenApiOauthUrl: 'https://api.nn.ci/alist/ali_open/token',
+  uiOpenApiOauthUrl: 'https://api.xhofe.top/alist/ali_open/token',
   uiOpenApiAccessToken: '',
   uiOpenApiRefreshToken: '',
   uiFolderSize: true,
@@ -278,7 +277,7 @@ function _loadSetting(val: any) {
 
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
-  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.nn.ci/alist/ali_open/token')
+  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.xhofe.top/alist/ali_open/token')
   setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
   setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')

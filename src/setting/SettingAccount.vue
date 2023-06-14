@@ -185,7 +185,8 @@ const refreshQrCode = async () => {
             <i class='iconfont iconbulb' />
             <template #content>
               <div style='min-width: 400px'>
-                默认：<span class='opred'>https://api.nn.ci/alist/ali_open/token</span><br />
+                链接1：<span class='opred'>https://api.xhofe.top/alist/ali_open/token</span><br />
+                链接2（已被墙）：<span class='opred'>https://api.nn.ci/alist/ali_open/token</span><br />
                 用于配合RefreshToken刷新AccessToken<br />
                 <span class='opred'>注意</span>：填写RefreshToken后该项必填
               </div>
