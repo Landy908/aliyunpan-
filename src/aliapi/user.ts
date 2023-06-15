@@ -347,9 +347,11 @@ export default class AliUser {
       vipList = vipList.sort((a: any, b: any) => b.expire - a.expire)
       if (vipList.length > 0 && new Date(vipList[0].expire * 1000) > new Date()) {
         token.vipname = vipList[0].name
+        token.vipIcon = resp.body.mediumIcon
         token.vipexpire = humanDateTime(vipList[0].expire)
       } else {
         token.vipname = '免费用户'
+        token.vipIcon = ''
         token.vipexpire = ''
       }
       return true

@@ -1,6 +1,6 @@
 <script setup lang='ts'>
 import { ref } from 'vue'
-import { useUserStore, ITokenInfo } from '../store'
+import { ITokenInfo, useUserStore } from '../store'
 import UserDAL from '../user/userdal'
 import Config from '../config'
 import message from '../utils/message'
@@ -108,6 +108,7 @@ const loginbizExt = (msg: string) => {
         pic_drive_id: '',
         vipname: '',
         vipexpire: '',
+        vipIcon: '',
         device_id: deviceId,
         signature: signature,
         signInfo: {

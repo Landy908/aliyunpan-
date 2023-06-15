@@ -3,13 +3,13 @@ import AliUser from '../aliapi/user'
 import message from '../utils/message'
 import useUserStore, { ITokenInfo } from './userstore'
 import {
-  usePanTreeStore,
-  usePanFileStore,
-  useMyShareStore,
-  useMyFollowingStore,
-  useOtherFollowingStore,
   useAppStore,
   useFootStore,
+  useMyFollowingStore,
+  useMyShareStore,
+  useOtherFollowingStore,
+  usePanFileStore,
+  usePanTreeStore,
   useSettingStore
 } from '../store'
 import PanDAL from '../pan/pandal'
@@ -100,6 +100,7 @@ export default class UserDAL {
       spaceinfo: '',
       vipname: '',
       vipexpire: '',
+      vipIcon: '',
       pic_drive_id: '',
       device_id: '',
       signature: '',
