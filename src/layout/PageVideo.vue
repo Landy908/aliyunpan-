@@ -103,10 +103,11 @@ onMounted(async () => {
   }, 1000)
   // 创建播放窗口
   await createVideo(name)
-  await defaultSetting(ArtPlayerRef)
   // 获取视频信息
   await getPlayList(ArtPlayerRef)
   await getVideoInfo(ArtPlayerRef)
+  // 加载设置
+  await defaultSetting(ArtPlayerRef)
 })
 
 const createVideo = async (name: string) => {
@@ -149,21 +150,15 @@ const createVideo = async (name: string) => {
     // 视频播放完毕
     ArtPlayerRef.on('video:ended', async () => {
       await updateVideoTime()
-      if (storage.get('autoPlayNext')) {
-        const autoPlayNext = () => {
-          const item = playList[++autoPlayNumber]
-          if (autoPlayNumber >= playList.length) {
-            ArtPlayerRef.notice.show = '视频播放完毕'
-            return
-          }
-          if (item.file_id !== pageVideo.file_id) {
-            refreshSetting(ArtPlayerRef, item)
-            getPlayList(ArtPlayerRef, item.file_id)
-          } else {
-            autoPlayNext()
-          }
+      if (storage.get('autoPlayNext') && playList.length > 1) {
+        autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+        const item = playList[++autoPlayNumber]
+        if (!item) {
+          ArtPlayerRef.notice.show = '视频播放完毕'
+          return
         }
-        autoPlayNext()
+        await refreshSetting(ArtPlayerRef, item)
+        await getPlayList(ArtPlayerRef, item.file_id)
       }
     })
     // 播放已暂停
@@ -188,6 +183,7 @@ const getDirFileList = async (dir_id: string, hasDir: boolean, category: string 
         const fileInfo = {
           html: item.name,
           category: item.category,
+          description: item.description,
           name: item.name,
           file_id: item.file_id,
           ext: item.ext,
@@ -198,7 +194,7 @@ const getDirFileList = async (dir_id: string, hasDir: boolean, category: string 
       }
     }
   }
-  const filterList = hasDir ? [...childDirFileList, ...curDirFileList].sort((a, b)=> a.name.localeCompare(b.name, 'zh-CN')): curDirFileList
+  const filterList = hasDir ? [...childDirFileList, ...curDirFileList].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')) : curDirFileList
   if (category) {
     return filterList.filter(file => file.category === category)
   }
@@ -245,19 +241,21 @@ const defaultSetting = async (art: Artplayer) => {
       return !item.switch
     }
   })
-  art.setting.add({
-    name: 'autoPlayNext',
-    width: 250,
-    html: '自动连播',
-    tooltip: art.storage.get('autoPlayNext') ? '开启' : '关闭',
-    switch: art.storage.get('autoPlayNext'),
-    onSwitch: (item: SettingOption) => {
-      item.tooltip = item.switch ? '关闭' : '开启'
-      art.notice.show = '自动连播' + item.tooltip
-      art.storage.set('autoPlayNext', !item.switch)
-      return !item.switch
-    }
-  })
+  if (playList.length > 1) {
+    art.setting.add({
+      name: 'autoPlayNext',
+      width: 250,
+      html: '自动连播',
+      tooltip: art.storage.get('autoPlayNext') ? '开启' : '关闭',
+      switch: art.storage.get('autoPlayNext'),
+      onSwitch: (item: SettingOption) => {
+        item.tooltip = item.switch ? '关闭' : '开启'
+        art.notice.show = '自动连播' + item.tooltip
+        art.storage.set('autoPlayNext', !item.switch)
+        return !item.switch
+      }
+    })
+  }
   art.setting.add({
     name: 'playListMode',
     width: 250,
@@ -350,6 +348,7 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
     }
   }
   if (playList.length > 1) {
+    autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
     art.controls.update({
       name: 'playList',
       index: 10,
@@ -357,9 +356,16 @@ const getPlayList = async (art: Artplayer, file_id?: string) => {
       style: { padding: '0 10px' },
       html: pageVideo.html.length > 20 ? pageVideo.html.substring(0, 40) + '...' : pageVideo.html,
       selector: playList,
-      onSelect: async (item: SettingOption) => {
+      mounted: (panel: HTMLDivElement) => {
+        const $current = Artplayer.utils.queryAll('.art-selector-item', panel)
+          .find((item) => Number(item.dataset.index) == autoPlayNumber)
+        $current && Artplayer.utils.addClass($current, 'art-list-icon')
+      },
+      onSelect: async (item: SettingOption, element: HTMLElement) => {
+        await art.emit('video:pause')
         await updateVideoTime()
         await refreshSetting(art, item)
+        Artplayer.utils.inverseClass(element, 'art-list-icon')
         return item.html.length > 20 ? item.html.substring(0, 40) + '...' : item.html
       }
     })
@@ -577,5 +583,18 @@ onBeforeUnmount(() => {
   pointer-events: none;
   background-color: transparent;
   color: #ACA899;
+}
+
+.art-list-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.art-list-icon:before {
+  content: '\2713';
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
 }
 </style>
