@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAppStore, useKeyboardStore, KeyboardState, useWinStore, useDowningStore } from '../store'
-import { onShowRightMenu, onHideRightMenuScroll, RefreshScroll, RefreshScrollTo, TestCtrl, TestKey,
-  TestKeyboardScroll, TestKeyboardSelect } from '../utils/keyboardhelper'
+import { KeyboardState, useAppStore, useDowningStore, useKeyboardStore, useWinStore } from '../store'
+import {
+  onHideRightMenuScroll,
+  onShowRightMenu,
+  RefreshScroll,
+  RefreshScrollTo,
+  TestCtrl,
+  TestKey,
+  TestKeyboardScroll,
+  TestKeyboardSelect
+} from '../utils/keyboardhelper'
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
 import 'ant-design-vue/es/tooltip/style/css'
 
@@ -41,9 +49,9 @@ const handleStop = () => downingStore.mStopDowning()
 
 const handleStopAll = () => downingStore.mStopAllDowning()
 
-const handleDelete = () => downingStore.mDeleteDowning([...downingStore.ListSelected])
+const handleDelete = async () => await downingStore.mDeleteDowning([...downingStore.ListSelected])
 
-const handleDeleteAll = () => downingStore.mDeleteAllDowning()
+const handleDeleteAll = async () => await downingStore.mDeleteAllDowning()
 
 const handleTop = () => downingStore.mOrderDowning([...downingStore.ListSelected])
 

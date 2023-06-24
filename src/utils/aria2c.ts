@@ -1,12 +1,12 @@
 import AliFile from '../aliapi/file'
-import AliDirFileList, { IAliFileResp } from '../aliapi/dirfilelist'
+import { IAliFileResp } from '../aliapi/dirfilelist'
 
 import Aria2 from 'aria2-lib'
 import axios from 'axios'
 import DownDAL, { IAriaDownProgress, IStateDownFile } from '../down/DownDAL'
 import message from './message'
 import UserDAL from '../user/userdal'
-import { useSettingStore, useFootStore } from '../store'
+import { useFootStore, useSettingStore } from '../store'
 import DebugLog from './debuglog'
 import Config from '../config'
 import AliTrash from '../aliapi/trash'
@@ -297,10 +297,8 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
     const token = UserDAL.GetUserToken(info.user_id)
     if (!token || !token.access_token) return '账号失效，操作取消'
     if (info.isDir) {
-
       const dirfull = path.join(info.DownSavePath, info.name)
       if (!info.ariaRemote) {
-
         await fsPromises.mkdir(dirfull, { recursive: true }).catch((e: any) => {
           if (e.code && e.code === 'EPERM') e = '没有权限'
           if (e.code && e.code === 'EBUSY') e = '文件夹被占用或锁定中'

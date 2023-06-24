@@ -1,19 +1,22 @@
 import { IAliGetFileModel } from '../aliapi/alimodels'
 import path from 'path'
 import TreeStore from '../store/treestore'
-import { useUserStore, useSettingStore, useDownedStore, useDowningStore, useFootStore } from '../store'
+import { useDownedStore, useDowningStore, useFootStore, useSettingStore, useUserStore } from '../store'
 import { ClearFileName } from '../utils/filehelper'
 import {
   AriaAddUrl,
-  AriaConnect, AriaDeleteList,
+  AriaConnect,
+  AriaDeleteList,
   AriaGetDowningList,
-  AriaHashFile, AriaStopList,
+  AriaHashFile,
+  AriaStopList,
   FormatAriaError,
   IsAria2cRemote
 } from '../utils/aria2c'
 import { humanSize, humanSizeSpeed } from '../utils/format'
 import { Howl } from 'howler'
 import DBDown from '../utils/dbdown'
+import fsPromises from 'fs/promises'
 
 export interface IStateDownFile {
   DownID: string
@@ -61,7 +64,6 @@ export interface IStateDownInfo {
 
   crc64: string
 }
-
 
 export interface IAriaDownProgress {
   gid: string
@@ -478,20 +480,50 @@ export default class DownDAL {
     useFootStore().mSaveDownTotalSpeedInfo(hasSpeed && humanSizeSpeed(hasSpeed) || '')
   }
 
-  static deleteDowning(isAll: boolean, downingList: IStateDownFile[], gidList: string[]) {
-    // 处理待删除状态
-    const downIDList = downingList
-      .filter(list => list.Down.DownState === '待删除')
-      .map(item => item.DownID)
-    console.log('downIDList', downIDList)
-    DBDown.deleteDownings(JSON.parse(JSON.stringify(downIDList)))
-    AriaStopList(gidList).then(r => {})
-    AriaDeleteList(gidList).then(r => {})
+  static async deleteDowning(isAll: boolean, deleteList: IStateDownFile[], gidList: string[]) {
+    // 处理待删除文件
+    if (!isAll) {
+      const downIDList = deleteList.map(item => item.DownID)
+      console.log('deleteDowning', deleteList)
+      await DBDown.deleteDownings(JSON.parse(JSON.stringify(downIDList)))
+    } else {
+      await DBDown.deleteDowningAll()
+    }
+    // 停止aria2下载任务
+    await AriaStopList(gidList).then(r => {})
+    await AriaDeleteList(gidList).then(r => {})
+    // 删除临时文件
+    for (let downFile of deleteList) {
+      let downInfo = downFile.Info
+      if (downInfo.ariaRemote) continue
+      try {
+        if (!downInfo.isDir) {
+          let filePath = path.join(downInfo.DownSavePath, downInfo.name)
+          let tmpFilePath1 = filePath + '.td.aria2'
+          let tmpFilePath2 = filePath + '.td'
+          await fsPromises.rm(tmpFilePath1, { recursive: true })
+          await fsPromises.rm(tmpFilePath2, { recursive: true })
+        }
+      } catch(e) {}
+    }
   }
 
-  static stopDowning(downList: IStateDownFile[], gidList: string[]) {
-    DBDown.saveDownings(JSON.parse(JSON.stringify(downList)))
-    AriaStopList(gidList).then(r => {})
+  static async deleteDowned(isAll: boolean, deleteList: IStateDownFile[]) {
+    if (!isAll) {
+      // 处理待删除状态
+      const downIDList = deleteList
+        .filter(list => list.Down.DownState === '待删除')
+        .map(item => item.DownID)
+      console.log('downedList', deleteList)
+      await DBDown.deleteDowneds(JSON.parse(JSON.stringify(downIDList)))
+    } else {
+      await DBDown.deleteDownedAll()
+    }
+  }
+
+  static async stopDowning(downList: IStateDownFile[], gidList: string[]) {
+    await DBDown.saveDownings(JSON.parse(JSON.stringify(downList)))
+    await AriaStopList(gidList).then(r => {})
   }
 
   static QueryIsDowning() {

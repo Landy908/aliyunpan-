@@ -1,7 +1,7 @@
 import fuzzysort from 'fuzzysort'
 import { defineStore } from 'pinia'
 import DownDAL, { IStateDownFile } from './DownDAL'
-import { GetSelectedList, GetFocusNext, SelectAll, MouseSelectOne, KeyboardSelectOne } from '../utils/selecthelper'
+import { GetFocusNext, GetSelectedList, KeyboardSelectOne, MouseSelectOne, SelectAll } from '../utils/selecthelper'
 import { humanSize } from '../utils/format'
 import message from '../utils/message'
 import { useDownedStore } from '../store'
@@ -344,24 +344,28 @@ const useDowningStore = defineStore('downing', {
      * 注：下载服务中的执行列表，请根据状态做进一步处理
      * @param downIDList
      */
-    mDeleteDowning(downIDList: string[]) {
+    async mDeleteDowning(downIDList: string[]) {
       const gidList: string[] = []
-      const DowningList = this.ListDataRaw
       const newListSelected = new Set(this.ListSelected)
       const newList: Item[] = []
+      const DowningList: Item[] = this.ListDataRaw
+      const deleteList: Item[] = []
       for (let j = 0; j < DowningList.length; j++) {
         const DownID = DowningList[j].DownID
         if (downIDList.includes(DownID)) {
-          gidList.push(DowningList[j].Info.GID)
           DowningList[j].Down.DownState = '待删除'
-          if (newListSelected.has(DownID)) newListSelected.delete(DownID)
+          gidList.push(DowningList[j].Info.GID)
+          deleteList.push(DowningList[j])
+          if (newListSelected.has(DownID)) {
+            newListSelected.delete(DownID)
+          }
         } else {
           newList.push(DowningList[j])
         }
       }
       this.ListDataRaw = newList
       this.ListSelected = newListSelected
-      DownDAL.deleteDowning(false, DowningList, gidList)
+      await DownDAL.deleteDowning(false, deleteList, gidList)
       this.mRefreshListDataShow(true)
     },
 
@@ -369,16 +373,16 @@ const useDowningStore = defineStore('downing', {
      * 删除全部，修改为“待删除”状态，并从列表中删除 <br/>
      * 注：下载服务中的执行列表，请根据状态做进一步处理
      */
-    mDeleteAllDowning() {
+    async mDeleteAllDowning() {
       const gidList: string[] = []
       const DowningList = this.ListDataRaw
-      this.ListSelected = new Set<string>()
       for (let j = 0; j < DowningList.length; j++) {
         DowningList[j].Down.DownState = '待删除'
         gidList.push(DowningList[j].Info.GID)
       }
+      await DownDAL.deleteDowning(true, DowningList, gidList)
       DowningList.splice(0, DowningList.length)
-      DownDAL.deleteDowning(true, DowningList, gidList)
+      this.ListSelected = new Set<string>()
       this.mRefreshListDataShow(true)
     },
 
