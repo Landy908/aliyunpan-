@@ -1,6 +1,7 @@
 import { ITokenInfo } from '../user/userstore'
 import UserDAL from '../user/userdal'
-import axios, { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
+import axios from '../axios'
 import jschardet from 'jschardet'
 import AliUser from './user'
 import message from '../utils/message'
@@ -48,7 +49,6 @@ function Sleep(msTime: number): Promise<{ success: true; time: number }> {
 
 const IsDebugHttp = false
 export default class AliHttp {
-  static LimitMax = 100
   static baseApi = 'https://api.aliyundrive.com/'
   static baseOpenApi = 'https://openapi.aliyundrive.com/'
   

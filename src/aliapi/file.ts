@@ -39,7 +39,7 @@ export default class AliFile {
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body as IAliFileItem
     } else if (AliHttp.HttpCodeBreak(resp.code)) {
-      return resp.body as string
+      return (resp.body.message || resp.body) as string
     } else {
       DebugLog.mSaveWarning('ApiFileInfo err=' + file_id + ' ' + (resp.code || ''))
     }
@@ -100,10 +100,10 @@ export default class AliFile {
       return '文件已从网盘中彻底删除'
     } else if (resp.body.code == 'ForbiddenFileInTheRecycleBin') {
       return '文件已放入回收站'
+    } else if (AliHttp.HttpCodeBreak(resp.code)) {
+      return (resp.body.message || resp.body) as string
     } else if (resp.body.code) {
       return resp.body.code as string
-    } else if (AliHttp.HttpCodeBreak(resp.code)) {
-      return resp.body as string
     } else {
       DebugLog.mSaveWarning('ApiFileDownloadUrl err=' + file_id + ' ' + (resp.code || ''))
     }

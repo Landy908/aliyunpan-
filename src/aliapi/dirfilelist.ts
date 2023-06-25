@@ -44,13 +44,6 @@ export default class AliDirFileList {
   static ItemJsonmask = 'category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription'
   
   static getFileInfo(item: IAliFileItem, downUrl: string): IAliGetFileModel {
-    
-    
-    
-
-    
-    
-
     const size = item.size ? item.size : 0
     const date = new Date(item.updated_at || item.gmt_deleted || item.last_played_at || '')
     const y = date.getFullYear().toString()
@@ -570,19 +563,16 @@ export default class AliDirFileList {
           for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
             const item = resp.body.items[i] as IAliFileItem
             if (isVideo) {
-              if (!item.compilation_id && (!item.drive_id || !item.file_id)) continue 
-              
+              if (!item.compilation_id && (!item.drive_id || !item.file_id)) continue
               if (!item.compilation_id) {
                 item.type = 'file'
                 item.compilation_id = item.drive_id + '_' + item.file_id
               }
-              
               if (item.video_type == 'COMPILATION') {
                 item.type = 'folder'
                 item.drive_id = item.compilation_id.split('_')[0]
                 item.file_id = item.compilation_id.split('_')[1]
               }
-              
             }
             if (dir.itemsKey.has(item.file_id)) continue
             const add = AliDirFileList.getFileInfo(item, downUrl)
@@ -623,7 +613,6 @@ export default class AliDirFileList {
         if (isVideo && dir.items.length >= 500) dir.next_marker = ''
         return true
       } else if (resp.code == 404) {
-        
         dir.items.length = 0
         dir.next_marker = ''
         return true
