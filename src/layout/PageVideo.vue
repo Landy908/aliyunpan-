@@ -13,6 +13,7 @@ import AliFileCmd from '../aliapi/filecmd'
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
 let autoPlayNumber = 0
+let playbackRate = 1
 let ArtPlayerRef: Artplayer
 
 const options: Option = {
@@ -61,6 +62,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
     hls.on(HlsJs.Events.MANIFEST_PARSED, async () => {
       await art.play().catch((err) => {})
       await getVideoCursor(art, pageVideo.play_cursor)
+      art.playbackRate = playbackRate
     })
     hls.on(HlsJs.Events.ERROR, (event, data) => {
       const errorType = data.type
@@ -122,30 +124,32 @@ const createVideo = async (name: string) => {
   // z
   ArtPlayerRef.hotkey.add(90, () => {
     ArtPlayerRef.playbackRate = 1
+    playbackRate = 1
   })
   // x
   ArtPlayerRef.hotkey.add(88, () => {
     ArtPlayerRef.playbackRate -= 0.5
+    playbackRate -= 0.5
   })
   // c
   ArtPlayerRef.hotkey.add(67, () => {
     ArtPlayerRef.playbackRate += 0.5
+    playbackRate += 0.5
   })
   // 获取用户配置
   const storage = ArtPlayerRef.storage
   if (storage.get('playListMode') === undefined) storage.set('playListMode', true)
   if (storage.get('autoJumpCursor') === undefined) storage.set('autoJumpCursor', true)
   if (storage.get('subTitleListMode') === undefined) storage.set('subTitleListMode', false)
-  const volume = storage.get('videoVolume')
-  if (volume) ArtPlayerRef.volume = parseFloat(volume)
-  const muted = storage.get('videoMuted')
-  if (muted) ArtPlayerRef.muted = muted === 'true'
+  if (storage.get('videoVolume')) ArtPlayerRef.volume = parseFloat(storage.get('videoVolume'))
+  if (storage.get('videoMuted')) ArtPlayerRef.muted = storage.get('videoMuted') === 'true'
   // 监听事件
   ArtPlayerRef.on('ready', async () => {
     // @ts-ignore
     if (!ArtPlayerRef.hls) {
       await ArtPlayerRef.play().catch((err) => {})
       await getVideoCursor(ArtPlayerRef, pageVideo.play_cursor)
+      ArtPlayerRef.playbackRate = playbackRate
     }
     // 视频播放完毕
     ArtPlayerRef.on('video:ended', async () => {
@@ -397,7 +401,7 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
   if (data) {
     const blob = new Blob([data], { type: item.ext })
     onlineSubBlobUrl = URL.createObjectURL(blob)
-    await art.subtitle.switch(onlineSubBlobUrl, { name: item.name, type: item.ext })
+    await art.subtitle.switch(onlineSubBlobUrl, { name: item.name, type: item.ext, escape:false })
     return item.html
   } else {
     art.notice.show = `加载${item.name}字幕失败`
@@ -519,7 +523,7 @@ const getSubTitleList = async (art: Artplayer) => {
       if (art.subtitle.show) {
         if (!item.file_id) {
           art.notice.show = ''
-          await art.subtitle.switch(item.url, { name: item.name })
+          await art.subtitle.switch(item.url, { name: item.name, escape:false })
           return item.html
         } else {
           return await loadOnlineSub(art, item)
