@@ -12,7 +12,6 @@ import Config from '../config'
 import AliTrash from '../aliapi/trash'
 
 import path from 'path'
-import fsPromises from 'fs/promises'
 import fs from 'fs'
 
 const localPwd = 'S4znWTaZYQi3cpRNb'
@@ -59,7 +58,7 @@ function CloseRemote() {
   }
 }
 
-export function IsAria2cRemote(){
+export function IsAria2cRemote() {
   return IsAria2cOnlineRemote
 }
 
@@ -80,7 +79,7 @@ export async function AriaTest(https: boolean, host: string, port: number, secre
     .then(() => {
       return true
     })
-    .catch(function (error) {
+    .catch(function(error) {
       if (error.response && error.response.data && error.response.data.error) {
         if (error.response.data.error.message == 'Unauthorized') {
           message.error('连接失败 密码错误 ' + url + ' secret=' + secret)
@@ -95,6 +94,7 @@ export async function AriaTest(https: boolean, host: string, port: number, secre
       return false
     })
 }
+
 function Sleep(msTime: number) {
   return new Promise((resolve) =>
     setTimeout(
@@ -162,8 +162,8 @@ export async function AriaChangeToLocal() {
       let port = 16800
       if (Aria2EngineLocal == undefined) {
         port = window.WebRelaunchAria ? await window.WebRelaunchAria() : 16800
-        const options = {host: '127.0.0.1', port, secure: false, secret: localPwd, path: '/jsonrpc'}
-        Aria2EngineLocal = new Aria2({WebSocket: global.WebSocket, fetch: window.fetch.bind(window), ...options})
+        const options = { host: '127.0.0.1', port, secure: false, secret: localPwd, path: '/jsonrpc' }
+        Aria2EngineLocal = new Aria2({ WebSocket: global.WebSocket, fetch: window.fetch.bind(window), ...options })
         Aria2EngineLocal.on('close', () => {
           IsAria2cOnlineLocal = false
           if (useSettingStore().AriaIsLocal) {
@@ -176,17 +176,17 @@ export async function AriaChangeToLocal() {
       }
       await Sleep(1000)
       await Aria2EngineLocal.open()
-          .then(() => {
-            Aria2cLocalRelaunchTime = 0
-            SetAriaOnline(true, 'local')
-          })
-          .catch(() => {
-            SetAriaOnline(false, 'local')
-            Aria2cLocalRelaunchTime++
-            if (Aria2cLocalRelaunchTime < 2) {
-              message.info('正在尝试重启Aria进程中。。。')
-            }
-          })
+        .then(() => {
+          Aria2cLocalRelaunchTime = 0
+          SetAriaOnline(true, 'local')
+        })
+        .catch(() => {
+          SetAriaOnline(false, 'local')
+          Aria2cLocalRelaunchTime++
+          if (Aria2cLocalRelaunchTime < 2) {
+            message.info('正在尝试重启Aria进程中。。。')
+          }
+        })
 
       if (!IsAria2cOnlineLocal) {
         const url = `127.0.0.1:${port} secret=${localPwd}`
@@ -245,7 +245,7 @@ export async function AriaGetDowningList() {
       list = list.concat(arr)
       arr = result[2][0]
       list = list.concat(arr)
-      DownDAL.mSpeedEvent(list)
+      DownDAL.mSpeedEvent(list || [])
       SetAriaOnline(true)
     }
   } catch (e: any) {
@@ -297,21 +297,24 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
     const token = UserDAL.GetUserToken(info.user_id)
     if (!token || !token.access_token) return '账号失效，操作取消'
     if (info.isDir) {
-      const dirfull = path.join(info.DownSavePath, info.name)
+      const dirFull = path.join(info.DownSavePath, info.name)
       if (!info.ariaRemote) {
-        await fsPromises.mkdir(dirfull, { recursive: true }).catch((e: any) => {
-          if (e.code && e.code === 'EPERM') e = '没有权限'
-          if (e.code && e.code === 'EBUSY') e = '文件夹被占用或锁定中'
-          if (e.message) e = e.message
-          if (typeof e == 'string' && e.indexOf('EACCES') >= 0) e = '没有权限'
-          DebugLog.mSaveLog('danger', 'AriaAddUrl创建文件夹失败：' + dirfull + ' ' + (e || ''), e)
-          return undefined
-        })
+        try {
+          await fs.promises.mkdir(dirFull, { recursive: true })
+        } catch (error: any) {
+          const errorMap: Record<string, string> = {
+            EPERM: '文件没有读取权限',
+            EBUSY: '文件被占用或锁定中',
+            EACCES: '文件没有读取权限'
+          }
+          const errorMessage = errorMap[error.code] || error.message
+          DebugLog.mSaveLog('danger', 'AriaAddUrl创建文件夹失败：' + dirFull + ' ' + (error || ''), error)
+          return errorMessage
+        }
       }
-
-      const dir: IAliFileResp = {
+      const dirInfo: IAliFileResp = {
         items: [],
-        itemsKey:new Set(),
+        itemsKey: new Set(),
         punished_file_count: 0,
         next_marker: '',
         m_user_id: info.user_id,
@@ -319,94 +322,93 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
         dirID: info.file_id,
         dirName: info.name
       }
-      do {
-        const isGet = await AliTrash.ApiFileListOnePageAria('name', 'ASC', dir)
-        if (!isGet) {
-          return '解析子文件列表失败，稍后重试'
-        } else {
-          if (file.Down.IsStop) {
-            dir.items.length = 0
-            return '已暂停'
-          }
-          if (dir.items.length > 0) {
-            DownDAL.aAddDownload(dir.items, dirfull, false)
-          }
-          dir.items.length = 0
+      do{
+        const isGet = await AliTrash.ApiFileListOnePageAria('name', 'ASC', dirInfo)
+        if (!isGet) return '解析子文件列表失败，稍后重试'
+        if (file.Down.IsStop) {
+          dirInfo.items.length = 0
+          return '已暂停'
         }
-      } while (dir.next_marker)
-
+        if (dirInfo.items.length > 0) {
+          DownDAL.aAddDownload(dirInfo.items, dirFull, false)
+          dirInfo.items.length = 0
+        }
+      } while (dirInfo.next_marker)
       return 'downed'
     } else {
-
-      const dir = info.DownSavePath
-      const out = info.ariaRemote ? info.name : info.name + '.td'
-      const filefull = path.join(dir, info.name)
+      const dirPath = info.DownSavePath
+      const outFileName = info.ariaRemote ? info.name : info.name + '.td'
+      const fileFull = path.join(dirPath, info.name)
       if (!info.ariaRemote) {
         try {
-          const finfo = await fsPromises.stat(filefull)
-          if (finfo && finfo.size == info.size) return 'downed'
+          const fileStat = await fs.promises.stat(fileFull);
+          if (fileStat && fileStat.size == info.size) return 'downed'
           else return '本地存在重名文件，请手动删除'
-        } catch (e: any) {
-          if (e.code && e.code === 'EPERM') e = '文件没有读取权限'
-          if (e.code && e.code === 'EBUSY') e = '文件被占用或锁定中'
-          if (e.message) e = e.message
-          if (typeof e == 'string' && e.indexOf('EACCES') >= 0) e = '文件没有读取权限'
-          if (typeof e == 'string' && e.indexOf('no such file') >= 0) {
-
+        } catch (error: any) {
+          const errorMap: Record<string, string> = {
+            EPERM: '文件没有读取权限',
+            EBUSY: '文件被占用或锁定中',
+            EACCES: '文件没有读取权限'
+          }
+          const errorMessage = errorMap[error.code] || error.message
+          if (errorMessage.indexOf('no such file') < 0) {
+            DebugLog.mSaveLog(
+              'danger',
+              `AriaAddUrl访问文件失败：${fileFull} ${errorMessage || ''}`,
+              error
+            )
+            return errorMessage
           } else {
-            DebugLog.mSaveLog('danger', 'AriaAddUrl访问文件失败：' + filefull + ' ' + (e || ''), e)
-            return e
-          }
-        }
-
-        if (info.size == 0) {
-          try {
-
-            await (await fsPromises.open(filefull, 'w')).close().catch((e: any) => {
-              return undefined
-            })
-            return 'downed'
-          } catch {
-            return '创建空文件失败'
+            if (info.size == 0) {
+              try {
+                await (await fs.promises.open(fileFull, 'w')).close()
+                return 'downed'
+              } catch {
+                return '创建空文件失败'
+              }
+            }
           }
         }
       }
-
-
-      let downurl = file.Down.DownUrl
-
-      if (downurl != '' && downurl.indexOf('x-oss-expires=') > 0) {
-
-        let expires = downurl.substr(downurl.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
-        expires = expires.substr(0, expires.indexOf('&'))
-        const lasttime = parseInt(expires) - Date.now() / 1000
-        const needtime = (info.size + 1) / 1024 / 1024
-        if (lasttime < 60 || lasttime < needtime + 60) downurl = ''
-      } else downurl = ''
-
-      if (!downurl) {
+      let downloadUrl = file.Down.DownUrl
+      if (downloadUrl && downloadUrl.includes('x-oss-expires=')) {
+        const expires = downloadUrl.split('x-oss-expires=')[1].split('&')[0]
+        const lastTime = parseInt(expires) - Date.now() / 1000
+        const needTime = (info.size + 1) / 1024 / 1024
+        if (lastTime < 60 || lastTime < needTime + 60) {
+          downloadUrl = ''
+        }
+      } else {
+        downloadUrl = ''
+      }
+      if (!downloadUrl) {
         const durl = await AliFile.ApiFileDownloadUrl(info.user_id, info.drive_id, info.file_id, 14400)
-        if (typeof durl == 'string') return '生成下载链接失败,' + durl
-        else if (!durl.url) {
-          DebugLog.mSaveLog('danger', info.file_id + '生成下载链接失败,' + JSON.stringify(durl), null)
-          return '生成下载链接失败,' + JSON.stringify(durl)
+        if (typeof durl == 'string') {
+          return `生成下载链接失败, ${durl}`
+        } else if (!durl.url) {
+          DebugLog.mSaveLog('danger', `${info.file_id} 生成下载链接失败, ${JSON.stringify(durl)}`, null)
+          return `生成下载链接失败,${JSON.stringify(durl)}`
         }
-        downurl = durl.url
-        file.Down.DownUrl = downurl
+        downloadUrl = durl.url
+        file.Down.DownUrl = downloadUrl
       }
-      if (!downurl) return '生成下载链接失败0'
       if (file.Down.IsStop) return '已暂停'
-
       const split = useSettingStore().downThreadMax
       const referer = Config.referer
       const userAgent = Config.userAgent
       const multicall = [
         ['aria2.forceRemove', info.GID],
         ['aria2.removeDownloadResult', info.GID],
-        ['aria2.addUri', [downurl], { gid: info.GID, dir, out, split, referer, 'user-agent': userAgent, 'check-certificate': 'false', 'file-allocation': 'trunc' }]
+        ['aria2.addUri', [downloadUrl], {
+          gid: info.GID, dir: dirPath, out: outFileName,
+          split, referer, 'user-agent': userAgent
+        }]
       ]
       const result: any = await GetAria()?.multicall(multicall)
-      if (result == undefined || result.length < 3 || (result[2].code != undefined && result[2].code) != 0) return '创建aria任务失败，稍后自动重试' + result[2].message
+      if (result == undefined || result.length < 3
+        || (result[2].code != undefined && result[2].code) != 0) {
+        return '创建aria任务失败，稍后自动重试' + result[2].message
+      }
       if (result[2].length == 1) return 'success'
     }
   } catch (e: any) {

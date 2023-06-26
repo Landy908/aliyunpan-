@@ -14,6 +14,9 @@ const qrCodeLoading = ref(false)
 const qrCodeUrl = ref('')
 
 const cb = (val: any) => {
+  // 自动调整最佳线程数
+  val.downThreadMax = val.uiEnableOpenApi ? 16 : 4
+  val.downFileMax = val.uiEnableOpenApi ? 3 : 5
   settingStore.updateStore(val)
 }
 
@@ -79,7 +82,7 @@ const refreshQrCode = async () => {
         if (statusCode === 'LoginSuccess') {
           let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(token, authCode)
           // 更新token
-          useSettingStore().updateStore({
+          await useSettingStore().updateStore({
             uiOpenApiAccessToken: open_api_access_token,
             uiOpenApiRefreshToken: open_api_refresh_token
           })
