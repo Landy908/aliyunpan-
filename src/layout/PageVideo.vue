@@ -430,23 +430,23 @@ const getSubTitleList = async (art: Artplayer) => {
     subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
   }
   if (embedSubSelector.length === 0 && onlineSubSelector.length > 0) {
-    const similarity = { distance: 999, index: 0 }
-    for (let i = 0; i < subSelector.length; i++) {
-      // 莱文斯坦距离算法(计算相似度)
-      const distance = levenshtein.get(pageVideo.file_name, subSelector[i].html, { useCollator: true })
-      if (similarity.distance > distance) {
-        similarity.distance = distance
-        similarity.index = i
-      }
-    }
+    const fileName = pageVideo.file_name
     // 自动加载同名字幕
-    if (similarity.distance !== 999) {
-      let selectorItem = subSelector[similarity.index]
+    const similarity = subSelector.reduce((min, item, index) => {
+      // 莱文斯坦距离算法(计算相似度)
+      const distance = levenshtein.get(fileName, item.html, { useCollator: true })
+      if (distance < min.distance) {
+        min.distance = distance
+        min.index = index
+      }
+      return min
+    }, { distance: Infinity, index: -1 })
+    if (similarity.index !== -1) {
+      subSelector.forEach(v => v.default = false)
+      subSelector[similarity.index].default = true
       let subtitleSize = art.storage.get('subtitleSize') || '30px'
       art.subtitle.style('fontSize', subtitleSize)
-      subSelector.forEach(v => v.default = false)
-      selectorItem.default = true
-      await loadOnlineSub(art, selectorItem)
+      await loadOnlineSub(art, subSelector[similarity.index])
     }
   }
   const subDefault = subSelector.find((item) => item.default) || subSelector[0]
