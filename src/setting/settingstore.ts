@@ -304,7 +304,7 @@ function _loadSetting(val: any) {
   setting.downSaveBreakWeiGui = defaultBool(val.downSaveBreakWeiGui, true)
   setting.uploadFileMax = defaultValue(val.uploadFileMax, [5, 1, 3, 5, 10, 20, 30, 50])
   setting.downFileMax = defaultValue(val.downFileMax, [5, 1, 3, 5, 10, 20, 30])
-  setting.downThreadMax = defaultValue(val.downThreadMax, [4, 1, 2, 4, 8, 16])
+  setting.downThreadMax = defaultValue(val.downThreadMax, [4, 1, 2, 4, 8, 16, 24, 32])
   setting.uploadGlobalSpeed = defaultNumberSub(val.uploadGlobalSpeed, 0, 0, 999)
   setting.uploadGlobalSpeedM = defaultValue(val.uploadGlobalSpeedM, ['MB', 'KB'])
   setting.downGlobalSpeed = defaultNumberSub(val.downGlobalSpeed, 0, 0, 999)
@@ -417,7 +417,10 @@ const useSettingStore = defineStore('setting', {
   },
   actions: {
     async updateStore(partial: Partial<SettingState>) {
-      if (partial.uiTimeFolderFormate) partial.uiTimeFolderFormate = partial.uiTimeFolderFormate.replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
+      if (partial.uiTimeFolderFormate) {
+        partial.uiTimeFolderFormate = partial.uiTimeFolderFormate
+          .replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
+      }
       this.$patch(partial)
       if (Object.hasOwn(partial, 'uiLaunchStart')) {
         window.WebToElectron({ cmd: { launchStart: this.uiLaunchStart, launchStartShow: this.uiLaunchStartShow } })
@@ -430,7 +433,7 @@ const useSettingStore = defineStore('setting', {
       if (Object.hasOwn(partial, 'uiShowPanMedia')
           || Object.hasOwn(partial, 'uiFolderSize')
           || Object.hasOwn(partial, 'uiFileOrderDuli')) {
-        PanDAL.aReLoadOneDirToShow('', 'refresh', false)
+        await PanDAL.aReLoadOneDirToShow('', 'refresh', false)
       }
       if (Object.hasOwn(partial, 'proxyUseProxy')) {
         this.WebSetProxy()
