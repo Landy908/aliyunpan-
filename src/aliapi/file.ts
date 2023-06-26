@@ -466,13 +466,18 @@ export default class AliFile {
   static async ApiUpdateVideoTime(user_id: string, drive_id: string, file_id: string, play_cursor: number): Promise<IAliFileItem | undefined> {
     if (!useSettingStore().uiAutoPlaycursorVideo) return 
     if (!user_id || !drive_id || !file_id) return undefined
-    const urlvideo = 'adrive/v2/video/update'
+    let url = ''
+    if (useSettingStore().uiEnableOpenApi) {
+      url = 'adrive/v1.0/openFile/video/updateRecord'
+    } else {
+      url = 'adrive/v2/video/update'
+    }
     const postVideoData = {
       drive_id: drive_id,
       file_id: file_id,
       play_cursor: play_cursor.toString()
     }
-    const respvideo = await AliHttp.Post(urlvideo, postVideoData, user_id, '')
+    const respvideo = await AliHttp.Post(url, postVideoData, user_id, '')
     if (AliHttp.IsSuccess(respvideo.code)) {
       return respvideo.body as IAliFileItem
     } else {

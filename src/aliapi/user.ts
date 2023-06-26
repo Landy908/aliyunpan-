@@ -54,8 +54,12 @@ export default class AliUser {
     return false
   }
 
-  static async ApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
+  static async ApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
     if (!token.refresh_token) return false
+    if (forceRefresh) {
+      TokenLockMap.delete(token.user_id)
+      TokenReTimeMap.delete(token.user_id)
+    }
     while (true) {
       const lock = TokenLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -69,7 +73,6 @@ export default class AliUser {
     }
 
     const url = 'https://auth.aliyundrive.com/v2/account/token'
-
     const postData = { refresh_token: token.refresh_token, grant_type: 'refresh_token' }
     const resp = await AliHttp.Post(url, postData, '', '')
     TokenLockMap.delete(token.user_id)
