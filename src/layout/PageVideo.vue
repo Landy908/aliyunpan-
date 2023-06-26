@@ -174,6 +174,10 @@ const createVideo = async (name: string) => {
       storage.set('videoVolume', ArtPlayerRef.volume)
       storage.set('videoMuted', ArtPlayerRef.muted ? 'true' : 'false')
     })
+    // 播放倍数变化
+    ArtPlayerRef.on('video:ratechange', async () => {
+      playbackRate = ArtPlayerRef.playbackRate
+    })
   })
 }
 
