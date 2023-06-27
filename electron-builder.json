@@ -19,7 +19,7 @@
     "category": "public.app-category.utilities",
     "extraResources": [
       { "from": "./static/images/icon.icns", "to": "./images/icon.icns"},
-      { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
+      { "from": "./static/images/icon_30x30.png", "to": "./images/icon_30x30.png"},
       { "from": "./static/engine/darwin/${arch}", "to": "./engine"}
     ],
     "target": [
@@ -31,6 +31,7 @@
     "category": "Network",
     "artifactName": "alixby-${version}-linux-${arch}.${ext}",
     "extraResources": [
+      { "from": "./static/images/icon_30x30.png", "to": "./images/icon_30x30.png"},
       { "from": "./static/images/icon_64x64.png", "to": "./images/icon_64x64.png"},
       { "from": "./static/images/icon_256x256.png", "to": "./images/icon_256x256.png"},
       { "from": "./static/engine/linux/${arch}", "to": "./engine"}

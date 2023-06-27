@@ -44,7 +44,7 @@ export function getStaticPath(fileName: string) {
   if (is.dev()) basePath = path.resolve(app.getAppPath(), './static')
   if (fileName.startsWith('icon')) {
     if (fileName == 'icon_256x256.ico' && !is.windows()) {
-      fileName = path.join('images', 'icon_64x64.png')
+      fileName = path.join('images', 'icon_30x30.png')
     } else {
       fileName = path.join('images', fileName)
     }
