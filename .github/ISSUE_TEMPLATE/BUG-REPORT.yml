@@ -27,7 +27,7 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: 日志提交 / Relevant log output
+      label: 日志提交(截取部分日志，不要太长) / 使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
       description: 日志位于设置-运行日志-复制日志(截取部分日志，不要太长), 最好使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
       placeholder: "请用```将日志内容包裹"
   - type: input
