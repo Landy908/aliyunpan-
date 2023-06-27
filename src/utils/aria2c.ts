@@ -174,7 +174,7 @@ export async function AriaChangeToLocal() {
           }
         })
       }
-      await Sleep(1000)
+      await Sleep(500)
       await Aria2EngineLocal.open()
         .then(() => {
           Aria2cLocalRelaunchTime = 0
@@ -194,7 +194,6 @@ export async function AriaChangeToLocal() {
       } else {
         await AriaGlobalSpeed()
       }
-      await Sleep(1000)
     } catch (e) {
       SetAriaOnline(false, 'local')
     }

@@ -281,7 +281,8 @@ export default class DownDAL {
           downingStore.mUpdateDownState(DownID, state)
         }
       }
-      console.log('downingCount', downingCount)
+    } else {
+      useFootStore().mSaveDownTotalSpeedInfo('')
     }
     downingStore.mRefreshListDataShow(true)
     downedStore.mRefreshListDataShow(true)
