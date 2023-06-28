@@ -15,7 +15,7 @@ const qpsController = () => async (config: any) => {
       && config.url.indexOf('openapi.aliyundrive.com') < 0) return config
     if (config.url.indexOf('openapi.aliyundrive.com') < 0) {
       QPS = 2
-      OFFSET = 2000
+      OFFSET = 2500
       INTERVAL = 1000
     } else {
       QPS = 30
