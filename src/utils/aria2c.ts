@@ -357,14 +357,13 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
               error
             )
             return errorMessage
-          } else {
-            if (info.size == 0) {
-              try {
-                await (await fs.promises.open(fileFull, 'w')).close()
-                return 'downed'
-              } catch {
-                return '创建空文件失败'
-              }
+          }
+          if (info.size == 0) {
+            try {
+              await (await fs.promises.open(fileFull, 'w')).close()
+              return 'downed'
+            } catch {
+              return '创建空文件失败'
             }
           }
         }

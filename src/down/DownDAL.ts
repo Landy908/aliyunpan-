@@ -326,10 +326,11 @@ export default class DownDAL {
         if (!downingItem) continue
         const { Down } = downingItem
         const { size } = downingItem.Info
+        const totalLengthInt = parseInt(totalLength) || 0
         Down.DownSize = parseInt(completedLength) || 0
         Down.DownSpeed = parseInt(downloadSpeed) || 0
         Down.DownSpeedStr = humanSize(Down.DownSpeed) + '/s'
-        Down.DownProcess = Math.floor((Down.DownSize * 100) / (parseInt(totalLength) + 1)) % 100
+        Down.DownProcess = Math.floor((Down.DownSize * 100) / (totalLengthInt + 1)) % 100
         Down.IsCompleted = isComplete
         Down.IsDowning = isDowning
         Down.IsFailed = isError
@@ -371,7 +372,8 @@ export default class DownDAL {
           }
         } else if (isDowning) {
           hasSpeed += Down.DownSpeed
-          const lastTime = ((parseInt(totalLength) - Down.DownSize) / (Down.DownSpeed + 1)) % 356400
+          let lastTime = ((totalLengthInt - Down.DownSize) / (Down.DownSpeed + 1)) % 356400
+          if (lastTime < 1) lastTime = 1
           // 进度条
           Down.DownState =
             `${Down.DownProcess}% ${(lastTime / 3600).toFixed(0).padStart(2, '0')}:${((lastTime % 3600) / 60)
