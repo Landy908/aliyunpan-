@@ -23,7 +23,6 @@ import ArchivePasswordModal from '../pan/topbtns/ArchivePasswordModal.vue'
 import AlphaModal from '../pan/topbtns/AlphaModal.vue'
 import UploadModal from '../pan/topbtns/UploadModal.vue'
 import DownloadModal from '../pan/topbtns/DownloadModal.vue'
-import SelectSubTitleModal from '../pan/topbtns/SelectSubTitleModal.vue'
 
 export default defineComponent({
   components: {
@@ -68,7 +67,9 @@ export default defineComponent({
                           :sharetype="modalStore.modalData.sharetype || ''"
                           :filelist='modalStore.modalData.filelist || []' />
 
-  <DaoRuShareLinkModal :visible="modalStore.modalName == 'daorushare'" />
+  <DaoRuShareLinkModal :visible="modalStore.modalName == 'daorushare'"
+                       :shareUrl="modalStore.modalData.shareUrl || ''"
+                       :sharePwd="modalStore.modalData.sharePwd || ''" />
   <DaoRuShareLinkMultiModal :visible="modalStore.modalName == 'daorusharemulti'" />
 
   <RenameModal :visible="modalStore.modalName == 'rename'" :istree='modalStore.modalData.istree || false' />
@@ -117,8 +118,8 @@ export default defineComponent({
   <SelectPanDirModal :visible="modalStore.modalName == 'selectpandir'"
                      :selecttype="modalStore.modalData.selecttype || ''"
                      :selectid="modalStore.modalData.selectid || ''"
-                     :category="modalStore.modalData.category"
-                     :extFilter="modalStore.modalData.extFilter"
+                     :category='modalStore.modalData.category'
+                     :extFilter='modalStore.modalData.extFilter'
                      :callback='modalStore.modalData.callback' />
 </template>
 <style>

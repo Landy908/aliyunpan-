@@ -3,7 +3,8 @@ import { defineComponent } from 'vue'
 
 import { handleUpload } from '../topbtns/topbtn'
 
-import { modalCreatNewFile, modalCreatNewDir, modalDaoRuShareLink } from '../../utils/modal'
+import { modalCreatNewDir, modalCreatNewFile, modalDaoRuShareLink } from '../../utils/modal'
+
 export default defineComponent({
   props: {
     dirtype: {
@@ -53,7 +54,7 @@ export default defineComponent({
         </a-doption>
       </template>
     </a-dropdown>
-    <a-button type="text" size="small" tabindex="-1" title="Ctrl+L" @click="modalDaoRuShareLink"><i class="iconfont iconlink2" />导入分享</a-button>
+    <a-button type="text" size="small" tabindex="-1" title="Ctrl+L" @click="modalDaoRuShareLink()"><i class="iconfont iconlink2" />导入分享</a-button>
   </div>
 </template>
 <style></style>
