@@ -129,9 +129,7 @@ export default class AliUser {
       })
       return false
     }
-    if (isEmpty(token.open_api_access_token)) {
-      token.open_api_expires_in = 0
-    }
+    if (isEmpty(token.open_api_access_token)) token.open_api_expires_in = 0
     // 防止重复刷新
     if (!forceRefresh && token.open_api_expires_in >= Date.now()) {
       await useSettingStore().updateStore({
@@ -153,7 +151,9 @@ export default class AliUser {
       return true
     }
     let url = 'https://openapi.aliyundrive.com/oauth/access_token'
-    if (useSettingStore().uiEnableOpenApi && useSettingStore().uiOpenApiOauthUrl !== '') {
+    if (useSettingStore().uiEnableOpenApi
+      && useSettingStore().uiOpenApiOauthUrl !== ''
+      && useSettingStore().uiOpenApi === 'inputToken') {
       url = useSettingStore().uiOpenApiOauthUrl
     }
     const postData = {
@@ -223,23 +223,25 @@ export default class AliUser {
     const statusJudge = (status: string) => {
       switch (status) {
         case 'WaitLogin':
-          return '等待登录'
+          return { type: 'info', tips: '状态：等待扫码登录' }
         case 'ScanSuccess':
-          return '扫码成功'
+          return  { type: 'warning', tips: '状态：扫码成功' }
         case 'LoginSuccess':
-          return '登录成功'
+          return  { type: 'success', tips: '状态：登录成功' }
         case 'QRCodeExpired':
-          return '二维码超时'
+          return  { type: 'error', tips: '状态：二维码超时' }
         default:
-          return status
+          return  { type: 'error', tips: '状态：请重新刷新二维码' }
       }
     }
     if (AliHttp.IsSuccess(resp.code)) {
       let statusCode = resp.body.status
+      let statusData = statusJudge(statusCode)
       return {
         authCode: statusCode === 'LoginSuccess' ? resp.body.authCode : '',
         statusCode: statusCode,
-        status: statusJudge(statusCode)
+        statusType: statusData.type || '',
+        statusTips: statusData.tips || '',
       }
     } else {
       message.error('获取二维码状态失败[' + resp.body?.message + ']，请检查配置')

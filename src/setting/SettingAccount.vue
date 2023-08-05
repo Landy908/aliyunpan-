@@ -12,6 +12,8 @@ import { copyToClipboard, openExternal } from '../utils/electronhelper'
 const settingStore = useSettingStore()
 const qrCodeLoading = ref(false)
 const qrCodeUrl = ref('')
+const qrCodeStatusType = ref()
+const qrCodeStatusTips = ref()
 
 const cb = (val: any) => {
   // 自动调整最佳线程数
@@ -45,6 +47,13 @@ const copyCookies = async () => {
   }
 }
 
+const refreshStatus = () => {
+  qrCodeLoading.value = false
+  qrCodeUrl.value = ''
+  qrCodeStatusType.value = 'info'
+  qrCodeStatusTips.value = ''
+}
+
 const refreshQrCode = async () => {
   const { uiOpenApiClientId, uiOpenApiClientSecret } = storeToRefs(settingStore)
   if (!uiOpenApiClientId.value || !uiOpenApiClientSecret.value) {
@@ -52,55 +61,58 @@ const refreshQrCode = async () => {
     return
   }
   qrCodeLoading.value = true
-  const refresh = () => {
-    if (qrCodeLoading.value) {
-      setTimeout(refresh, 3000)
-    }
+  const token = await UserDAL.GetUserTokenFromDB(useUserStore().user_id)
+  if (!token) {
+    refreshStatus()
+    message.error('未登录账号，该功能无法开启')
+    return
   }
-  setTimeout(refresh, 3000)
-  UserDAL.GetUserTokenFromDB(useUserStore().user_id).then((token) => {
-    if (!token) {
-      message.error('未登录账号，该功能无法开启')
-      return
-    }
-    AliUser.OpenApiQrCodeUrl(token).then(url => {
-      qrCodeLoading.value = false
-      if (!url) return
-      qrCodeUrl.value = url
-      // 监听状态
-      const intervalId = setInterval(async () => {
-        const { authCode, statusCode, status } = await AliUser.OpenApiQrCodeStatus(url)
-        if (!statusCode) {
-          clearInterval(intervalId)
-          return
-        }
-        if (statusCode === 'QRCodeExpired') {
-          message.error('二维码已超时，请刷新二维码')
-          clearInterval(intervalId)
-          return
-        }
-        if (statusCode === 'LoginSuccess') {
-          let { open_api_access_token, open_api_refresh_token } = await AliUser.OpenApiLoginByAuthCode(token, authCode)
-          // 更新token
-          await useSettingStore().updateStore({
-            uiOpenApiAccessToken: open_api_access_token,
-            uiOpenApiRefreshToken: open_api_refresh_token
-          })
-          token.open_api_access_token = open_api_access_token
-          token.open_api_refresh_token = open_api_refresh_token
-          qrCodeUrl.value = ''
-          qrCodeLoading.value = false
-          UserDAL.SaveUserToken(token)
-          clearInterval(intervalId)
-          return
-        }
-      }, 1000)
-    }).catch(err => {
-      qrCodeLoading.value = false
-      qrCodeUrl.value = ''
-      message.error('获取二维码失败')
-    })
-  })
+  const codeUrl = await AliUser.OpenApiQrCodeUrl(token).catch(err => refreshStatus())
+  if (codeUrl) {
+    qrCodeLoading.value = false
+    qrCodeUrl.value = codeUrl
+    qrCodeStatusType.value = 'info'
+    qrCodeStatusTips.value = '状态：等待扫码登录'
+    // 监听状态
+    const intervalId = setInterval(async () => {
+      const { authCode, statusCode, statusType, statusTips } = await AliUser.OpenApiQrCodeStatus(codeUrl)
+      if (!statusCode) {
+        refreshStatus()
+        clearInterval(intervalId)
+        return
+      }
+      qrCodeStatusType.value = statusType
+      qrCodeStatusTips.value = statusTips
+      if (statusCode === 'QRCodeExpired') {
+        message.error('二维码已超时，请刷新二维码')
+        clearInterval(intervalId)
+        refreshStatus()
+        return
+      }
+      if (authCode && statusCode === 'LoginSuccess') {
+        let loginData = await AliUser.OpenApiLoginByAuthCode(token, authCode)
+        // 更新token
+        await useSettingStore().updateStore({
+          uiOpenApiAccessToken: loginData.open_api_access_token,
+          uiOpenApiRefreshToken: loginData.open_api_refresh_token
+        })
+        token.open_api_access_token = loginData.open_api_access_token
+        token.open_api_refresh_token = loginData.open_api_refresh_token
+        token.open_api_expires_in = new Date().getTime() + loginData.expires_in * 1000
+        UserDAL.SaveUserToken(token)
+        window.WebUserToken({
+          user_id: token.user_id,
+          name: token.user_name,
+          access_token: token.access_token,
+          open_api_access_token: token.open_api_access_token,
+          refresh: true
+        })
+        clearInterval(intervalId)
+        message.success('登陆成功')
+        refreshStatus()
+      }
+    }, 1000)
+  }
 }
 
 </script>
@@ -149,8 +161,7 @@ const refreshQrCode = async () => {
                 <a-input v-model.trim='settingStore.uiOpenApiClientId'
                          :style="{ width: '180px' }"
                          placeholder='客户端ID'
-                         @update:model-value='cb({ uiOpenApiClientId: $event })'
-                         allow-clear />
+                         @update:model-value='cb({ uiOpenApiClientId: $event })'/>
               </div>
             </a-col>
             <a-col flex='180px'>
@@ -160,8 +171,7 @@ const refreshQrCode = async () => {
                   v-model.trim='settingStore.uiOpenApiClientSecret'
                   :style="{ width: '180px' }"
                   placeholder='客户端密钥'
-                  @update:model-value='cb({ uiOpenApiClientSecret: $event })'
-                  allow-clear />
+                  @update:model-value='cb({ uiOpenApiClientSecret: $event })'/>
               </div>
             </a-col>
           </a-row>
@@ -174,12 +184,16 @@ const refreshQrCode = async () => {
               </template>
               刷新二维码
             </a-button>
+          </div>
+          <div class='settingrow' v-if='qrCodeUrl' >
+            <div class='settingspace'></div>
+            <a-alert :type='qrCodeStatusType'> {{ qrCodeStatusTips }}</a-alert>
             <a-image
-              v-show='qrCodeUrl'
-              width='200' height='200'
+              width='200'
+              height='200'
+              :hide-footer='true'
               :preview='false'
-              :src="qrCodeUrl || 'some-error.png'"
-              :show-loader='qrCodeLoading' />
+              :src="qrCodeUrl || 'some-error.png'" />
           </div>
         </template>
         <template v-else>
