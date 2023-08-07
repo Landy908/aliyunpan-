@@ -3,19 +3,11 @@ import { computed, ref, watchEffect } from 'vue'
 
 import { Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
-import usePanTreeStore, { fileiconfn } from './pantreestore'
+import usePanTreeStore from './pantreestore'
 import MySwitchTab from '../layout/MySwitchTab.vue'
-import {
-  KeyboardState,
-  MouseState,
-  useAppStore,
-  useKeyboardStore,
-  usePanFileStore,
-  useSettingStore,
-  useWinStore
-} from '../store'
+import { KeyboardState, useAppStore, useKeyboardStore, usePanFileStore, useSettingStore, useWinStore } from '../store'
 import PanDAL from './pandal'
-import { onShowRightMenu, onHideRightMenuScroll, TestCtrl } from '../utils/keyboardhelper'
+import { onHideRightMenuScroll, onShowRightMenu, TestCtrl } from '../utils/keyboardhelper'
 import DirLeftMenu from './menus/DirLeftMenu.vue'
 import { TreeNodeData } from '../store/treestore'
 import { dropMoveSelectedFile } from './topbtns/topbtn'
@@ -54,15 +46,15 @@ const colorTreeData = ref<TreeNodeData[]>([])
 watchEffect(() => {
   const list = settingStore.uiFileColorArray
   const nodeList: TreeNodeData[] = []
-  nodeList.push({
-    __v_skip: true,
-    key: 'video',
-    title: '放映室',
-    namesearch: 'ca760ef',
-    icon: fileiconfn('iconrss_video'),
-    children: [],
-    isLeaf: true
-  } as TreeNodeData)
+  // nodeList.push({
+  //   __v_skip: true,
+  //   key: 'video',
+  //   title: '放映室',
+  //   namesearch: 'ca760ef',
+  //   icon: fileiconfn('iconrss_video'),
+  //   children: [],
+  //   isLeaf: true
+  // } as TreeNodeData)
   for (let i = 0; i < list.length; i++) {
     nodeList.push({
       __v_skip: true,
@@ -73,14 +65,14 @@ watchEffect(() => {
       isLeaf: true
     } as TreeNodeData)
   }
-  nodeList.push({
-    __v_skip: true,
-    key: 'colorc5b89b8 已看视频',
-    title: '已看视频',
-    namesearch: 'c5b89b8',
-    children: [],
-    isLeaf: true
-  } as TreeNodeData)
+  // nodeList.push({
+  //   __v_skip: true,
+  //   key: 'colorce74c3c 已看视频',
+  //   title: '已看视频',
+  //   namesearch: 'ce74c3c',
+  //   children: [],
+  //   isLeaf: true
+  // } as TreeNodeData)
   Object.freeze(nodeList)
   colorTreeData.value = nodeList
 })
@@ -298,6 +290,12 @@ const handleQuickSelect = (index: number) => {
 }
 .dirtree .iconfont.iconsearch {
   color: #1890ff;
+}
+.dirtree .iconfont.iconcrown {
+  color: #ffb74d;
+}
+.dirtree .iconfont.iconrss_video {
+  color: #a760ef;
 }
 .colortree .iconfont.iconrss_video {
   color: #a760ef;

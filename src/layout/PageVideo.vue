@@ -222,9 +222,9 @@ const refreshSetting = async (art: Artplayer, item: any) => {
   // 更新标记
   const settingStore = useSettingStore()
   if (settingStore.uiAutoColorVideo && !item.description) {
-    AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, 'c5b89b8', [item.file_id])
+    AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, 'ce74c3c', [item.file_id])
       .then((success) => {
-        usePanFileStore().mColorFiles('c5b89b8', success)
+        usePanFileStore().mColorFiles('ce74c3c', success)
       })
   }
   // 释放字幕Blob

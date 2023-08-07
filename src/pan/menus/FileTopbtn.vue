@@ -1,7 +1,19 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-import { menuDownload, menuFavSelectFile, menuTrashSelectFile, menuCopySelectedFile, menuJumpToDir, menuCreatShare, menuVideoXBT, menuDLNA, menuM3U8Download, menuCopyFileName, menuCopyFileTree } from '../topbtns/topbtn'
+import {
+  menuCopyFileName,
+  menuCopyFileTree,
+  menuCopySelectedFile,
+  menuCreatShare,
+  menuDLNA,
+  menuDownload,
+  menuFavSelectFile,
+  menuJumpToDir,
+  menuM3U8Download,
+  menuTrashSelectFile,
+  menuVideoXBT
+} from '../topbtns/topbtn'
 import { modalRename, modalShuXing } from '../../utils/modal'
 
 export default defineComponent({
@@ -41,7 +53,7 @@ export default defineComponent({
     <a-button v-show="!isallfavored" type="text" size="small" tabindex="-1" title="Ctrl+G" @click="() => menuFavSelectFile(istree, true)"><i class="iconfont iconcrown" />收藏</a-button>
     <a-button v-show="isallfavored" type="text" size="small" tabindex="-1" title="Ctrl+G" @click="() => menuFavSelectFile(istree, false)"><i class="iconfont iconcrown2" />取消收藏</a-button>
 
-    <a-dropdown trigger="hover" class="rightmenu" position="bl">
+    <a-dropdown v-if="dirtype !== 'video'" trigger="hover" class="rightmenu" position="bl">
       <a-button type="text" size="small" tabindex="-1" class="danger"><i class="iconfont icondelete" />删除<i class="iconfont icondown" /></a-button>
       <template #content>
         <a-doption title="Ctrl+Delete" class="danger" @click="() => menuTrashSelectFile(istree, false)">

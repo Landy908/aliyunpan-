@@ -283,6 +283,7 @@ const usePanFileStore = defineStore('panfile', {
     },
 
     mSelectAll() {
+      if (!this.ListDataShow.length) return
       let selectKey = this.ListDataShow[0].file_id
       let ListSelected = SelectAll(this.ListDataShow, KEY, this.ListSelected)
       if (this.ListDataShow.length === this.ListSelected.size) selectKey = ''

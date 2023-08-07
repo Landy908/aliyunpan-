@@ -81,9 +81,9 @@ export default defineComponent({
             <template #default>{{ item.title || item.key }}</template>
           </a-doption>
 
-          <a-doption @click="() => menuFileColorChange(istree, '#5b89b8')">
-            <template #icon> <i class="iconfont iconcheckbox-full" style="color: #5b89b8" /> </template>
-            <template #default>视频灰</template>
+          <a-doption @click="() => menuFileColorChange(istree, '#e74c3c')">
+            <template #icon> <i class="iconfont iconcheckbox-full" style="color: #e74c3c" /> </template>
+            <template #default>视频红</template>
           </a-doption>
           <a-doption @click="() => menuFileColorChange(istree, '')">
             <template #icon> <i class="iconfont iconfangkuang" /> </template>
@@ -91,7 +91,7 @@ export default defineComponent({
           </a-doption>
         </template>
       </a-dsubmenu>
-      <a-dsubmenu id="rightpansubmove" class="rightmenu" trigger="hover">
+      <a-dsubmenu id="rightpansubmove" class="rightmenu" trigger="hover" v-if="dirtype != 'video'">
         <template #default>
           <div @click.stop="() => {}">
             <span class="arco-dropdown-option-icon"><i class="iconfont iconmoveto" style="opacity: 0.8"></i></span>操作
@@ -133,7 +133,7 @@ export default defineComponent({
             <template #icon> <i class="iconfont icondakaiwenjianjia1" /> </template>
             <template #default>打开位置</template>
           </a-doption>
-          <a-dsubmenu class="rightmenu" trigger="hover">
+          <a-dsubmenu class="rightmenu" trigger="hover" v-if="dirtype != 'video'">
             <template #default>
               <span class="arco-dropdown-option-icon"><i class="iconfont iconrest"></i></span>彻底删除
             </template>

@@ -88,7 +88,7 @@ export default class AliFileCmd {
     const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
     })
-    return ApiBatchSuccess(color == '' ? '清除文件标记' : color == 'c5b89b8' ? '' : '标记文件', batchList, user_id, '')
+    return ApiBatchSuccess(color == '' ? '清除文件标记' : color == 'ce74c3c' ? '' : '标记文件', batchList, user_id, '')
   }
 
   

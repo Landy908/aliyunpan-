@@ -48,42 +48,11 @@ const usePanTreeStore = defineStore('pantree', {
     },
     selectDirPath: [],
     treeData: [
-      {
-        __v_skip: true,
-        title: '文件恢复',
-        namesearch: '',
-        key: 'recover',
-        icon: () => fileiconfn('iconrecover'),
-        isLeaf: true,
-        children: []
-      },
-      {
-        __v_skip: true,
-        title: '回收站',
-        namesearch: '',
-        key: 'trash',
-        icon: () => fileiconfn('icondelete'),
-        isLeaf: true,
-        children: []
-      },
-      {
-        __v_skip: true,
-        title: '收藏夹',
-        namesearch: '',
-        key: 'favorite',
-        icon: () => fileiconfn('iconcrown'),
-        isLeaf: true,
-        children: []
-      },
-      {
-        __v_skip: true,
-        title: '全盘搜索',
-        namesearch: '',
-        key: 'search',
-        icon: () => fileiconfn('iconsearch'),
-        isLeaf: true,
-        children: []
-      },
+      { __v_skip: true, title: '收藏夹', namesearch: '', key: 'favorite', icon: () => fileiconfn('iconcrown'), isLeaf: true, children: [] },
+      { __v_skip: true, title: '放映室', namesearch: '', key: 'video', icon: () => fileiconfn('iconrss_video'), isLeaf: true, children: [] },
+      { __v_skip: true, title: '回收站', namesearch: '', key: 'trash', icon: () => fileiconfn('icondelete'), isLeaf: true, children: [] },
+      { __v_skip: true, title: '文件恢复', namesearch: '', key: 'recover', icon: () => fileiconfn('iconrecover'), isLeaf: true, children: [] },
+      { __v_skip: true, title: '全盘搜索', namesearch: '', key: 'search', icon: () => fileiconfn('iconsearch'), isLeaf: true, children: [] },
       { __v_skip: true, title: '根目录', namesearch: '', key: 'root', children: [] }
     ],
     treeExpandedKeys: ['root'],
@@ -94,7 +63,7 @@ const usePanTreeStore = defineStore('pantree', {
   getters: {
     PanHistoryCount(state: State): number {
       return state.History.length
-    },
+    }
   },
   actions: {
     mTreeSelected(key: string) {

@@ -171,9 +171,9 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   }
   const settingStore = useSettingStore()
   if (settingStore.uiAutoColorVideo && !dec) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, 'c5b89b8', [file_id])
+    AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, 'ce74c3c', [file_id])
       .then((success) => {
-        usePanFileStore().mColorFiles('c5b89b8', success)
+        usePanFileStore().mColorFiles('ce74c3c', success)
       })
   }
 
