@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KeyboardState, useAppStore, useKeyboardStore, useWinStore } from '../store'
+import { KeyboardState, MouseState, useAppStore, useKeyboardStore, useMouseStore, useWinStore } from '../store'
 import {
   onHideRightMenuScroll,
   onShowRightMenu,
@@ -14,6 +14,7 @@ import useUploadingStore from './UploadingStore'
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
 import 'ant-design-vue/es/tooltip/style/css'
 import UploadingDAL from '../transfer/uploadingdal'
+import { TestButton } from '../utils/mosehelper'
 
 const viewlist = ref()
 const appStore = useAppStore()
@@ -40,13 +41,117 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, uploadingStore)) return
 })
 
+const rangIsSelecting = ref(false)
+const rangSelectID = ref(-1)
+const rangSelectStart = ref(-1)
+const rangSelectEnd = ref(-1)
+const rangSelectFiles = ref<{ [k: string]: any }>({})
+const onSelectRangStart = () => {
+  onHideRightMenuScroll()
+  rangIsSelecting.value = !rangIsSelecting.value
+  rangSelectID.value = -1
+  rangSelectStart.value = -1
+  rangSelectEnd.value = -1
+  rangSelectFiles.value = {}
+  uploadingStore.mRefreshListDataShow(false)
+}
+const onSelectCancel = () => {
+  onHideRightMenuScroll()
+  uploadingStore.ListSelected.clear()
+  uploadingStore.ListFocusKey = 0
+  uploadingStore.mRefreshListDataShow(false)
+}
+
+const onSelectRang = (file_id: number) => {
+  if (rangIsSelecting.value && rangSelectID.value != -1) {
+
+    let startid = rangSelectID.value
+    let endid = -1
+    const s: { [k: string]: any } = {}
+    const children = uploadingStore.ListDataShow
+    let a = -1
+    let b = -1
+    for (let i = 0, maxi = children.length; i < maxi; i++) {
+      if (children[i].UploadID == file_id) a = i
+      if (children[i].UploadID == startid) b = i
+      if (a > 0 && b > 0) break
+    }
+    if (a >= 0 && b >= 0) {
+      if (a > b) {
+        ;[a, b] = [b, a]
+        endid = file_id
+      } else {
+        endid = startid
+        startid = file_id
+      }
+      for (let n = a; n <= b; n++) {
+        s[children[n].UploadID] = true
+      }
+    }
+
+    rangSelectStart.value = startid
+    rangSelectEnd.value = endid
+    rangSelectFiles.value = s
+    uploadingStore.mRefreshListDataShow(false)
+  }
+}
+
+const mouseStore = useMouseStore()
+mouseStore.$subscribe((_m: any, state: MouseState) => {
+  if (appStore.appTab != 'down') return
+  const mouseEvent = state.MouseEvent
+  // console.log('MouseEvent', state.MouseEvent)
+  if (TestButton(0, mouseEvent, () => {
+    if (mouseEvent.srcElement) {
+      // @ts-ignore
+      if (mouseEvent.srcElement.className && mouseEvent.srcElement.className.toString().startsWith('arco-virtual-list')) {
+        onSelectCancel()
+      }
+    }
+  })) return
+})
+
 const handleRefresh = () => UploadingDAL.aReloadUploading()
 const handleBack = () => UploadingDAL.mUploadingShowTaskBack()
 const handleSelectAll = () => uploadingStore.mSelectAll()
 
 const handleSelect = (UploadID: number, event: any, isCtrl: boolean = false) => {
   onHideRightMenuScroll()
-  uploadingStore.mMouseSelect(UploadID, event.ctrlKey || isCtrl, event.shiftKey)
+  if (rangIsSelecting.value) {
+    if (!rangSelectID.value) {
+      if (!uploadingStore.ListSelected.has(UploadID)) uploadingStore.mMouseSelect(UploadID, true, false)
+      rangSelectID.value = UploadID
+      rangSelectStart.value = UploadID
+      rangSelectFiles.value = { [UploadID]: true }
+    } else {
+      const start = rangSelectID.value
+      const children = uploadingStore.ListDataShow
+      let a = -1
+      let b = -1
+      for (let i = 0, maxi = children.length; i < maxi; i++) {
+        if (children[i].UploadID == UploadID) a = i
+        if (children[i].UploadID == start) b = i
+        if (a > 0 && b > 0) break
+      }
+      const fileList: number[] = []
+      if (a >= 0 && b >= 0) {
+        if (a > b) [a, b] = [b, a]
+        for (let n = a; n <= b; n++) {
+          fileList.push(children[n].UploadID)
+        }
+      }
+      uploadingStore.mRangSelect(UploadID, fileList)
+      rangIsSelecting.value = false
+      rangSelectID.value = -1
+      rangSelectStart.value = -1
+      rangSelectEnd.value = -1
+      rangSelectFiles.value = {}
+    }
+    uploadingStore.mRefreshListDataShow(false)
+  } else {
+    uploadingStore.mMouseSelect(UploadID, event.ctrlKey || isCtrl, event.shiftKey)
+    if (!uploadingStore.ListSelected.has(UploadID)) uploadingStore.ListFocusKey = -1
+  }
 }
 
 const handleRightClick = (e: { event: MouseEvent; node: any }) => {
@@ -105,9 +210,29 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           <i :class="uploadingStore.IsListSelectedAll ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
         </a-button>
       </AntdTooltip>
+      <div class='selectInfo'>{{ uploadingStore.ListDataSelectCountInfo }}</div>
+      <div style='margin: 0 2px'>
+        <AntdTooltip placement='rightTop'>
+          <a-button shape='square' type='text' tabindex='-1' class='qujian'
+                    :status="rangIsSelecting ? 'danger' : 'normal'" title='Ctrl+Q' @click='onSelectRangStart'>
+            {{ rangIsSelecting ? '取消选择' : '区间选择' }}
+          </a-button>
+          <template #title>
+            <div>
+              第1步: 点击 区间选择 这个按钮
+              <br />
+              第2步: 鼠标点击一个文件
+              <br />
+              第3步: 移动鼠标点击另外一个文件
+            </div>
+          </template>
+        </AntdTooltip>
+        <a-button shape='square' v-if='!rangIsSelecting && uploadingStore.ListSelected.size > 0' type='text' tabindex='-1' class='qujian'
+                  status='normal' @click='onSelectCancel'>
+          取消已选
+        </a-button>
+      </div>
     </div>
-    <div class="selectInfo">{{ uploadingStore.ListDataSelectCountInfo }}</div>
-
     <div style="flex-grow: 1"></div>
     <div class="cell tiquma">瞬时速度</div>
     <div class="cell pr"></div>
@@ -135,10 +260,13 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           <div
             :class="'fileitem ' + (uploadingStore.ListSelected.has(item.UploadID) ? ' selected' : '') + (uploadingStore.ListFocusKey == item.UploadID ? ' focus' : '') + (item.uploadState == 'hashing' || item.uploadState == 'running' ? ' running' : '')"
             @click="handleSelect(item.UploadID, $event)"
+            @mouseover='onSelectRang(item.UploadID)'
             @dblclick="UploadingDAL.aUploadingStartOne(item.UploadID)"
             @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.UploadID}} )">
-            <div style="margin: 2px">
-              <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index" @click.prevent.stop="handleSelect(item.UploadID, $event, true)">
+            <div
+              :class="'rangselect ' + (rangSelectFiles[item.DownID] ? (rangSelectStart == item.DownID ? 'rangstart' : rangSelectEnd == item.DownID ? 'rangend' : 'rang') : '')">
+              <a-button shape='circle' type='text' tabindex='-1' class='select' :title='index'
+                        @click.prevent.stop='handleSelect(item.DownID, $event, true)'>
                 <i :class="uploadingStore.ListSelected.has(item.UploadID) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>

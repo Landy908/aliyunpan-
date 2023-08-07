@@ -378,7 +378,7 @@ export default class DownDAL {
     // 处理待删除文件
     if (!isAll) {
       const downIDList = deleteList.map(item => item.DownID)
-      console.log('deleteDowning', deleteList)
+      // console.log('deleteDowning', deleteList)
       await DBDown.deleteDownings(JSON.parse(JSON.stringify(downIDList)))
     } else {
       await DBDown.deleteDowningAll()
