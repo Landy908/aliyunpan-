@@ -1,7 +1,20 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-import { menuFavSelectFile, menuTrashSelectFile, menuCopySelectedFile, menuFileColorChange, menuCreatShare, menuJumpToDir, menuVideoXBT, menuDLNA, menuM3U8Download, menuCopyFileName, menuCopyFileTree, menuDownload } from '../topbtns/topbtn'
+import {
+  menuCopyFileName,
+  menuCopyFileTree,
+  menuCopySelectedFile,
+  menuCreatShare,
+  menuDLNA,
+  menuDownload,
+  menuFavSelectFile,
+  menuFileColorChange,
+  menuJumpToDir,
+  menuM3U8Download,
+  menuTrashSelectFile,
+  menuVideoXBT
+} from '../topbtns/topbtn'
 import { modalRename, modalShuXing } from '../../utils/modal'
 import { useSettingStore } from '../../store'
 
@@ -81,7 +94,7 @@ export default defineComponent({
       <a-dsubmenu id="rightpansubmove" class="rightmenu" trigger="hover">
         <template #default>
           <div @click.stop="() => {}">
-            <span class="arco-dropdown-option-icon"><i class="iconfont iconmoveto" style="opacity: 0.8"></i></span>移动
+            <span class="arco-dropdown-option-icon"><i class="iconfont iconmoveto" style="opacity: 0.8"></i></span>操作
           </div>
         </template>
         <template #content>
@@ -105,6 +118,10 @@ export default defineComponent({
         <template #default>重命名</template>
       </a-doption>
 
+      <a-doption @click="() => modalShuXing(istree, isselectedmulti)">
+        <template #icon> <i class="iconfont iconshuxing" /> </template>
+        <template #default>属性</template>
+      </a-doption>
       <a-dsubmenu id="rightpansubmore" class="rightmenu" trigger="hover">
         <template #default>
           <div @click.stop="() => {}">
@@ -112,14 +129,20 @@ export default defineComponent({
           </div>
         </template>
         <template #content>
-          <a-doption @click="() => modalShuXing(istree, isselectedmulti)">
-            <template #icon> <i class="iconfont iconshuxing" /> </template>
-            <template #default>属性</template>
-          </a-doption>
           <a-doption v-show="isselected && !isselectedmulti && (dirtype == 'favorite' || dirtype == 'search' || dirtype == 'color' || dirtype == 'video')" @click="() => menuJumpToDir()">
             <template #icon> <i class="iconfont icondakaiwenjianjia1" /> </template>
             <template #default>打开位置</template>
           </a-doption>
+          <a-dsubmenu class="rightmenu" trigger="hover">
+            <template #default>
+              <span class="arco-dropdown-option-icon"><i class="iconfont iconrest"></i></span>彻底删除
+            </template>
+            <template #content>
+              <a-doption title="Ctrl+Shift+Delete" class="danger" @click="() => menuTrashSelectFile(istree, true)">
+                <template #default>删除后无法还原</template>
+              </a-doption>
+            </template>
+          </a-dsubmenu>
           <a-doption v-show="isvideo" @click="() => menuVideoXBT()">
             <template #icon> <i class="iconfont iconjietu" /> </template>
             <template #default>雪碧图</template>
