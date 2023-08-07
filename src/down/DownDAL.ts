@@ -242,7 +242,7 @@ export default class DownDAL {
       await AriaGetDowningList()
 
       const ariaRemote = IsAria2cRemote()
-      const DowningList: IStateDownFile[] = useDowningStore().ListDataRaw
+      const DowningList: IStateDownFile[] = downingStore.ListDataRaw
       const timeThreshold = Date.now() - 60 * 1000
       const downFileMax = settingStore.downFileMax
       const shouldSkipDown = (Down: any) => {
@@ -253,7 +253,7 @@ export default class DownDAL {
           (Down.IsFailed && timeThreshold <= Down.AutoTry)
         )
       }
-      let downingCount = DowningList.filter((down: any) => down.Down.IsDowning).length
+      let addDowningCount = 0
       for (let i = 0; i < DowningList.length; i++) {
         const DownItem = DowningList[i]
         const { DownID, Info, Down } = DownItem
@@ -263,20 +263,19 @@ export default class DownDAL {
           const completedDownId = `${Date.now()}_${Down.DownTime}`
           // 删除已完成的下载并更新数据库
           DowningList.splice(i, 1)
-          DBDown.deleteDowning(DownID)
+          await DBDown.deleteDowning(DownID)
           // 将已完成的下载添加到下载文件列表中
           const downedData = JSON.parse(JSON.stringify({ DownID: completedDownId, Down, Info }))
           downedStore.ListDataRaw.unshift({ DownID: completedDownId, Down, Info })
           downedStore.mRefreshListDataShow(true)
-          DBDown.saveDowned(completedDownId, downedData)
+          await DBDown.saveDowned(completedDownId, downedData)
           if (downedStore.ListSelected.has(completedDownId)) {
             downedStore.ListSelected.delete(completedDownId)
           }
           // 移除Aria2已完成的任务
           await AriaDeleteList([Info.GID])
-          i--
-        } else if (downingCount < downFileMax && !shouldSkipDown(Down)) {
-          downingCount++
+        } else if ((addDowningCount + downingStore.ListDataDowningCount) < downFileMax && !shouldSkipDown(Down)) {
+          addDowningCount++
           downingStore.mUpdateDownState(DownItem, 'start')
           let state = await AriaAddUrl(DownItem)
           downingStore.mUpdateDownState(DownItem, state)

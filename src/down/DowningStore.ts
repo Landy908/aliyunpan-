@@ -46,6 +46,10 @@ const useDowningStore = defineStore('downing', {
       return state.ListDataShow.length
     },
 
+    ListDataDowningCount(state: State): number {
+      return state.ListDataRaw.filter((down: any) => down.Down.IsDowning).length
+    },
+
     IsListSelected(state: State): boolean {
       return state.ListSelected.size > 0
     },
