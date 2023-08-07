@@ -51,7 +51,7 @@
       { "from": "./static/engine/win32/${arch}", "to": "./engine"}
     ],
     "target": [
-      { "target": "nsis", "arch": [ "x64", "ia32" ] }
+      { "target": "nsis", "arch": [ "x64", "ia32", "arm64" ] }
     ]
   },
   "dmg": {
