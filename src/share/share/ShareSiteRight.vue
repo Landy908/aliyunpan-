@@ -5,6 +5,7 @@ import { B64decode } from '../../utils/format'
 import { TestKey } from '../../utils/keyboardhelper'
 import { modalDaoRuShareLink } from '../../utils/modal'
 import message from '../../utils/message'
+import { openExternal } from '../../utils/electronhelper'
 
 const appStore = useAppStore()
 const serverStore = useServerStore()
@@ -25,7 +26,6 @@ const handleSite = (url: string) => {
     if (ourl) siteUrl.value = ourl
     else siteUrl.value = ''
   }
-  handleAddListener()
 }
 
 const handleSiteShareUrl = (event: any) => {
@@ -37,32 +37,31 @@ const handleSiteShareUrl = (event: any) => {
     event.preventDefault()
   }
   if (url.includes('aliyundrive')) {
-    console.log('url', url)
     modalDaoRuShareLink(url)
-  } else if (url.startsWith('magnet')) {
-    console.log('磁力链接:', url)
   }
 }
 
-const handleAddListener = () => {
+const handleLoad = () => {
   const iframe = document.getElementById('siteIframe') as any
   if (!iframe) {
     message.error('打开网页失败，请手动刷新网页')
     return
   }
-  // 监听 iframe 页面的 load 事件
-  iframe.addEventListener('load', () => {
-    // // 获取 iframe 内部的 document 对象
-    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document
-    // 自动处理广告
-    setTimeout(() => {
-      const element = iframeDocument.querySelector('.swal2-close')
-      if (element) {
-        element.click()
-      }
-    }, 50)
-    iframeDocument.addEventListener('click', handleSiteShareUrl)
-  })
+  // 获取 iframe 内部的 document 对象
+  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document
+  // 内容为空
+  if (iframeDocument && !iframeDocument.body.innerHTML.length) {
+    openExternal(siteUrl.value)
+    siteUrl.value = ''
+    return
+  }
+  setTimeout(() => {
+    const element = iframeDocument.querySelector('.swal2-close')
+    if (element) {
+      element.click()
+    }
+  }, 50)
+  iframeDocument.addEventListener('click', handleSiteShareUrl)
 }
 
 const handleRemoveListener = () => {
@@ -82,7 +81,6 @@ const handleRefresh = () => {
   }
   const iframeDocument = iframe.contentDocument || iframe.contentWindow.document
   iframeDocument.location.reload()
-  handleAddListener()
 }
 
 const handleClose = () => {
@@ -119,7 +117,8 @@ const handleClose = () => {
         <a @click='handleSite(item.url)' v-html="item.title.replace('[', '<small>').replace(']', '</small>')"></a>
       </a-card-grid>
     </a-card>
-    <iframe id='siteIframe' v-show='siteUrl' :src='siteUrl'
+    <iframe id='siteIframe' v-if='siteUrl' :src='siteUrl'
+            @load='handleLoad'
             style='width: calc(100% - 32px); height: calc(100% - 36px); border: none; overflow: hidden' />
   </div>
 </template>
