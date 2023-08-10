@@ -32,7 +32,6 @@ export default class AliUploadMem {
         responseType: 'text',
         timeout: 30000,
         headers: {
-          
           'Content-Type': '',
           Authorization: token!.token_type + ' ' + token!.access_token
         }
