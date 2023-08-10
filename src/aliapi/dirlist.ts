@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 import AliTrash from './trash'
 import { DirData } from '../store/treestore'
 import AliUser from './user'
+import { GetDriveType } from './utils'
 
 export interface IAliDirResp {
   items: IAliGetDirModel[]
@@ -154,11 +155,11 @@ export default class AliDirList {
     let postData = '{"requests":['
     for (let i = 0, maxi = dirList.length; i < maxi; i++) {
       if (i > 0) postData = postData + ','
-
-      let query = 'parent_file_id="' + dirList[i].dirID + '"'
-      if (listTypeOrQuery == 'all') query = 'parent_file_id="' + dirList[i].dirID + '"'
-      else if (listTypeOrQuery == 'folder') query = 'parent_file_id="' + dirList[i].dirID + '" and type = "folder"'
-      else if (listTypeOrQuery == 'file') query = 'parent_file_id="' + dirList[i].dirID + '" and type = "file"'
+      let id = dirList[i].dirID.includes('root') ? 'root' : dirList[i].dirID
+      let query = 'parent_file_id="' + id + '"'
+      if (listTypeOrQuery == 'all') query = 'parent_file_id="' + id + '"'
+      else if (listTypeOrQuery == 'folder') query = 'parent_file_id="' + id + '" and type = "folder"'
+      else if (listTypeOrQuery == 'file') query = 'parent_file_id="' + id + '" and type = "file"'
       else query = query + listTypeOrQuery
       const data2 = {
         body: {
@@ -173,7 +174,7 @@ export default class AliDirList {
           image_url_process: ''
         },
         headers: { 'Content-Type': 'application/json' },
-        id: dirList[i].dirID,
+        id: id,
         method: 'POST',
         url: '/file/search'
       }
@@ -252,6 +253,14 @@ export default class AliDirList {
       for (let i = 0, maxi = dirList.length; i < maxi; i++) {
         if (i > 0) postData = postData + ','
         const query = 'type="folder" and ' + dirList[i].dirID
+        let id = dirList[i].dirID
+            .replaceAll('"', '')
+            .replaceAll(' ', '')
+            .replaceAll('-', '')
+            .replaceAll(':', '')
+            .replaceAll(',', '')
+        if (id.includes('root')) id = 'root'
+        if (!id.length) continue
         const data2 = {
           body: {
             drive_id: drive_id,
@@ -261,7 +270,7 @@ export default class AliDirList {
             fields: 'thumbnail'
           },
           headers: { 'Content-Type': 'application/json' },
-          id: dirList[i].dirID.replaceAll('"', '').replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '').replaceAll(',', ''),
+          id: id,
           method: 'POST',
           url: '/file/search'
         }
@@ -359,12 +368,14 @@ export default class AliDirList {
 
   
   static async ApiFastAllDirListByPID(user_id: string, drive_id: string): Promise<IDirDataResp> {
+    const driveType = GetDriveType(user_id, drive_id)
+    console.log('ApiFastAllDirListByPID', driveType)
     const result: IDirDataResp = {
       items: [],
       next_marker: '',
       m_user_id: user_id,
       m_drive_id: drive_id,
-      dirID: 'root',
+      dirID: driveType.key,
       dirName: ''
     }
     if (!user_id || !drive_id) return result
@@ -376,6 +387,8 @@ export default class AliDirList {
     const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, 'root', '', 'name ASC', 'folder', 0)
     for (let i = 0, maxi = root.items.length; i < maxi; i++) {
       const item = root.items[i]
+      if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
+      if (item.file_id === 'root') item.file_id = driveType.key
       const add: DirData = {
         file_id: item.file_id,
         parent_file_id: item.parent_file_id,
@@ -398,7 +411,8 @@ export default class AliDirList {
           let dirID = 'parent_file_id in ['
           let add = 0
           for (let maxj = PIDList.length; index < maxj; index++) {
-            dirID += add == 0 ? '"' + PIDList[index] + '"' : ',"' + PIDList[index] + '"'
+            let PID = PIDList[index].includes('root') ? 'root' : PIDList[index]
+            dirID += add == 0 ? '"' + PID + '"' : ',"' + PID + '"'
             add++
             if (add >= 50) break
           }
@@ -412,6 +426,12 @@ export default class AliDirList {
       for (let i = 0, maxi = dirList.length; i < maxi; i++) {
         if (i > 0) postData = postData + ','
         const query = 'type="folder" and ' + dirList[i].dirID
+        let id = dirList[i].dirID
+          .replaceAll('"', '')
+          .replaceAll(' ', '')
+          .replaceAll(',', '').substring(0, 54)
+        if (id.includes('root')) id = 'root'
+        if (!id.length) continue
         const data2 = {
           body: {
             drive_id: drive_id,
@@ -422,7 +442,7 @@ export default class AliDirList {
             order_by: 'name ASC'
           },
           headers: { 'Content-Type': 'application/json' },
-          id: dirList[i].dirID.replaceAll('"', '').replaceAll(' ', '').replaceAll(',', '').substring(0, 54),
+          id: id,
           method: 'POST',
           url: '/file/search'
         }
@@ -449,8 +469,10 @@ export default class AliDirList {
                   dir.next_marker = respi.body.next_marker
                   if (dir.next_marker) list.push(dir)
                   for (let i = 0, maxi = items.length; i < maxi; i++) {
-                    if (allMap.has(items[i].file_id)) continue
                     const item = items[i]
+                    if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
+                    if (item.file_id === 'root') item.file_id = driveType.key
+                    if (allMap.has(item.file_id)) continue
                     const add: DirData = {
                       file_id: item.file_id,
                       parent_file_id: item.parent_file_id,

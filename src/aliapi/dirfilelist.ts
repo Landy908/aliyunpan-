@@ -143,7 +143,10 @@ export default class AliDirFileList {
     let pageIndex = 0
 
     let max: number = useSettingStore().debugFileListMax
-    if (dirID == 'favorite' || dirID.startsWith('color') || dirID.startsWith('search') || dirID.startsWith('video')) max = useSettingStore().debugFavorListMax
+    if (dirID == 'favorite' || dirID.startsWith('color')
+      || dirID.startsWith('search') || dirID.startsWith('video')){
+      max = useSettingStore().debugFavorListMax
+    }
 
     let needTotal
     do {
@@ -215,12 +218,14 @@ export default class AliDirFileList {
 
   private static async _ApiDirFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string, pageIndex: number): Promise<boolean> {
     let url = 'adrive/v3/file/list'
-    if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
-    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
-
+    if (useSettingStore().uiShowPanMedia == false) {
+      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
+    } else {
+      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+    }
     let postData = {
       drive_id: dir.m_drive_id,
-      parent_file_id: dir.dirID,
+      parent_file_id: dir.dirID.includes('root') ? 'root': dir.dirID,
       marker: dir.next_marker,
       limit: 200,
       all: false,
@@ -240,6 +245,7 @@ export default class AliDirFileList {
 
   private static async _ApiDirFileListCount(dir: IAliFileResp, type: string): Promise<number> {
     const url = 'adrive/v3/file/search'
+    let parent_file_id = dir.dirID.includes('_root') ? 'root': dir.dirID
     const postData = {
       drive_id: dir.m_drive_id,
       marker: '',
@@ -247,7 +253,7 @@ export default class AliDirFileList {
       all: false,
       url_expire_sec: 14400,
       fields: 'thumbnail',
-      query: 'parent_file_id="' + dir.dirID + '"' + (type ? ' and type="' + type + '"' : ''),
+      query: 'parent_file_id="' + parent_file_id + '"' + (type ? ' and type="' + type + '"' : ''),
       return_total_count: true
     }
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
@@ -551,10 +557,8 @@ export default class AliDirFileList {
 
         dir.next_marker = resp.body.next_marker || ''
         const isRecover = dir.dirID == 'recover'
-        const isDirFile = dir.dirID == 'root' || (dir.dirID.length == 40 && !dir.dirID.startsWith('search'))
+        const isDirFile = dir.dirID.includes('root') || (dir.dirID.length == 40 && !dir.dirID.startsWith('search'))
         const isVideo = dir.dirID.startsWith('video')
-        // const issearch = dir.dirID.startsWith('search')
-        // const iscolor = dir.dirID.startsWith('color')
         const downUrl = isRecover ? '' : 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString()
 
         if (resp.body.items) {
@@ -611,7 +615,9 @@ export default class AliDirFileList {
 
         if (pageIndex >= 0 && type == '') {
           const pan = usePanFileStore()
-          if (pan.DriveID == dir.m_drive_id) pan.mSaveDirFileLoadingPart(pageIndex, dirPart, dir.itemsTotal || 0)
+          if (pan.DriveID == dir.m_drive_id) {
+            pan.mSaveDirFileLoadingPart(pageIndex, dirPart, dir.itemsTotal || 0)
+          }
         }
         if (dirPart.next_marker == 'cancel') dir.next_marker = 'cancel'
         if (isVideo && dir.items.length >= 500) dir.next_marker = ''
@@ -646,16 +652,18 @@ export default class AliDirFileList {
     for (let i = 0, maxi = file_idList.length; i < maxi; i++) {
       list.set(file_idList[i], { dirID: file_idList[i], size: 0 })
       if (i > 0) postData = postData + ','
+      let id = file_idList[i].includes('root') ? 'root' : file_idList[i]
+      if (!id.length) continue
       const data2 = {
         body: {
           drive_id: drive_id,
-          query: 'parent_file_id="' + file_idList[i] + '" and type="file"',
+          query: 'parent_file_id="' + id + '" and type="file"',
           limit: 100,
           fields: 'thumbnail',
           order_by: 'size DESC'
         },
         headers: { 'Content-Type': 'application/json' },
-        id: file_idList[i],
+        id: id,
         method: 'POST',
         url: '/file/search'
       }

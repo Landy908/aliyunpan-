@@ -6,6 +6,7 @@ import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetDirModel, IAliGetFileModel, IAliGetForderSizeModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
 import { ICompilationList, IDownloadUrl, IOfficePreViewUrl, IVideoPreviewUrl, IVideoXBTUrl } from './models'
+import { GetDriveType } from './utils'
 
 export default class AliFile {
   
@@ -300,11 +301,14 @@ export default class AliFile {
       file_id: file_id
     }
     const resp = await AliHttp.Post(url, postData, user_id, '')
-
-    if (AliHttp.IsSuccess(resp.code) && resp.body.items && resp.body.items.length > 0) {
+    const driveType = GetDriveType(user_id, drive_id)
+    let items = resp.body.items
+    if (AliHttp.IsSuccess(resp.code) && items && items.length > 0) {
       const list: IAliGetDirModel[] = []
-      for (let i = resp.body.items.length - 1; i > 0; i--) {
-        const item = resp.body.items[i]
+      for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i]
+        if (item.file_id === 'root') item.file_id = driveType.key
+        if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
         list.push({
           __v_skip: true,
           drive_id: item.drive_id,
@@ -314,20 +318,18 @@ export default class AliFile {
           namesearch: HanToPin(item.name),
           size: item.size || 0,
           time: new Date(item.updated_at).getTime(),
-          
           description: item.description || ''
         } as IAliGetDirModel)
       }
       list.push({
         __v_skip: true,
         drive_id: drive_id,
-        file_id: 'root',
+        file_id: driveType.key,
         parent_file_id: '',
-        name: '根目录',
-        namesearch: HanToPin('root'),
+        name: driveType.title,
+        namesearch: HanToPin(driveType.title),
         size: 0,
         time: 0,
-        
         description: ''
       } as IAliGetDirModel)
       return list
@@ -340,7 +342,9 @@ export default class AliFile {
   
   static async ApiFileGetPathString(user_id: string, drive_id: string, file_id: string, dirsplit: string): Promise<string> {
     if (!user_id || !drive_id || !file_id) return ''
-    if (file_id == 'root') return '根目录'
+    if (file_id.includes('root')){
+      return file_id.startsWith('backup') ? '备份盘' : '资源盘'
+    }
     const url = 'adrive/v1/file/get_path'
     const postData = {
       drive_id: drive_id,

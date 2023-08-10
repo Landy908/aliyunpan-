@@ -228,7 +228,8 @@ export async function topRestoreSelectedFile() {
 
     const pset = new Set<string>()
     for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-      const parent_file_id = dirList[i].parent_file_id
+      let parent_file_id = dirList[i].parent_file_id
+      if(parent_file_id.includes('root')) parent_file_id = 'root'
       if (pset.has(parent_file_id)) continue
       pset.add(parent_file_id)
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, parent_file_id)
@@ -286,21 +287,19 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
     message.error('没有可以复制移动的文件')
     return
   }
-  modalSelectPanDir(copyby, parent_file_id, async function(user_id: string, drive_id: string, dirID: string) {
-    if (!drive_id || !dirID) return
-
+  modalSelectPanDir(copyby, parent_file_id, async function(user_id: string, drive_id: string, to_drive_id: string, dirID: string) {
+    if (!drive_id || !to_drive_id || !dirID) return
     if (parent_file_id == dirID) {
       message.error('不能移动复制到原位置！')
       return
     }
-
     let successList: string[]
     if (copyby == 'copy') {
-      successList = await AliFileCmd.ApiCopyBatch(user_id, drive_id, file_idList, drive_id, dirID)
+      successList = await AliFileCmd.ApiCopyBatch(user_id, drive_id, file_idList, to_drive_id, dirID)
       PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, dirID)
-      TreeStore.ClearDirSize(drive_id, [dirID])
+      TreeStore.ClearDirSize(to_drive_id, [dirID])
     } else {
-      successList = await AliFileCmd.ApiMoveBatch(user_id, drive_id, file_idList, drive_id, dirID)
+      successList = await AliFileCmd.ApiMoveBatch(user_id, drive_id, file_idList, to_drive_id, dirID)
       if (istree) {
         PanDAL.aReLoadOneDirToShow(selectedData.drive_id, selectedData.parentDirID, false)
         PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, dirID)
@@ -308,13 +307,13 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
         usePanFileStore().mDeleteFiles(selectedData.dirID, successList, true)
         PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, dirID)
       }
-      TreeStore.ClearDirSize(drive_id, [dirID, ...selectedData.selectedParentKeys])
+      TreeStore.ClearDirSize(to_drive_id, [dirID, ...selectedData.selectedParentKeys])
     }
   })
 }
 
 
-export function dropMoveSelectedFile(movetodirid: string) {
+export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
   const selectedData = PanDAL.GetPanSelectedData(false)
   if (selectedData.isErrorSelected) return
   if (selectedData.isError) {
@@ -348,19 +347,33 @@ export function dropMoveSelectedFile(movetodirid: string) {
   }
 
   if (file_idList.includes(movetodirid)) {
-
     if (file_idList.length == 1) message.info('用户取消移动')
     else message.error('不能移动到原位置！')
     return
   }
 
-  AliFileCmd.ApiMoveBatch(selectedData.user_id, selectedData.drive_id, file_idList, selectedData.drive_id, movetodirid).then((success: string[]) => {
-
-
+  let to_drive_id = selectedData.drive_id
+  if (istree) {
+    // 获取父节点
+    if (movetodirid.includes('root')) {
+      to_drive_id = movetodirid.startsWith('backup') ? usePanTreeStore().default_drive_id : usePanTreeStore().resource_drive_id
+      movetodirid = 'root'
+    } else {
+      let dirPath = TreeStore.GetDirPath(selectedData.drive_id, movetodirid)
+      if (dirPath.length == 0) {
+        if (selectedData.drive_id == usePanTreeStore().default_drive_id) {
+          to_drive_id = usePanTreeStore().resource_drive_id
+        } else {
+          to_drive_id = usePanTreeStore().default_drive_id
+        }
+      }
+    }
+  }
+  AliFileCmd.ApiMoveBatch(selectedData.user_id, selectedData.drive_id, file_idList, to_drive_id, movetodirid)
+    .then((success: string[]) => {
     usePanFileStore().mDeleteFiles(selectedData.dirID, success, true)
-
-    PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, movetodirid)
-    TreeStore.ClearDirSize(selectedData.drive_id, [movetodirid, ...selectedData.selectedParentKeys])
+    PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, movetodirid)
+    TreeStore.ClearDirSize(to_drive_id, [movetodirid, ...selectedData.selectedParentKeys])
   })
 }
 
@@ -533,7 +546,7 @@ export async function topRecoverSelectedFile() {
       size: file.size,
       name: file.name
     })
-    if (selectParentKeys.includes(files[i].parent_file_id) == false) selectParentKeys.push(files[i].parent_file_id)
+    if (!selectParentKeys.includes(files[i].parent_file_id)) selectParentKeys.push(files[i].parent_file_id)
   }
 
   if (resumeList.length == 0) {

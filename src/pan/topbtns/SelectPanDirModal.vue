@@ -5,7 +5,6 @@ import { usePanTreeStore, useWinStore } from '../../store'
 import { CheckFileName, ClearFileName } from '../../utils/filehelper'
 import { Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
-import { EventDataNode } from 'ant-design-vue/es/tree'
 import TreeStore, { TreeNodeData } from '../../store/treestore'
 import message from '../../utils/message'
 import AliFileCmd from '../../aliapi/filecmd'
@@ -43,7 +42,7 @@ export default defineComponent({
       required: false
     },
     callback: {
-      type: Function as PropType<(user_id: string, drive_id: string, dirID: string, dirName: string) => void>
+      type: Function as PropType<(user_id: string, drive_id: string, to_drive_id: string, dirID: string, dirName: string) => void>
     }
   },
 
@@ -57,7 +56,8 @@ export default defineComponent({
     const title = ref('')
     const user_id = ref('')
     const drive_id = ref('')
-    const selectDir = ref({ dirID: 'root', dirName: '根目录', isLeaf: false })
+    let to_drive_id = ref('')
+    const selectDir = ref({ dirID: 'backup_root', dirName: '备份盘', isLeaf: false })
 
     const handleOpen = async () => {
       if (props.selecttype == 'copy') title.value = '复制文件到. . .  '
@@ -68,10 +68,12 @@ export default defineComponent({
       okLoading.value = true
       user_id.value = pantreeStore.user_id
       drive_id.value = pantreeStore.drive_id
-      const expandedKeys: string[] = ['root']
+      const expandedKeys: string[] = ['backup_root', 'resource_root']
       const selectid = props.selectid || localStorage.getItem('selectpandir-' + drive_id.value) || ''
       if (selectid) {
-        const data = TreeStore.GetDirPath(pantreeStore.drive_id, selectid)
+        const backup_data = TreeStore.GetDirPath(pantreeStore.default_drive_id, selectid)
+        const resource_data = TreeStore.GetDirPath(pantreeStore.resource_drive_id, selectid)
+        const data = [...backup_data, ...resource_data]
         if (data && data.length > 0) {
           for (let i = 0, maxi = data.length; i < maxi; i++) {
             const item = data[i]
@@ -87,12 +89,15 @@ export default defineComponent({
           treeref.value?.treeRef?.scrollTo({ key: selectid, offset: 100, align: 'top' })
         }, 400)
       } else {
-        selectDir.value = { dirID: 'root', dirName: '根目录', isLeaf: false }
-        treeSelectedKeys.value = ['root']
+        selectDir.value = { dirID: 'backup_root', dirName: '备份盘', isLeaf: false }
+        treeSelectedKeys.value = ['backup_root', 'resource_root']
       }
       treeExpandedKeys.value = expandedKeys
       const flag = props.selecttype === 'select'
-      treeData.value = PanDAL.GetPanTreeAllNode(drive_id.value, treeExpandedKeys.value, !flag, flag)
+      // 网盘数据
+      const backupPan = PanDAL.GetPanTreeAllNode(usePanTreeStore().default_drive_id, treeExpandedKeys.value, !flag, flag)
+      const resourcePan = PanDAL.GetPanTreeAllNode(usePanTreeStore().resource_drive_id, treeExpandedKeys.value, !flag, flag)
+      treeData.value = [...backupPan, ...resourcePan]
       okLoading.value = false
     }
 
@@ -100,11 +105,19 @@ export default defineComponent({
       if (okLoading.value) okLoading.value = false
       user_id.value = ''
       drive_id.value = ''
-      selectDir.value = { dirID: 'root', dirName: '根目录', isLeaf: false }
+      selectDir.value = { dirID: 'backup_root', dirName: '备份盘', isLeaf: false }
       treeData.value = [{
         __v_skip: true,
-        key: 'root',
-        title: '根目录',
+        key: 'backup_root',
+        title: '备份盘',
+        namesearch: '',
+        isLeaf: false,
+        icon: foldericonfn,
+        children: []
+      }, {
+        __v_skip: true,
+        key: 'resource_root',
+        title: '资源盘',
         namesearch: '',
         isLeaf: false,
         icon: foldericonfn,
@@ -117,8 +130,16 @@ export default defineComponent({
     const treeref = ref()
     const treeData = ref<TreeNodeData[]>([{
       __v_skip: true,
-      key: 'root',
-      title: '根目录',
+      key: 'backup_root',
+      title: '备份盘',
+      namesearch: '',
+      isLeaf: false,
+      icon: foldericonfn,
+      children: []
+    }, {
+      __v_skip: true,
+      key: 'resource_root',
+      title: '资源盘',
       namesearch: '',
       isLeaf: false,
       icon: foldericonfn,
@@ -131,17 +152,28 @@ export default defineComponent({
       event: string;
       selected: Boolean;
       nativeEvent: MouseEvent;
-      node: EventDataNode
+      node: any
     }) => {
-      localStorage.setItem('selectpandir-' + drive_id.value, info.node.key as string)
-      selectDir.value = { dirID: info.node.key as string, dirName: info.node.title as string, isLeaf: info.node.isLeaf || false }
-      treeSelectedKeys.value = [info.node.key as string]
+      let { parent = undefined, key, title, isLeaf } = info.node
+      const getParentNode = (node: any): any => {
+        if (!node.parent) return node
+        return node.parent ? getParentNode(node.parent) : node
+      }
+      let parentNode = parent && getParentNode(parent)
+      if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
+      } else {
+        to_drive_id.value = usePanTreeStore().resource_drive_id
+      }
+      localStorage.setItem('selectpandir-' + to_drive_id.value, info.node.key as string)
+      selectDir.value = { dirID: key, dirName: title, isLeaf: isLeaf || false }
+      treeSelectedKeys.value = [key]
       treeSelectToExpand(keys, info)
     }
 
     const apiLoad = (key: any) => {
       const pantreeStore = usePanTreeStore()
-      return AliTrash.ApiDirFileListNoLock(pantreeStore.user_id, pantreeStore.drive_id, key as string, '', 'name ASC')
+      return AliTrash.ApiDirFileListNoLock(pantreeStore.user_id, to_drive_id.value, key, '', 'name ASC')
         .then((resp) => {
           const addList: TreeNodeData[] = []
           if (resp.next_marker == '') {
@@ -189,13 +221,15 @@ export default defineComponent({
       }
     }
 
-    const onLoadData = (treeNode: EventDataNode) => {
+    const onLoadData = (treeNode: any) => {
       return new Promise<void>((resolve) => {
         if (props.selecttype !== 'select' || !treeNode.dataRef) {
           resolve()
           return
         }
-        apiLoad(treeNode.dataRef.key).then((addList: TreeNodeData[]) => {
+        let key = treeNode.dataRef.key
+        if (key.includes('root')) key = 'root'
+        apiLoad(key).then((addList: TreeNodeData[]) => {
           treeNode.dataRef!.children = addList
           if (treeData.value) treeData.value = treeData.value.concat()
           resolve()
@@ -204,18 +238,30 @@ export default defineComponent({
     }
 
     const handleTreeExpand = (keys: any[], info: {
-      node: EventDataNode;
+      node: any;
       expanded: boolean;
       nativeEvent: MouseEvent
     }) => {
-      const key = info.node.key as string
       const arr = treeExpandedKeys.value
+      let { parent = undefined, key, title, isLeaf } = info.node
+      const getParentNode = (node: any): any => {
+        if (!node.parent) return node
+        return node.parent ? getParentNode(node.parent) : node
+      }
+      let parentNode = parent && getParentNode(parent)
+      if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
+      } else {
+        to_drive_id.value = usePanTreeStore().resource_drive_id
+      }
       if (arr.includes(key)) {
         treeExpandedKeys.value = arr.filter((t) => t != key)
       } else {
         treeExpandedKeys.value = arr.concat([key])
         if (props.selecttype !== 'select') { // 仅显示文件夹
-          treeData.value = PanDAL.GetPanTreeAllNode(drive_id.value, treeExpandedKeys.value)
+          const backupPan = PanDAL.GetPanTreeAllNode(usePanTreeStore().backup_drive_id, treeExpandedKeys.value)
+          const resourcePan = PanDAL.GetPanTreeAllNode(usePanTreeStore().resource_drive_id, treeExpandedKeys.value)
+          treeData.value = [...backupPan, ...resourcePan]
         }
       }
     }
@@ -253,6 +299,7 @@ export default defineComponent({
       treeSelectedKeys,
       user_id,
       drive_id,
+      to_drive_id,
       selectDir,
       showCreatNewDir,
       formRef,
@@ -266,7 +313,7 @@ export default defineComponent({
       modalCloseAll()
       if (this.selecttype === 'select') {
         if (this.callback) {
-          this.callback('', '', '', '')
+          this.callback('', '', '', '','')
         }
       }
     },
@@ -323,7 +370,8 @@ export default defineComponent({
       }
       modalCloseAll()
       if (this.callback) {
-        this.callback(this.user_id, this.drive_id, this.selectDir.dirID, this.selectDir.dirName)
+        console.warn('SelectPanDirModal', this.to_drive_id)
+        this.callback(this.user_id, this.drive_id, this.to_drive_id, this.selectDir.dirID, this.selectDir.dirName)
       }
     }
   }
@@ -414,5 +462,8 @@ export default defineComponent({
   color: var(--color-text-3);
   height: 18px;
   width: 80vw;
+}
+.sharetree {
+  width: calc(100%);
 }
 </style>

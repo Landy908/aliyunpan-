@@ -18,7 +18,8 @@ import { SpawnOptions } from 'child_process'
 export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
   if (clickWait('menuOpenFile', 500)) return
   const file_id = file.file_id
-  const parent_file_id = file.parent_file_id
+  let parent_file_id = file.parent_file_id
+  if (parent_file_id.includes('root')) parent_file_id = 'root'
   const drive_id = file.drive_id
   if (file.ext == 'zip' || file.ext == 'rar' || file.ext == '7z') {
     Archive(file.drive_id, file.file_id, file.name, file.parent_file_id, file.icon == 'iconweifa')
@@ -75,7 +76,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
       }, { distance: Infinity, index: -1 })
       subTitleFileId = (similarity.index !== -1) ? subTitlesList[similarity.index].file_id : ''
     } else if (uiVideoSubtitleMode === 'select') {
-      modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, dirID: string, _dirName: string) => {
+      modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, _to_drive_id: string, dirID: string, _dirName: string) => {
         Video(token, drive_id, file_id, parent_file_id, file.name, isViolation, file.description, dirID)
       }, '', /srt|vtt|ass/)
       return

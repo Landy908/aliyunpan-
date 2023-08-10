@@ -168,7 +168,7 @@ export default class DownDAL {
           const plist = TreeStore.GetDirPath(file.drive_id, file.parent_file_id)
           for (let p = 0; p < plist.length; p++) {
             const pName = ClearFileName(plist[p].name)
-            if (pName == '根目录') continue
+            if (plist[p].file_id.includes('root')) continue
             if (path.join(cPath2, pName, name).length > 250) break
             cPath2 = path.join(cPath2, pName)
           }

@@ -10,6 +10,7 @@ export default class AliFileCmd {
   static async ApiCreatNewForder(user_id: string, drive_id: string, parent_file_id: string, creatDirName: string): Promise<{ file_id: string; error: string }> {
     const result = { file_id: '', error: '新建文件夹失败' }
     if (!user_id || !drive_id || !parent_file_id) return result
+    if (parent_file_id.includes('root')) parent_file_id = 'root'
     const url = 'adrive/v2/file/createWithFolders'
     const postData = JSON.stringify({
       drive_id: drive_id,
@@ -133,14 +134,26 @@ export default class AliFileCmd {
   
   static async ApiMoveBatch(user_id: string, drive_id: string, file_idList: string[], to_drive_id: string, to_parent_file_id: string): Promise<string[]> {
     const batchList = ApiBatchMaker('/file/move', file_idList, (file_id: string) => {
-      if (drive_id == to_drive_id) return { drive_id: drive_id, file_id: file_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
-      else return { drive_id: drive_id, file_id: file_id, to_drive_id: to_drive_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
+      if (drive_id == to_drive_id) return {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_parent_file_id,
+        auto_rename: true
+      }
+      else return {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_drive_id: to_drive_id,
+        to_parent_file_id: to_parent_file_id,
+        auto_rename: true
+      }
     })
     return ApiBatchSuccess(file_idList.length <= 1 ? '移动' : '批量移动', batchList, user_id, '')
   }
 
   
   static async ApiCopyBatch(user_id: string, drive_id: string, file_idList: string[], to_drive_id: string, to_parent_file_id: string): Promise<string[]> {
+    if (to_parent_file_id.includes('root')) to_parent_file_id = 'root'
     const batchList = ApiBatchMaker('/file/copy', file_idList, (file_id: string) => {
       if (drive_id == to_drive_id) return { drive_id: drive_id, file_id: file_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
       else return { drive_id: drive_id, file_id: file_id, to_drive_id: to_drive_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
