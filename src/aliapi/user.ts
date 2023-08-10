@@ -121,7 +121,7 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_enable) {
+    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token)) {
       await useSettingStore().updateStore({
         uiEnableOpenApi: false,
         uiOpenApiAccessToken: token.open_api_access_token,

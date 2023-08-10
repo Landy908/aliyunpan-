@@ -111,7 +111,7 @@ const refreshQrCode = async () => {
         message.success('登陆成功')
         refreshStatus()
       }
-    }, 1000)
+    }, 1500)
   }
 }
 
