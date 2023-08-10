@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import {
-  useAppStore,
-  useKeyboardStore,
   KeyboardState,
+  useAppStore,
+  useFootStore,
+  useKeyboardStore,
+  useMouseStore,
+  useServerStore,
   useSettingStore,
   useUserStore,
-  useWinStore,
-  useFootStore,
-  useServerStore,
-  useMouseStore,
-  MouseState
+  useWinStore
 } from '../store'
 import { onHideRightMenu, TestAlt, TestCtrl, TestKey, TestShift } from '../utils/keyboardhelper'
-import { getResourcesPath, getUserDataPath, openExternal } from '../utils/electronhelper'
+import { getResourcesPath, openExternal } from '../utils/electronhelper'
 import DebugLog from '../utils/debuglog'
 
 import Setting from '../setting/index.vue'
@@ -82,9 +81,6 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKey('f11', state.KeyDownEvent, f11)) return
 })
 
-mouseStore.$subscribe((_m: any, state: MouseState) => {
-  // console.log(state)
-})
 
 const onResize = throttle(() => {
   const width = document.body.offsetWidth || 800

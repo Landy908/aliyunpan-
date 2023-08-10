@@ -85,6 +85,9 @@ export default class UserDAL {
       nick_name: '',
       default_drive_id: '',
       default_sbox_drive_id: '',
+      resource_drive_id: '',
+      backup_drive_id: '',
+      sbox_drive_id: '',
       role: '',
       status: '',
       expire_time: '',
@@ -155,6 +158,7 @@ export default class UserDAL {
     // 加载用户信息
     await Promise.all([
       AliUser.ApiUserInfo(token),
+      AliUser.ApiUserDriveInfo(token),
       AliUser.ApiUserPic(token),
       AliUser.ApiUserVip(token)
     ])
@@ -181,7 +185,11 @@ export default class UserDAL {
     useOtherFollowingStore().$reset()
     useFootStore().mSaveUserInfo(token)
     // 刷新网盘数据
-    PanDAL.aReLoadDrive(token.user_id, token.default_drive_id)
+    await PanDAL.aReLoadBackupDrive(token)
+    await PanDAL.aReLoadResourceDrive(token)
+    // 展开文件夹
+    await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
+    await PanDAL.aReLoadOneDirToShow(token.default_drive_id, 'backup_root', true)
     PanDAL.aReLoadQuickFile(token.user_id)
     message.success('加载用户成功!', 2, loadingKey)
   }
@@ -247,6 +255,7 @@ export default class UserDAL {
       // 仅刷新个人信息
       await Promise.all([
         AliUser.ApiUserInfo(token),
+        AliUser.ApiUserDriveInfo(token),
         AliUser.ApiUserPic(token),
         AliUser.ApiUserVip(token)
       ])
@@ -261,6 +270,7 @@ export default class UserDAL {
       // 刷新用户信息
       await Promise.all([
         AliUser.ApiUserInfo(token),
+        AliUser.ApiUserDriveInfo(token),
         AliUser.ApiUserPic(token),
         AliUser.ApiUserVip(token)
       ])

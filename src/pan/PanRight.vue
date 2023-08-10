@@ -142,7 +142,7 @@ const handleBack = () => {
   if (!usePanTreeStore().PanHistoryCount) return
   PanDAL.aReLoadOneDirToShow('', 'back', false)
 }
-const handleHome = () => PanDAL.aReLoadOneDirToShow('', 'root', false)
+const handleHome = () => PanDAL.aReLoadOneDirToShow('', 'backup_root', false)
 const handleSelectAll = () => panfileStore.mSelectAll()
 
 
@@ -391,7 +391,7 @@ const onRowItemDrop = (ev: any, movetodirid: string) => {
   ev.preventDefault()
   ev.target.style.outline = 'none'
   ev.target.style.background = ''
-  dropMoveSelectedFile(movetodirid)
+  dropMoveSelectedFile(movetodirid, false)
 }
 const onRowItemDragEnd = (ev: any) => {
   if (dragingRowItem.value) {
@@ -424,7 +424,7 @@ const onPanDrop = (e: any) => {
   if (panfileStore.DirID == 'trash') {
     message.error('不能把文件上传到回收站里！请先选择一个网盘里的文件夹')
   }
-  if (panfileStore.DirID.length != 40 && panfileStore.DirID != 'root') {
+  if (panfileStore.DirID.length != 40 && !panfileStore.DirID.includes('root')) {
     message.error('错误的上传位置！请先选择一个网盘里的文件夹')
     return
   }

@@ -7,6 +7,9 @@ import TreeStore, { TreeNodeData } from '../store/treestore'
 export interface PanTreeState {
   user_id: string
   drive_id: string
+  default_drive_id: string
+  backup_drive_id: string
+  resource_drive_id: string
 
   History: IAliGetDirModel[]
 
@@ -34,6 +37,9 @@ const usePanTreeStore = defineStore('pantree', {
   state: (): State => ({
     user_id: '',
     drive_id: '',
+    default_drive_id: '',
+    backup_drive_id: '',
+    resource_drive_id: '',
     History: [],
     selectDir: {
       __v_skip: true,
@@ -53,9 +59,10 @@ const usePanTreeStore = defineStore('pantree', {
       { __v_skip: true, title: '回收站', namesearch: '', key: 'trash', icon: () => fileiconfn('icondelete'), isLeaf: true, children: [] },
       { __v_skip: true, title: '文件恢复', namesearch: '', key: 'recover', icon: () => fileiconfn('iconrecover'), isLeaf: true, children: [] },
       { __v_skip: true, title: '全盘搜索', namesearch: '', key: 'search', icon: () => fileiconfn('iconsearch'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '根目录', namesearch: '', key: 'root', children: [] }
+      { __v_skip: true, title: '备份盘', namesearch: '', key: 'backup_root', children: [] },
+      { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] },
     ],
-    treeExpandedKeys: ['root'],
+    treeExpandedKeys: ['backup_root', 'resource_root'],
     treeSelectedKeys: [],
     quickData: [],
     scrollToDir: ''
@@ -63,11 +70,22 @@ const usePanTreeStore = defineStore('pantree', {
   getters: {
     PanHistoryCount(state: State): number {
       return state.History.length
-    }
+    },
   },
   actions: {
-    mTreeSelected(key: string) {
-      console.log('mTreeSelected', key)
+    mTreeSelected(e: any) {
+      const panTreeStore = usePanTreeStore()
+      const { parent = undefined, key } = e.node
+      const getParentNode = (node: any): any => {
+        if (!node.parent) return node
+        return node.parent ? getParentNode(node.parent) : node
+      }
+      let parentNode = parent && getParentNode(parent)
+      if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
+        panTreeStore.drive_id = panTreeStore.default_drive_id
+      } else {
+        panTreeStore.drive_id = panTreeStore.resource_drive_id
+      }
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
 
@@ -100,9 +118,9 @@ const usePanTreeStore = defineStore('pantree', {
       if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.drive_id)
     },
 
-    mSaveUser(user_id: string, drive_id: string) {
+    mSaveUser(user_id: string, default_drive_id: string, resource_drive_id: string, backup_drive_id: string) {
       this.$reset()
-      this.$patch({ user_id, drive_id })
+      this.$patch({ user_id, default_drive_id, resource_drive_id, backup_drive_id })
     },
 
     mShowDir(dir: IAliGetDirModel, dirPath: IAliGetDirModel[], treeSelectedKeys: string[], treeExpandedKeys: string[]) {
@@ -126,23 +144,6 @@ const usePanTreeStore = defineStore('pantree', {
 
       this.treeData = list
       treeDataMap = rootMap
-    },
-
-    mSaveTreeOneDirNode(drive_id: string, dirID: string, dirNode: TreeNodeData, dirMap: Map<string, TreeNodeData>) {
-      console.log('刷新Tree', dirNode)
-      if (this.drive_id !== drive_id) return
-
-
-      const findDir = treeDataMap.get(dirID)
-      if (findDir) {
-        findDir.children = dirNode.children
-        const keys = dirMap.entries()
-        for (let i = 0, maxi = dirMap.size; i < maxi; i++) {
-          const key = keys.next().value
-          treeDataMap.set(key[0], key[1])
-        }
-        this.treeData = this.treeData.concat()
-      }
     },
 
     mRenameFiles(fileList: { file_id: string; parent_file_id: string; name: string; isDir: boolean }[]) {
