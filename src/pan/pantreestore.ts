@@ -73,18 +73,23 @@ const usePanTreeStore = defineStore('pantree', {
     },
   },
   actions: {
-    mTreeSelected(e: any) {
+    mTreeSelected(e: any, kuaijie: boolean = false) {
+      console.log('mTreeSelected', e)
+      const { parent = undefined, key, drive_id = undefined} = e.node
       const panTreeStore = usePanTreeStore()
-      const { parent = undefined, key } = e.node
-      const getParentNode = (node: any): any => {
-        if (!node.parent) return node
-        return node.parent ? getParentNode(node.parent) : node
-      }
-      let parentNode = parent && getParentNode(parent)
-      if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
-        panTreeStore.drive_id = panTreeStore.default_drive_id
+      if (!kuaijie) {
+        const getParentNode = (node: any): any => {
+          if (!node.parent) return node
+          return node.parent ? getParentNode(node.parent) : node
+        }
+        let parentNode = parent && getParentNode(parent)
+        if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
+          panTreeStore.drive_id = panTreeStore.default_drive_id
+        } else {
+          panTreeStore.drive_id = panTreeStore.resource_drive_id
+        }
       } else {
-        panTreeStore.drive_id = panTreeStore.resource_drive_id
+        if (drive_id) panTreeStore.drive_id = drive_id
       }
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
@@ -180,12 +185,14 @@ const usePanTreeStore = defineStore('pantree', {
 
       TreeStore.RenameDirs(this.drive_id, fileList)
     },
-    mSaveQuick(list: { key: string; title: string }[]) {
+    mSaveQuick(list: { key: string; drive_id: string; drive_name: string; title: string }[]) {
       const nodeList: TreeNodeData[] = []
       for (let i = 0; i < list.length; i++) {
         nodeList.push({
           __v_skip: true,
           key: list[i].key,
+          drive_id: list[i].drive_id,
+          drive_name: list[i].drive_name,
           title: list[i].title || list[i].key,
           namesearch: i < 9 ? '快捷键 Ctrl+' + (i + 1) : '',
           children: [],

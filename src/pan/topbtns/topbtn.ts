@@ -347,7 +347,7 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
   }
 
   if (file_idList.includes(movetodirid)) {
-    if (file_idList.length == 1) message.info('用户取消移动')
+    if (file_idList.length == 1) message.info('取消移动')
     else message.error('不能移动到原位置！')
     return
   }

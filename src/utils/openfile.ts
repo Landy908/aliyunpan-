@@ -62,26 +62,28 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
     const listDataRaw = usePanFileStore().ListDataRaw || []
     const subTitlesList = listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
     const isViolation = file.icon == 'iconweifa'
-    if (uiVideoPlayer === 'other' && uiVideoSubtitleMode === 'auto') {
-      const fileName = file.name
-      // 自动加载同名字幕
-      const similarity: any = subTitlesList.reduce((min: any, item, index) => {
-        // 莱文斯坦距离算法(计算相似度)
-        const distance = levenshtein.get(fileName, item.name, { useCollator: true })
-        if (distance < min.distance) {
-          min.distance = distance
-          min.index = index
-        }
-        return min
-      }, { distance: Infinity, index: -1 })
-      subTitleFileId = (similarity.index !== -1) ? subTitlesList[similarity.index].file_id : ''
-    } else if (uiVideoSubtitleMode === 'select') {
-      modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, _to_drive_id: string, dirID: string, _dirName: string) => {
-        Video(token, drive_id, file_id, parent_file_id, file.name, isViolation, file.description, dirID)
-      }, '', /srt|vtt|ass/)
-      return
-    }
-    Video(token, drive_id, file_id, parent_file_id, file.name, isViolation, file.description, subTitleFileId)
+    if (uiVideoPlayer === 'other') {
+      if (uiVideoSubtitleMode === 'auto') {
+        const fileName = file.name
+        // 自动加载同名字幕
+        const similarity: any = subTitlesList.reduce((min: any, item, index) => {
+          // 莱文斯坦距离算法(计算相似度)
+          const distance = levenshtein.get(fileName, item.name, { useCollator: true })
+          if (distance < min.distance) {
+            min.distance = distance
+            min.index = index
+          }
+          return min
+        }, { distance: Infinity, index: -1 })
+        subTitleFileId = (similarity.index !== -1) ? subTitlesList[similarity.index].file_id : ''
+      } else if (uiVideoSubtitleMode === 'select') {
+        modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, to_drive_id: string, dirID: string, _dirName: string) => {
+          await Video(token, to_drive_id, file_id, parent_file_id, file.name, isViolation, file.description, dirID)
+        }, '', /srt|vtt|ass/)
+        return
+      }
+   }
+    await Video(token, drive_id, file_id, parent_file_id, file.name, isViolation, file.description, subTitleFileId)
     return
   }
   if (file.category.startsWith('audio')) {

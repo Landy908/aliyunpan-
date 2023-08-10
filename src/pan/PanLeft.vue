@@ -13,6 +13,7 @@ import { TreeNodeData } from '../store/treestore'
 import { dropMoveSelectedFile } from './topbtns/topbtn'
 import message from '../utils/message'
 import { modalUpload } from '../utils/modal'
+import { GetDriveType } from '../aliapi/utils'
 
 const treeref = ref()
 const winStore = useWinStore()
@@ -130,11 +131,16 @@ const onQuickDrop = (ev: any) => {
   ev.target.style.outline = 'none'
   ev.target.style.background = ''
 
-  const list: { key: string; title: string }[] = []
+  const list: { key: string; drive_id: string; drive_name: string; title: string }[] = []
   const selectedFile = usePanFileStore().GetSelected()
   for (let i = 0, maxi = selectedFile.length; i < maxi; i++) {
     if (selectedFile[i].isDir) {
-      list.push({ key: selectedFile[i].file_id, title: selectedFile[i].name })
+      list.push({
+        key: selectedFile[i].file_id,
+        drive_id: selectedFile[i].drive_id,
+        drive_name: GetDriveType(usePanTreeStore().user_id, selectedFile[i].drive_id).title,
+        title: selectedFile[i].name
+      })
     }
   }
   if (list.length == 0) {
@@ -143,14 +149,16 @@ const onQuickDrop = (ev: any) => {
   }
   PanDAL.updateQuickFile(list)
 }
-const handleQuickDelete = (key: string) => {
+const handleQuickDelete = (key: string, dataRef: any) => {
   PanDAL.deleteQuickFile(key)
 }
 const handleQuickSelect = (index: number) => {
   const array = PanDAL.getQuickFileList()
   if (array.length >= index) {
     const key = array[index - 1].key
-    PanDAL.aReLoadOneDirToShow('', key, true)
+    const drive_id = array[index - 1].drive_id
+    console.log('handleQuickSelect', array)
+    PanDAL.aReLoadOneDirToShow(drive_id, key, true)
   }
 }
 </script>
@@ -225,7 +233,7 @@ const handleQuickSelect = (index: number) => {
             :open-animation='{}'
             :selected-keys='pantreeStore.treeSelectedKeys'
             :tree-data='colorTreeData'
-            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e)'>
+            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e, true)'>
             <template #icon='{ dataRef }'>
               <i class='iconfont iconwbiaoqian' :class='dataRef.namesearch' />
             </template>
@@ -255,15 +263,17 @@ const handleQuickSelect = (index: number) => {
             :open-animation='{}'
             :selected-keys='pantreeStore.treeSelectedKeys'
             :tree-data='pantreeStore.quickData'
-            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e)'>
+            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e, true)'>
             <template #icon>
               <i class='iconfont iconfile-folder' />
             </template>
             <template #title='{ dataRef }'>
-              <span class='quicktitle' :title='dataRef.namesearch'>快捷 · {{ dataRef.title }}</span>
+              <span class='quicktitle' :title='dataRef.namesearch'>
+                {{ dataRef.drive_name }} · {{ dataRef.title }}
+              </span>
               <span class='quickbtn'>
                 <a-button type='text' size='mini'
-                          @click.stop='handleQuickDelete(dataRef.key)'>
+                          @click.stop='handleQuickDelete(dataRef.key, dataRef)'>
                   删除
                 </a-button>
               </span>

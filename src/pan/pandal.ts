@@ -304,7 +304,7 @@ export default class PanDAL {
     return data
   }
 
-  static updateQuickFile(list: { key: string; title: string }[]) {
+  static updateQuickFile(list: { key: string; drive_id: string; drive_name: string; title: string }[]) {
     if (list.length == 0) return
     const pantreeStore = usePanTreeStore()
     const jsonstr = localStorage.getItem('FileQuick-' + pantreeStore.user_id)
@@ -314,10 +314,12 @@ export default class PanDAL {
       for (let i = 0; i < arr.length; i++) {
         if (arr[i].key == t.key) {
           arr[i].title = t.title
+          arr[i].drive_id = t.drive_id
+          arr[i].drive_name = t.drive_name
           find = true
         }
       }
-      if (!find) arr.push({ key: t.key, title: t.title })
+      if (!find) arr.push({ key: t.key, drive_id: t.drive_id, drive_name: t.drive_name, title: t.title })
       return true
     })
     localStorage.setItem('FileQuick-' + pantreeStore.user_id, JSON.stringify(arr))
@@ -330,7 +332,7 @@ export default class PanDAL {
     const pantreeStore = usePanTreeStore()
     const jsonstr = localStorage.getItem('FileQuick-' + pantreeStore.user_id)
     const arr = jsonstr ? JSON.parse(jsonstr) : []
-    const newArray: { key: string; title: string }[] = []
+    const newArray: { key: string; drive_id: string; drive_name: string; title: string }[] = []
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].key != key) newArray.push(arr[i])
     }
