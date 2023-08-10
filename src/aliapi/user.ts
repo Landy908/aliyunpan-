@@ -225,13 +225,13 @@ export default class AliUser {
         case 'WaitLogin':
           return { type: 'info', tips: '状态：等待扫码登录' }
         case 'ScanSuccess':
-          return  { type: 'warning', tips: '状态：扫码成功' }
+          return { type: 'warning', tips: '状态：扫码成功' }
         case 'LoginSuccess':
-          return  { type: 'success', tips: '状态：登录成功' }
+          return { type: 'success', tips: '状态：登录成功' }
         case 'QRCodeExpired':
-          return  { type: 'error', tips: '状态：二维码超时' }
+          return { type: 'error', tips: '状态：二维码超时' }
         default:
-          return  { type: 'error', tips: '状态：请重新刷新二维码' }
+          return { type: 'error', tips: '状态：请重新刷新二维码' }
       }
     }
     if (AliHttp.IsSuccess(resp.code)) {
@@ -241,7 +241,7 @@ export default class AliUser {
         authCode: statusCode === 'LoginSuccess' ? resp.body.authCode : '',
         statusCode: statusCode,
         statusType: statusData.type || '',
-        statusTips: statusData.tips || '',
+        statusTips: statusData.tips || ''
       }
     } else {
       message.error('获取二维码状态失败[' + resp.body?.message + ']，请检查配置')
@@ -288,6 +288,23 @@ export default class AliUser {
       return true
     } else {
       DebugLog.mSaveWarning('ApiUserInfo err=' + (resp.code || ''))
+    }
+    return false
+  }
+
+  static async ApiUserDriveInfo(token: ITokenInfo): Promise<boolean> {
+    if (!token.user_id) return false
+    const url = 'https://user.aliyundrive.com/v2/user/get'
+    const postData = ''
+    const resp = await AliHttp.Post(url, postData, token.user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      token.default_drive_id = resp.body.default_drive_id
+      token.backup_drive_id = resp.body.default_drive_id
+      token.resource_drive_id = resp.body.resource_drive_id
+      token.sbox_drive_id = resp.body.sbox_drive_id
+      return true
+    } else {
+      DebugLog.mSaveWarning('ApiUserDriveInfo err=' + (resp.code || ''))
     }
     return false
   }
@@ -386,11 +403,13 @@ export default class AliUser {
 
   static async ApiUserDriveDetails(user_id: string): Promise<IAliUserDriveDetails> {
     const detail: IAliUserDriveDetails = {
-      drive_used_size: 0,
-      drive_total_size: 0,
-      default_drive_used_size: 0,
       album_drive_used_size: 0,
+      backup_drive_used_size: 0,
+      default_drive_used_size: 0,
+      drive_total_size: 0,
+      drive_used_size: 0,
       note_drive_used_size: 0,
+      resource_drive_used_size: 0,
       sbox_drive_used_size: 0,
       share_album_drive_used_size: 0
     }
@@ -399,11 +418,13 @@ export default class AliUser {
     const postData = '{}'
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
-      detail.drive_used_size = resp.body.drive_used_size || 0
-      detail.drive_total_size = resp.body.drive_total_size || 0
-      detail.default_drive_used_size = resp.body.default_drive_used_size || 0
       detail.album_drive_used_size = resp.body.album_drive_used_size || 0
+      detail.backup_drive_used_size = resp.body.backup_drive_used_size || 0
+      detail.default_drive_used_size = resp.body.default_drive_used_size || 0
+      detail.drive_total_size = resp.body.drive_total_size || 0
+      detail.drive_used_size = resp.body.drive_used_size || 0
       detail.note_drive_used_size = resp.body.note_drive_used_size || 0
+      detail.resource_drive_used_size = resp.body.resource_drive_used_size || 0
       detail.sbox_drive_used_size = resp.body.sbox_drive_used_size || 0
       detail.share_album_drive_used_size = resp.body.share_album_drive_used_size || 0
     } else {

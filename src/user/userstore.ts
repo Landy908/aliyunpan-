@@ -24,6 +24,9 @@ export interface ITokenInfo {
   nick_name: string
   default_drive_id: string
   default_sbox_drive_id: string
+  resource_drive_id: string
+  backup_drive_id: string
+  sbox_drive_id: string
   role: string
   status: string
   expire_time: string

@@ -43,6 +43,23 @@ export function GetDriveID2(token: ITokenInfo, driveName: string): string {
   return driveName
 }
 
+export function GetDriveType(user_id: string, drive_id: string): any {
+  const token = UserDAL.GetUserToken(user_id)
+  if (token) {
+    switch (drive_id) {
+      case token.default_drive_id:
+        return { title: '备份盘', key: 'backup_root' }
+      case token.backup_drive_id:
+        return { title: '备份盘', key: 'backup_root' }
+      case token.resource_drive_id:
+        return { title: '资源盘', key: 'resource_root' }
+      case token.default_sbox_drive_id:
+        return { title: '安全盘', key: 'safe_root' }
+    }
+  }
+  return { title: '', key: '' }
+}
+
 export function GetSignature(nonce: number, user_id: string, deviceId: string) {
   const toHex = (bytes: Uint8Array) => {
     const hashArray = Array.from(bytes) // convert buffer to byte array
@@ -94,7 +111,7 @@ async function _ApiBatch(postData: string, user_id: string, share_token: string,
       } else {
         const respi = responses[i]
         const logmsg = (respi.body.code || '') + ' ' + (respi.body.message || '')
-        if (logmsg.includes('File under sync control') == false) DebugLog.mSaveDanger(logmsg)
+        if (!logmsg.includes('File under sync control')) DebugLog.mSaveDanger(logmsg)
         if (respi.body && respi.body.code) result.error.push({ id: respi.body.id || respi.id, code: respi.body.code, message: respi.body.message })
       }
     }
@@ -203,7 +220,13 @@ export function ApiBatchMaker(url: string, idList: string[], bodymake: (file_id:
     const id = idList[i]
     if (batchSet.has(id)) continue
     batchSet.add(id)
-    batchList.push(JSON.stringify({ body: bodymake(id), headers: { 'Content-Type': 'application/json' }, id: id, method: 'POST', url }))
+    batchList.push(JSON.stringify({
+      body: bodymake(id),
+      headers: { 'Content-Type': 'application/json' },
+      id: id,
+      method: 'POST',
+      url
+    }))
   }
   batchSet.clear()
   return batchList
