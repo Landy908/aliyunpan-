@@ -76,21 +76,23 @@ export function createMainWindow() {
       AppWindow.winWidth = configData.width
       AppWindow.winHeight = configData.height
     }
-  } catch {}
+  } catch {
+  }
   try {
     const themeJson = getUserDataPath('theme.json')
     if (existsSync(themeJson)) {
       const themeData = JSON.parse(readFileSync(themeJson, 'utf-8'))
       AppWindow.winTheme = themeData.theme
     }
-  } catch {}
+  } catch {
+  }
   if (AppWindow.winWidth <= 0) {
     try {
       const size = screen.getPrimaryDisplay().workAreaSize
       let width = size.width * 0.677
       const height = size.height * 0.866
       if (width > AppWindow.winWidth) AppWindow.winWidth = width
-      if (size.width >= 970 && width < 970) width = 970 
+      if (size.width >= 970 && width < 970) width = 970
       if (AppWindow.winWidth > 1080) AppWindow.winWidth = 1080
       if (height > AppWindow.winHeight) AppWindow.winHeight = height
       if (AppWindow.winHeight > 720) AppWindow.winHeight = 720
@@ -102,14 +104,15 @@ export function createMainWindow() {
   AppWindow.mainWindow = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
 
   AppWindow.mainWindow.on('resize', () => {
-    debounceResize(function () {
+    debounceResize(function() {
       try {
         if (AppWindow.mainWindow && AppWindow.mainWindow.isMaximized() == false && AppWindow.mainWindow.isMinimized() == false && AppWindow.mainWindow.isFullScreen() == false) {
-          const s = AppWindow.mainWindow!.getSize() 
+          const s = AppWindow.mainWindow!.getSize()
           const configJson = getUserDataPath('config.json')
           writeFileSync(configJson, `{"width":${s[0].toString()},"height": ${s[1].toString()}}`, 'utf-8')
         }
-      } catch {}
+      } catch {
+      }
     }, 3000)
   })
 
@@ -126,16 +129,16 @@ export function createMainWindow() {
     app.quit()
   })
 
-  AppWindow.mainWindow.on('ready-to-show', function () {
+  AppWindow.mainWindow.on('ready-to-show', function() {
     AppWindow.mainWindow!.webContents.send('setPage', { page: 'PageMain' })
     AppWindow.mainWindow!.webContents.send('setTheme', { dark: nativeTheme.shouldUseDarkColors })
     AppWindow.mainWindow!.setTitle('阿里云盘小白羊')
     if (is.windows() && process.argv && process.argv.join(' ').indexOf('--openAsHidden') < 0) {
       AppWindow.mainWindow!.show()
-    } else if (is.macOS() && !app.getLoginItemSettings().wasOpenedAsHidden){
+    } else if (is.macOS() && !app.getLoginItemSettings().wasOpenedAsHidden) {
       AppWindow.mainWindow!.show()
     }
-    if (is.linux()){
+    if (is.linux()) {
       AppWindow.mainWindow!.show()
     }
     creatUploadPort()
@@ -169,7 +172,7 @@ export function createTray() {
   const trayMenuTemplate = [
     {
       label: '显示主界面',
-      click: function () {
+      click: function() {
         if (AppWindow.mainWindow && AppWindow.mainWindow.isDestroyed() == false) {
           if (AppWindow.mainWindow.isMinimized()) AppWindow.mainWindow.restore()
           AppWindow.mainWindow.show()
@@ -181,7 +184,7 @@ export function createTray() {
     },
     {
       label: '彻底退出并停止下载',
-      click: function () {
+      click: function() {
         if (AppWindow.mainWindow) {
           AppWindow.mainWindow.destroy()
           AppWindow.mainWindow = undefined
@@ -260,6 +263,7 @@ export function createElectronWindow(width: number, height: number, center: bool
       }
     })
   }
+  // 处理DevTools
   win.webContents.on('before-input-event', (_, input: Electron.Input) => {
     if (input.type === 'keyDown' && input.control && input.shift && input.key === 'F12') {
       win.webContents.isDevToolsOpened()
@@ -267,16 +271,23 @@ export function createElectronWindow(width: number, height: number, center: bool
         : win.webContents.openDevTools({ mode: 'undocked' })
     }
   })
+  // 处理webview跳转
+  win.webContents.addListener('did-attach-webview', (event, webContent) => {
+    // 不允许的网址则阻止页面跳转并拉取浏览器展示页面
+    webContent.addListener('new-window', (e, url) => {
+      e.preventDefault()
+    })
+  })
   win.webContents.on('did-create-window', (childWindow) => {
     if (is.windows()) {
-      childWindow.setMenu(null) 
+      childWindow.setMenu(null)
     }
   })
   return win
 }
 
 function creatUploadPort() {
-  debounceUpload(function () {
+  debounceUpload(function() {
     if (AppWindow.mainWindow && AppWindow.uploadWindow && AppWindow.uploadWindow.isDestroyed() == false) {
       const { port1, port2 } = new MessageChannelMain()
       AppWindow.mainWindow.webContents.postMessage('setUploadPort', undefined, [port1])

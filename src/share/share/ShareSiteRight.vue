@@ -1,91 +1,78 @@
 <script setup lang='ts'>
 import { ref } from 'vue'
-import { KeyboardState, useAppStore, useKeyboardStore, useServerStore } from '../../store'
+import { IShareSiteModel, useAppStore, useServerStore } from '../../store'
 import { B64decode } from '../../utils/format'
-import { TestKey } from '../../utils/keyboardhelper'
 import { modalDaoRuShareLink } from '../../utils/modal'
 import message from '../../utils/message'
 import { openExternal } from '../../utils/electronhelper'
+import PageLoading from '../../layout/PageLoading.vue'
 
 const appStore = useAppStore()
 const serverStore = useServerStore()
-
+const siteLoading = ref(true)
+const content = ref()
+const webview = ref()
 const siteUrl = ref('')
 
-const keyboardStore = useKeyboardStore()
-keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
-  if (appStore.appTab != 'share' || appStore.GetAppTabMenu != 'MyShareRight') return
-  if (TestKey('f5', state.KeyDownEvent, handleRefresh)) return
-})
-
-const handleSite = (url: string) => {
-  if (url.startsWith('http')) {
-    siteUrl.value = url
+const handleSite = (item: IShareSiteModel) => {
+  if (item.url.startsWith('http')) {
+    siteUrl.value = item.url
   } else {
-    const ourl = B64decode(url)
+    const ourl = B64decode(item.url)
     if (ourl) siteUrl.value = ourl
     else siteUrl.value = ''
   }
-}
 
-const handleSiteShareUrl = (event: any) => {
-  // 获取点击的目标元素
-  const target = event.target
-  // 获取点击的 URL
-  const url = target.href || ''
-  if (url.startsWith('magnet') || url.includes('aliyundrive')) {
-    event.preventDefault()
-  }
-  if (url.includes('aliyundrive')) {
-    modalDaoRuShareLink(url)
-  }
-}
-
-const handleLoad = () => {
-  const iframe = document.getElementById('siteIframe') as any
-  if (!iframe) {
-    message.error('打开网页失败，请手动刷新网页')
-    return
-  }
-  // 获取 iframe 内部的 document 对象
-  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document
-  // 内容为空
-  if (iframeDocument && !iframeDocument.body.innerHTML.length) {
+  if (item.title.includes('文档')) {
     openExternal(siteUrl.value)
     siteUrl.value = ''
     return
   }
-  setTimeout(() => {
-    const element = iframeDocument.querySelector('.swal2-close')
-    if (element) {
-      element.click()
-    }
-  }, 50)
-  iframeDocument.addEventListener('click', handleSiteShareUrl)
+  // 动态创建WebView
+  webview.value = document.createElement('webview')
+  webview.value.src = siteUrl.value
+  webview.value.className = 'siteContent'
+  webview.value.setAttribute('allowpopups', '')
+  content.value.appendChild(webview.value)
+  webview.value.addEventListener('did-start-loading', handleStartLoad)
+  webview.value.addEventListener('new-window', handleSiteShareUrl)
 }
 
-const handleRemoveListener = () => {
-  const iframe = document.getElementById('siteIframe') as any
-  if (!iframe) {
-    message.error('打开网页失败，请手动刷新网页')
-    return
+const handleSiteShareUrl = (event: any) => {
+  // console.log('handleSiteShareUrl', event)
+  // 获取点击的 URL
+  const url = event.url || ''
+  if (url.includes('aliyundrive')) {
+    modalDaoRuShareLink(url)
+  } else {
+    webview.value.src = url
   }
-  iframe.removeEventListener('click', handleSiteShareUrl)
 }
 
-const handleRefresh = () => {
-  const iframe = document.getElementById('siteIframe') as any
-  if (!iframe) {
-    message.error('打开网页失败，请手动刷新网页')
-    return
-  }
-  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document
-  iframeDocument.location.reload()
+const handleStartLoad = () => {
+  siteLoading.value = true
+  setTimeout(()=> siteLoading.value = false, 2000)
 }
 
 const handleClose = () => {
+  if (!webview.value) {
+    message.error('打开网页失败，请手动刷新网页')
+    return
+  }
   siteUrl.value = ''
-  handleRemoveListener()
+  webview.value.removeEventListener('new-window', handleSiteShareUrl)
+  webview.value.removeEventListener('did-start-loading', handleStartLoad)
+  content.value.removeChild(webview.value)
+  webview.value = {}
+}
+
+const handleRefresh = () => {
+  const iframe = webview.value
+  if (!iframe) {
+    message.error('打开网页失败，请手动刷新网页')
+    return
+  }
+  iframe.reloadIgnoringCache()
 }
 
 </script>
@@ -96,30 +83,28 @@ const handleClose = () => {
   </div>
   <div class='toppanbtns' style='height: 36px' v-show='siteUrl'>
     <div class='toppanbtn'>
-      <a-button type='text' size='small' tabindex='-1' title='F5'
+      <a-button type='text' size='small' tabindex='-1'
                 @click='handleRefresh'>
         <i class='iconfont iconreload-1-icon' />刷新网页
       </a-button>
     </div>
     <div class='toppanbtn'>
-      <a-button type='text' size='small' tabindex='-1' title='Ctrl+N' @click='handleClose'>
+      <a-button type='text' size='small' tabindex='-1' @click='handleClose'>
         <i class='iconfont iconclose' />关闭网页
       </a-button>
     </div>
   </div>
-  <div class='fullscroll'>
+  <div class='fullscroll' ref='content'>
     <a-card :bordered='false'
             v-if='!siteUrl'
             style='width: calc(100% - 32px); margin: 0 24px 24px 8px; box-sizing: border-box'
             class='sitelist'>
       <a-card-grid v-for='(item, index) in serverStore.shareSiteList' :key='index' :hoverable='index % 2 === 0'
                    class='sitelistitem'>
-        <a @click='handleSite(item.url)' v-html="item.title.replace('[', '<small>').replace(']', '</small>')"></a>
+        <a @click='handleSite(item)' v-html="item.title.replace('[', '<small>').replace(']', '</small>')"></a>
       </a-card-grid>
     </a-card>
-    <iframe id='siteIframe' v-if='siteUrl' :src='siteUrl'
-            @load='handleLoad'
-            style='width: calc(100% - 32px); height: calc(100% - 36px); border: none; overflow: hidden' />
+    <PageLoading v-show='siteUrl && siteLoading'/>
   </div>
 </template>
 
@@ -164,5 +149,13 @@ const handleClose = () => {
 .sitelistitem small {
   padding-left: 4px;
   font-size: 12px;
+}
+
+.siteContent {
+  display: flex;
+  width: calc(100% - 16px);
+  height: calc(100% - 36px);
+  border: none;
+  overflow: hidden
 }
 </style>
