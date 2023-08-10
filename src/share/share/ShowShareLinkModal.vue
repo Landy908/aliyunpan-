@@ -251,12 +251,12 @@ export default defineComponent({
       console.log('selectNodes', selectNodes)
       const share_id = this.share_id
       const share_token = this.shareToken
-      modalSelectPanDir('share', '', async function(user_id: string, drive_id: string, dirID: string) {
-        if (!drive_id || !dirID) return
-        const result = await SaveLink(saveType, share_id, share_token, user_id, drive_id, dirID, selectNodes)
+      modalSelectPanDir('share', '', async function(user_id: string, drive_id: string, to_drive_id: string, dirID: string) {
+        if (!drive_id || !to_drive_id || !dirID) return
+        const result = await SaveLink(saveType, share_id, share_token, user_id, to_drive_id, dirID, selectNodes)
         if (result) message.error('保存文件出错,' + result)
         else message.success('保存文件成功,请稍后手动刷新保存到的文件夹')
-        PanDAL.aReLoadOneDirToRefreshTree(user_id, drive_id, dirID)
+        PanDAL.aReLoadOneDirToRefreshTree(user_id, to_drive_id, dirID)
       })
     },
 

@@ -62,15 +62,16 @@ async function ApiTestEnmptyDir(user_id: string, drive_id: string, idList: strin
   let postData = '{"requests":['
   for (let i = 0, maxi = idList.length; i < maxi; i++) {
     if (i > 0) postData = postData + ','
+    let id = idList[i].includes('root') ? 'root' : idList[i]
     const data2 = {
       body: {
         drive_id: drive_id,
-        query: 'parent_file_id="' + idList[i] + '"',
+        query: 'parent_file_id="' + id + '"',
         limit: 1,
         fields: 'thumbnail'
       },
       headers: { 'Content-Type': 'application/json' },
-      id: idList[i],
+      id: id,
       method: 'POST',
       url: '/file/search'
     }

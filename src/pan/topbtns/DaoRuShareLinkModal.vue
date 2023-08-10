@@ -61,10 +61,14 @@ export default defineComponent({
       setTimeout(() => {
         document.getElementById('DaoRuShareInput')?.focus()
       }, 200)
-      const text = getFromClipboard()
-      const link = FixFormate(text, true)
-      form.sharelink = link.linkTxt || props.shareUrl
-      form.password = link.linkPwd || props.sharePwd
+      if (!props.shareUrl.length) {
+        let link = FixFormate(getFromClipboard(), true)
+        form.sharelink = link.linkTxt
+        form.password = link.linkPwd
+      } else {
+        form.sharelink = props.shareUrl
+        form.password = props.sharePwd
+      }
     }
 
     const handleClose = () => {

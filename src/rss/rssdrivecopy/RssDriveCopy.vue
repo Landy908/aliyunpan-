@@ -81,7 +81,7 @@ const handleLeftTreeSelect = (selectkeys: any) => {
 
   if (key == 'refresh') key = TreeState.LeftInfo.dirID
   else if (key == 'back') key = TreeState.LeftInfo.parentID
-  else if (key == 'root') key = 'root'
+  else if (key.includes('root')) key = 'root'
   else if (!key.startsWith('dir_')) return
   TreeState.LeftCheckedKeys = []
   LoadDir(key, TreeState.LeftInfo, TreeState.LeftTreeData, false)
@@ -91,7 +91,7 @@ const handleRightTreeSelect = (selectkeys: any) => {
 
   if (key == 'refresh') key = TreeState.RightInfo.dirID
   else if (key == 'back') key = TreeState.RightInfo.parentID
-  else if (key == 'root') key = 'root'
+  else if (key.includes('root')) key = 'root'
   else if (!key.startsWith('dir_')) return
 
   LoadDir(key, TreeState.RightInfo, TreeState.RightTreeData, true)
@@ -102,11 +102,12 @@ const handleLeftUser = (driveType: any) => {
   if (!userToken) return
   TreeState.LeftInfo.user_id = userToken.user_id
   TreeState.LeftInfo.driveType = driveType
-  if (driveType == 'pan') TreeState.LeftInfo.drive_id = userToken.default_drive_id
+  if (driveType == 'backup') TreeState.LeftInfo.drive_id = userToken.default_drive_id
+  if (driveType == 'resource') TreeState.LeftInfo.drive_id = userToken.resource_drive_id
   if (driveType == 'pic') TreeState.LeftInfo.drive_id = userToken.pic_drive_id
   if (driveType == 'safe') TreeState.LeftInfo.drive_id = userToken.default_sbox_drive_id
   TreeState.LeftCheckedKeys = []
-  LoadDir('root', TreeState.LeftInfo, TreeState.LeftTreeData, false)
+  LoadDir(driveType + '_root', TreeState.LeftInfo, TreeState.LeftTreeData, false)
 }
 
 const handleRightUser = (driveType: any) => {
@@ -114,10 +115,10 @@ const handleRightUser = (driveType: any) => {
   if (!userToken) return
   TreeState.RightInfo.user_id = userToken.user_id
   TreeState.RightInfo.driveType = driveType
-  if (driveType == 'pan') TreeState.RightInfo.drive_id = userToken.default_drive_id
-  if (driveType == 'pic') TreeState.RightInfo.drive_id = userToken.pic_drive_id
+  if (driveType == 'backup') TreeState.RightInfo.drive_id = userToken.default_drive_id
+  if (driveType == 'resource') TreeState.RightInfo.drive_id = userToken.resource_drive_id
   if (driveType == 'safe') TreeState.RightInfo.drive_id = userToken.default_sbox_drive_id
-  LoadDir('root', TreeState.RightInfo, TreeState.RightTreeData, true)
+  LoadDir(driveType + '_root', TreeState.RightInfo, TreeState.RightTreeData, true)
 }
 </script>
 
@@ -151,12 +152,14 @@ const handleRightUser = (driveType: any) => {
         <span class="checkedInfo" style="margin-right: 12px">从</span>
         <a-select size="small" tabindex="-1" :style="{ width: '130px' }" :disabled="copyLoading" :model-value="TreeState.LeftInfo.driveType" placeholder="请选择" style="margin-right: 12px" @change="handleLeftUser">
           <a-option value="pic"> 相册 </a-option>
-          <a-option value="pan"> 网盘 </a-option>
+          <a-option value="backup"> 备份盘 </a-option>
+          <a-option value="resource"> 资源盘 </a-option>
         </a-select>
         <span class="checkedInfo" style="margin-right: 12px">复制到</span>
         <a-select size="small" tabindex="-1" :style="{ width: '130px' }" :disabled="copyLoading" :model-value="TreeState.RightInfo.driveType" placeholder="请选择" style="margin-right: 12px" @update:model-value="handleRightUser">
           <a-option value="pic"> 相册 </a-option>
-          <a-option value="pan"> 网盘 </a-option>
+          <a-option value="backup"> 备份盘 </a-option>
+          <a-option value="resource"> 资源盘 </a-option>
         </a-select>
 
         <div style="flex: auto"></div>
@@ -167,7 +170,7 @@ const handleRightUser = (driveType: any) => {
       <a-split :style="{ height: treeHeight + 36 + 'px', width: '100%' }" min="300px" max="0.8">
         <template #first>
           <div class="rsscopymenu">
-            <a-button type="text" size="small" tabindex="-1" title="根目录" @click="handleLeftTreeSelect(['root'])"><i class="iconfont iconhome" /></a-button>
+            <a-button type="text" size="small" tabindex="-1" title="根目录" @click="handleLeftTreeSelect(['backup_root'])"><i class="iconfont iconhome" /></a-button>
             <a-button type="text" size="small" tabindex="-1" title="返回上级" @click="handleLeftTreeSelect(['back'])"><i class="iconfont iconarrow-top-2-icon-copy" /></a-button>
             <a-button type="text" size="small" tabindex="-1" title="刷新" @click="handleLeftTreeSelect(['refresh'])"><i class="iconfont iconreload-1-icon" /></a-button>
             <AntdCheckbox tabindex="-1" :disabled="TreeState.LeftInfo.loading" :checked="TreeState.LeftCheckedKeys.length > 0 && TreeState.LeftTreeData.length == TreeState.LeftCheckedKeys.length" style="margin-left: 7px" @click.stop.prevent="handleSelectAll">全选</AntdCheckbox>
@@ -201,7 +204,7 @@ const handleRightUser = (driveType: any) => {
         </template>
         <template #second>
           <div class="rsscopymenu">
-            <a-button type="text" size="small" tabindex="-1" title="根目录" @click="handleRightTreeSelect(['root'])"><i class="iconfont iconhome" /></a-button>
+            <a-button type="text" size="small" tabindex="-1" title="根目录" @click="handleRightTreeSelect(['backup_root'])"><i class="iconfont iconhome" /></a-button>
             <a-button type="text" size="small" tabindex="-1" title="返回上级" @click="handleRightTreeSelect(['back'])"><i class="iconfont iconarrow-top-2-icon-copy" /></a-button>
             <a-button type="text" size="small" tabindex="-1" title="刷新" @click="handleRightTreeSelect(['refresh'])"><i class="iconfont iconreload-1-icon" /></a-button>
             <span class="checkedInfo" style="margin-left: 8px; color: rgb(var(--success-6))">复制到 {{ TreeState.RightInfo.dirName }}</span>

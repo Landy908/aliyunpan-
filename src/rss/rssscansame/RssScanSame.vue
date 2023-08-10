@@ -26,6 +26,7 @@ const totalFileCount = ref(0)
 const isAllChecked = ref(false)
 const ScanPanData = NewScanDriver('')
 const scanType = ref('video')
+const panType = ref('backup')
 
 const checkedCount = ref(0)
 const checkedKeys = ref(new Set<string>())
@@ -51,7 +52,6 @@ const handleReset = () => {
 watch(userStore.$state, handleReset)
 
 const RefreshTree = () => {
-
   let showData: FileNodeData[] = []
   const entries = ScanPanData.SameDirMap.entries()
   for (let i = 0, maxi = ScanPanData.SameDirMap.size; i < maxi; i++) {
@@ -110,8 +110,12 @@ const handleDelete = () => {
     message.error('账号错误')
     return
   }
-  delLoading.value = true
   const idList = Array.from(checkedKeys.value)
+  if(!idList.length){
+    message.error('没有选中需要删除的文件')
+    return
+  }
+  delLoading.value = true
   AliFileCmd.ApiTrashBatch(user.user_id, user.default_drive_id, idList).then((success: string[]) => {
     delLoading.value = false
     DeleteFromSameData(ScanPanData, idList)
@@ -141,23 +145,21 @@ const handleScan = () => {
 
   const refresh = () => {
     if (scanLoading.value) {
-
       RefreshTree()
       setTimeout(refresh, 3000)
     }
   }
   setTimeout(refresh, 3000)
-
-  LoadScanDir(user.user_id, user.default_drive_id, totalDirCount, Processing, ScanPanData)
+  let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+  LoadScanDir(user.user_id, drive_id, panType.value,
+    panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
     .then(() => {
-
       return GetSameFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value)
     })
     .catch((err: any) => {
       message.error(err.message || '扫描失败')
     })
     .then(() => {
-
       scanLoading.value = false
       RefreshTree()
       scanLoaded.value = true
@@ -206,20 +208,26 @@ const handleScan = () => {
         <span v-else class='checkedInfo'>网盘中文件很多时，需要扫描很长时间</span>
         <div style='flex: auto'></div>
 
-        <a-button v-if='scanLoaded' size='small' tabindex='-1' style='margin-right: 12px' @click='handleReset'>取消
-        </a-button>
-        <a-select v-else v-model:model-value='scanType' size='small' tabindex='-1'
-                  style='width: 136px; flex-shrink: 0; margin-right: 12px' :disabled='scanLoading'>
-          <a-option value='video'>视频</a-option>
-          <a-option value='doc'>文档</a-option>
-          <a-option value='image'>图片</a-option>
-          <a-option value='audio'>音乐</a-option>
-          <a-option value='zip'>压缩包</a-option>
-          <a-option value='others'>其他</a-option>
-          <a-option value='size1000'>全部>1G</a-option>
-          <a-option value='size100'>全部>100MB</a-option>
-          <a-option value='size10'> 全部>10MB</a-option>
-        </a-select>
+        <a-button v-if='scanLoaded' size='small' tabindex='-1' style='margin-right: 12px' @click='handleReset'>取消</a-button>
+        <template v-else>
+          <a-select v-model:model-value='panType' size='small' tabindex='-1'
+                    style='width: 100px; flex-shrink: 0; margin-right: 2px' :disabled='scanLoading'>
+            <a-option value='backup'>备份盘</a-option>
+            <a-option value='resource'>资源盘</a-option>
+          </a-select>
+          <a-select v-model:model-value='scanType' size='small' tabindex='-1'
+                    style='width: 136px; flex-shrink: 0; margin-right: 12px' :disabled='scanLoading'>
+            <a-option value='video'>视频</a-option>
+            <a-option value='doc'>文档</a-option>
+            <a-option value='image'>图片</a-option>
+            <a-option value='audio'>音乐</a-option>
+            <a-option value='zip'>压缩包</a-option>
+            <a-option value='others'>其他</a-option>
+            <a-option value='size1000'>全部>1G</a-option>
+            <a-option value='size100'>全部>100MB</a-option>
+            <a-option value='size10'> 全部>10MB</a-option>
+          </a-select>
+        </template>
         <a-button v-if='scanLoaded' type='primary' size='small' tabindex='-1' status='danger' :loading='delLoading'
                   title='把选中的文件放入回收站' @click='handleDelete'>删除选中
         </a-button>

@@ -109,8 +109,8 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
   let postData = '{"requests":['
   for (let i = 0, maxi = dirList.length; i < maxi; i++) {
     if (i > 0) postData = postData + ','
-    
-    let query = 'parent_file_id="' + dirList[i].dirID + '"'
+    let dirID = dirList[i].dirID.includes('root') ? 'root' : dirList[i].dirID
+    let query = 'parent_file_id="' + dirID + '"'
     if (scanType == 'size10') query += ' and size > 10485760'
     else if (scanType == 'size100') query += ' and size > 104857600'
     else if (scanType == 'size1000') query += ' and size > 1048576000'
@@ -126,7 +126,7 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
         fields: 'thumbnail'
       },
       headers: { 'Content-Type': 'application/json' },
-      id: dirList[i].dirID,
+      id: dirID,
       method: 'POST',
       url: '/file/search'
     }
@@ -227,12 +227,12 @@ export function DeleteFromScanDataPunish(PanData: IScanDriverModel, idList: stri
   }
 }
 
-export function GetTreeCheckedSize(PanData: IScanDriverModel, checkedKeys: string[], ShowWeiGui: boolean, ShowNoShare: boolean) {
+export function GetTreeCheckedSize(PanData: IScanDriverModel, PanType: string, checkedKeys: string[], ShowWeiGui: boolean, ShowNoShare: boolean) {
   if (checkedKeys.length == 0) return 0
   const checkedMap = new Set(checkedKeys)
   let checkedsize = 0
   const treeDataMap = new Map<string, TreeNodeData>()
-  GetTreeNodes(PanData, 'root', treeDataMap, ShowWeiGui, ShowNoShare)
+  GetTreeNodes(PanData, PanType + '_root', treeDataMap, ShowWeiGui, ShowNoShare)
   const values = treeDataMap.values()
   let clen = 0
   for (let i = 0, maxi = treeDataMap.size; i < maxi; i++) {

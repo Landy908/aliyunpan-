@@ -11,7 +11,7 @@ import { foldericonfn, IScanDriverModel, TreeNodeData } from '../ScanDAL'
 
 export async function GetCleanFile(user_id: string, PanData: IScanDriverModel, Processing: Ref<number>, scanCount: Ref<number>, totalFileCount: Ref<number>, scanType: string, fileSize?: number) {
   scanCount.value = 0
-  const keys = PanData.DirMap.keys() 
+  const keys = PanData.DirMap.keys()
   let dirList: IAliDirBatchResp[] = []
   Processing.value = 0
   while (true) {
@@ -92,8 +92,8 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
   let postData = '{"requests":['
   for (let i = 0, maxi = dirList.length; i < maxi; i++) {
     if (i > 0) postData = postData + ','
-    
-    let query = 'parent_file_id="' + dirList[i].dirID + '"'
+    let dirID = dirList[i].dirID.includes('root') ? 'root' : dirList[i].dirID
+    let query = 'parent_file_id="' + dirID + '"'
     if (scanType == 'size') query += ` and size > ${ 1048576 * (fileSize || 100)}`
     else if (scanType == 'size10') query += ' and size > 10485760'
     else if (scanType == 'size100') query += ' and size > 104857600'
@@ -111,7 +111,7 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
         order_by: 'size DESC'
       },
       headers: { 'Content-Type': 'application/json' },
-      id: dirList[i].dirID,
+      id: dirID,
       method: 'POST',
       url: '/file/search'
     }
@@ -131,7 +131,7 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
           const respi = responses[j]
           const id = respi.id || ''
           for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-            if (dirList[i].dirID == id) {
+            if (dirList[i].dirID.includes(id)) {
               const dir = dirList[i]
               const items = respi.body.items
               dir.next_marker = respi.body.next_marker
@@ -166,7 +166,6 @@ export function GetTreeNodes(PanData: IScanDriverModel, parent_file_id: string, 
   for (let i = 0, maxi = dirList.length; i < maxi; i++) {
     item = dirList[i]
     if (item.description != '' || PanData.CleanDirMap.has(item.file_id)) {
-      
       const isDir = item.description == 'iconfile-folder' || !item.description
       data.push({
         key: item.file_id,
@@ -205,12 +204,12 @@ export function DeleteFromScanClean(PanData: IScanDriverModel, idList: string[])
   }
 }
 
-export function GetTreeCheckedSize(PanData: IScanDriverModel, checkedKeys: string[]) {
+export function GetTreeCheckedSize(PanData: IScanDriverModel, PanType: string, checkedKeys: string[]) {
   if (checkedKeys.length == 0) return 0
   const checkedMap = new Set(checkedKeys)
   let checkedsize = 0
   const treeDataMap = new Map<string, TreeNodeData>()
-  GetTreeNodes(PanData, 'root', treeDataMap)
+  GetTreeNodes(PanData, PanType + '_root', treeDataMap)
   const values = treeDataMap.values()
   let clen = 0
   for (let i = 0, maxi = treeDataMap.size; i < maxi; i++) {
