@@ -52,7 +52,7 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #icon> <i class="iconfont icondownload" /> </template>
         <template #default>下载</template>
       </a-doption>
-      <a-doption v-if="isresourcedrive" @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
+      <a-doption v-show="isresourcedrive" @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
         <template #icon> <i class="iconfont iconfenxiang" /> </template>
         <template #default>分享</template>
       </a-doption>

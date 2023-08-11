@@ -555,8 +555,12 @@ const onPanDragEnd = (ev: any) => {
     </div>
 
     <PanTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' />
-    <FileTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' :isvideo='menuShowVideo'
-                :isselectedmulti='panfileStore.IsListSelectedMulti' :isallfavored='panfileStore.IsListSelectedFavAll' />
+    <FileTopbtn :dirtype='panfileStore.SelectDirType'
+                :isselected='panfileStore.IsListSelected'
+                :isvideo='menuShowVideo'
+                :isresourcedrive='GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == "resource_root"'
+                :isselectedmulti='panfileStore.IsListSelectedMulti'
+                :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' />
 
     <div style='flex-grow: 1'></div>
