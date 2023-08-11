@@ -84,8 +84,19 @@ watchEffect(() => {
 })
 
 const handleTreeRightClick = (e: { event: MouseEvent; node: any }) => {
-  const key = e.node.key as string
+  const { parent = undefined, key } = e.node
   if (key.length < 40 || key.startsWith('search')) return
+  const panTreeStore = usePanTreeStore()
+  const getParentNode = (node: any): any => {
+    if (!node.parent) return node
+    return node.parent ? getParentNode(node.parent) : node
+  }
+  let parentNode = parent && getParentNode(parent)
+  if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
+    panTreeStore.drive_id = panTreeStore.default_drive_id
+  } else {
+    panTreeStore.drive_id = panTreeStore.resource_drive_id
+  }
   PanDAL.aReLoadOneDirToShow('', key, true)
   onShowRightMenu('leftpanmenu', e.event.clientX, e.event.clientY)
 }
@@ -282,7 +293,8 @@ const handleQuickSelect = (index: number) => {
         </a-tab-pane>
       </a-tabs>
     </div>
-    <DirLeftMenu />
+    <DirLeftMenu
+      :isresourcedrive='GetDriveType(pantreeStore.user_id, pantreeStore.drive_id).key == "resource_root"'/>
   </div>
 </template>
 

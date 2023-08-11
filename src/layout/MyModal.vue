@@ -65,6 +65,7 @@ export default defineComponent({
                     :parentdirid="modalStore.modalData.parentdirid || ''" :callback='modalStore.modalData.callback' />
   <CreatNewShareLinkModal :visible="modalStore.modalName == 'creatshare'"
                           :sharetype="modalStore.modalData.sharetype || ''"
+                          :driveType="modalStore.modalData.driveType || ''"
                           :filelist='modalStore.modalData.filelist || []' />
 
   <DaoRuShareLinkModal :visible="modalStore.modalName == 'daorushare'"

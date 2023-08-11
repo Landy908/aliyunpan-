@@ -15,8 +15,8 @@ export function modalCreatNewDir(dirtype: string, parentdirid: string = '', call
   useModalStore().showModal('creatdir', { dirtype, parentdirid, callback })
 }
 
-export function modalCreatNewShareLink(sharetype: string, filelist: IAliGetFileModel[]) {
-  useModalStore().showModal('creatshare', { sharetype, filelist })
+export function modalCreatNewShareLink(sharetype: string, driveType: string, filelist: IAliGetFileModel[]) {
+  useModalStore().showModal('creatshare', { sharetype, driveType, filelist })
 }
 
 export function modalDaoRuShareLink(shareUrl: string = '', sharePwd: string = '') {

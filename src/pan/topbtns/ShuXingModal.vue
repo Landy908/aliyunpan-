@@ -248,7 +248,7 @@ export default defineComponent({
       </div>
       <div v-else>
         <a-row>
-          <a-col flex="1"> FolderSizeInfo：</a-col>
+          <a-col flex="1"> 文件夹信息：</a-col>
         </a-row>
         <a-row>
           <a-col flex="1">

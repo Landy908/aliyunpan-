@@ -50,6 +50,7 @@ import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
+import { GetDriveType } from '../aliapi/utils'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -60,6 +61,7 @@ const appStore = useAppStore()
 const settingStore = useSettingStore()
 const winStore = useWinStore()
 const panfileStore = usePanFileStore()
+const panTreeStore = usePanTreeStore()
 
 let dirID = ''
 panfileStore.$subscribe((_m: any, state: PanFileState) => {
@@ -115,7 +117,12 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKey('Backspace', state.KeyDownEvent, handleBack)) return
   if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
   if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
-  if (TestCtrl('s', state.KeyDownEvent, () => menuCreatShare(false, 'pan'))) return
+  if (TestCtrl('s', state.KeyDownEvent, () => {
+    if (GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == 'resource_root') {
+      menuCreatShare(false, 'pan', 'resource_root')
+    }
+  })) return
+  if (TestCtrl('t', state.KeyDownEvent, () => menuCreatShare(false, 'pan', 'backup_root'))) return
   if (TestCtrl('g', state.KeyDownEvent, () => menuFavSelectFile(false, !panfileStore.IsListSelectedFavAll))) return
   if (TestCtrl('q', state.KeyDownEvent, onSelectRangStart)) return
   if (TestKeyboardSelect(state.KeyDownEvent, viewlist.value, panfileStore, handleOpenFile)) return
@@ -192,7 +199,7 @@ const handleSelectAllCompilation = () => {
 }
 const handleSelectRecentPlay = () => {
   videoSelectType.value = 'recent'
-  PanDAL.aReLoadOneDirToShow(panfileStore.DriveID, "video.recentplay", true)
+  PanDAL.aReLoadOneDirToShow(panfileStore.DriveID, 'video.recentplay', true)
 }
 
 const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
@@ -509,13 +516,13 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
-      <a-space direction="horizontal">
+      <a-space direction='horizontal'>
         <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'recent' ? 'dashed' : 'text'"  @click='handleSelectRecentPlay'>
+                  :type="videoSelectType === 'recent' ? 'dashed' : 'text'" @click='handleSelectRecentPlay'>
           <i class='iconfont iconfile_video' />正在观看
         </a-button>
         <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'allComp' ? 'dashed' : 'text'"  @click='handleSelectAllCompilation'>
+                  :type="videoSelectType === 'allComp' ? 'dashed' : 'text'" @click='handleSelectAllCompilation'>
           <i class='iconfont iconrss_video' />全部专辑
         </a-button>
       </a-space>
@@ -595,7 +602,8 @@ const onPanDragEnd = (ev: any) => {
           </div>
         </template>
       </AntdTooltip>
-      <a-button shape='square' v-if='!rangIsSelecting && panfileStore.ListSelected.size > 0' type='text' tabindex='-1' class='qujian'
+      <a-button shape='square' v-if='!rangIsSelecting && panfileStore.ListSelected.size > 0' type='text' tabindex='-1'
+                class='qujian'
                 status='normal' @click='onSelectCancel'>
         取消已选
       </a-button>
@@ -1036,8 +1044,11 @@ const onPanDragEnd = (ev: any) => {
       </template>
     </a-list>
 
-    <FileRightMenu :dirtype='panfileStore.SelectDirType' :isvideo='menuShowVideo'
-                   :isselected='panfileStore.IsListSelected' :isselectedmulti='panfileStore.IsListSelectedMulti'
+    <FileRightMenu :dirtype='panfileStore.SelectDirType'
+                   :isvideo='menuShowVideo'
+                   :isselected='panfileStore.IsListSelected'
+                   :isselectedmulti='panfileStore.IsListSelectedMulti'
+                   :isresourcedrive='GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == "resource_root"'
                    :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashRightMenu :dirtype='panfileStore.SelectDirType' />
   </div>

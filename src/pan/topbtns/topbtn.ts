@@ -404,7 +404,7 @@ export async function menuFileColorChange(istree: boolean, color: string) {
 }
 
 
-export function menuCreatShare(istree: boolean, shareby: string) {
+export function menuCreatShare(istree: boolean, shareby: string, driveType: string) {
   const selectedData = PanDAL.GetPanSelectedData(istree)
   if (selectedData.isError) {
     message.error('创建分享操作失败 父文件夹错误')
@@ -442,7 +442,7 @@ export function menuCreatShare(istree: boolean, shareby: string) {
     message.error('没有可以分享的文件！')
     return
   }
-  modalCreatNewShareLink(shareby, list)
+  modalCreatNewShareLink(shareby, driveType, list)
 }
 
 

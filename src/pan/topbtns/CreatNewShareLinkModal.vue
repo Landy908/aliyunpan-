@@ -11,14 +11,13 @@ import ShareDAL from '../../share/share/ShareDAL'
 import { ArrayKeyList } from '../../utils/utils'
 import { copyToClipboard } from '../../utils/electronhelper'
 import { GetShareUrlFormate } from '../../utils/shareurl'
-import { GetDriveType } from '../../aliapi/utils'
 import AliTransferShare from '../../aliapi/transfershare'
 
+const formRef = ref()
 const okLoading = ref(false)
 const okBatchLoading = ref(false)
-const formRef = ref()
-const shareType = ref()
 const settingStore = useSettingStore()
+const shareType = ref()
 
 const form = reactive({
   expiration: '',
@@ -35,19 +34,23 @@ const props = defineProps({
     type: String,
     required: true
   },
+  driveType: {
+    type: String,
+    required: true
+  },
   filelist: {
     type: Array as PropType<IAliGetFileModel[]>,
     required: true
   }
 })
-const getShareType = (drive_id: string): any => {
-  const key = GetDriveType(usePanTreeStore().user_id, drive_id).key
+const getShareType = (): any => {
+  const key = props.driveType
   return key.includes('backup') ? { type: 't', title: '快传' } : { type: 's', title: '分享' }
 }
 
 const handleOpen = () => {
   form.share_name = props.filelist[0].name
-  shareType.value = getShareType(props.filelist[0].drive_id)
+  shareType.value = getShareType()
   let share_pwd = ''
   if (settingStore.uiSharePassword == 'random') share_pwd = randomSharePassword()
   else if (settingStore.uiSharePassword == 'last') share_pwd = localStorage.getItem('share_pwd') || ''
