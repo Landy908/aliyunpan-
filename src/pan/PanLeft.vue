@@ -199,7 +199,7 @@ const handleQuickSelect = (index: number) => {
             @right-click='handleTreeRightClick'
             @scroll='onHideRightMenuScroll'>
             <template #switcherIcon>
-              <i class='ant-tree-switcher-icon iconfont Arrow' />
+              <i class='ant-tree-switcher-icon iconfont Arrow'/>
             </template>
             <template #icon>
               <i class='iconfont iconfile-folder' />
@@ -288,7 +288,7 @@ const handleQuickSelect = (index: number) => {
 
 <style>
 .treeleft {
-  margin-left: -22px;
+  margin-left: -6px;
 }
 
 .dirtree {
@@ -386,6 +386,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   position: relative;
   padding-top: 16px;
   padding-bottom: 6px;
+  margin-left: -22px;
   flex-shrink: 0;
   flex-grow: 0;
 }
@@ -425,7 +426,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   height: 50px;
   flex-shrink: 0;
   flex-grow: 0;
-  margin: 0 4px 10px 26px;
+  margin: 0 4px 10px -16px;
   border: 3px dotted var(--color-border-2);
   display: flex;
   align-items: center;

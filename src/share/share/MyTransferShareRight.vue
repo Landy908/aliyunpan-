@@ -100,8 +100,6 @@ const handleDeleteSelectedLink = (delby: any) => {
       item = allList[i]
       if (delby == 'expired') {
         if (item.expired) list.push(item)
-      } else {
-        if (!item.first_file) list.push(item)
       }
     }
   }
@@ -167,7 +165,6 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
         <template #content>
           <a-doption :value="'expired'" class="danger">删除全部 过期已失效</a-doption>
-          <a-doption :value="'deleted'" class="danger">删除全部 文件已删除</a-doption>
         </template>
       </a-dropdown>
     </div>

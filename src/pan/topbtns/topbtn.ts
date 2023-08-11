@@ -589,20 +589,19 @@ export async function topRecoverSelectedFile() {
 }
 
 
-export async function topSearchAll(word: string) {
-
+export async function topSearchAll(word: string, inputsearchType: string) {
   if (word == 'topSearchAll高级搜索') {
-    modalSearchPan()
+    modalSearchPan(inputsearchType)
     return
   }
-
   const pantreeStore = usePanTreeStore()
-  if (!pantreeStore.user_id || !pantreeStore.drive_id || !pantreeStore.selectDir.file_id) {
+  if (!pantreeStore.user_id || !inputsearchType || !pantreeStore.selectDir.file_id) {
     message.error('搜索文件操作失败 父文件夹错误')
     return
   }
   const searchid = 'search' + word
-  PanDAL.aReLoadOneDirToShow('', searchid, false)
+  const drive_id =  inputsearchType === 'backup' ? pantreeStore.backup_drive_id : pantreeStore.resource_drive_id
+  PanDAL.aReLoadOneDirToShow(drive_id, searchid, false)
 }
 
 

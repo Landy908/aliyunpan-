@@ -50,8 +50,8 @@ export function modalShuXing(istree: boolean, ismulti: boolean) {
   useModalStore().showModal(ismulti ? 'shuxingmulti' : 'shuxing', { istree })
 }
 
-export function modalSearchPan() {
-  useModalStore().showModal('searchpan', {})
+export function modalSearchPan(inputsearchType: string) {
+  useModalStore().showModal('searchpan', { inputsearchType })
 }
 
 export function modalDLNAPlayer() {

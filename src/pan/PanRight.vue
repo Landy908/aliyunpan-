@@ -53,6 +53,7 @@ import usePanTreeStore from './pantreestore'
 
 const viewlist = ref()
 const inputsearch = ref()
+const inputsearchType = ref('backup')
 const videoSelectType = ref('recent')
 
 const appStore = useAppStore()
@@ -525,6 +526,11 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
     <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
+      <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
+                style='width: 100px; flex-shrink: 0; margin: 0 4px 0 -8px' :disabled='panfileStore.ListLoading'>
+        <a-option value='backup'>备份盘</a-option>
+        <a-option value='resource'>资源盘</a-option>
+      </a-select>
       <a-input-search
         class='searchpan'
         style='width: 240px'
@@ -533,11 +539,11 @@ const onPanDragEnd = (ev: any) => {
         button-text='搜索'
         search-button
         :input-attrs="{ id: 'searchpanInput' }"
-        @search='(val:string)=>topSearchAll(val)'
-        @press-enter='($event:any)=>topSearchAll($event.srcElement.value as string)'
+        @search='(val:string)=>topSearchAll(val, inputsearchType)'
+        @press-enter='($event:any)=>topSearchAll($event.srcElement.value as string, inputsearchType)'
         @keydown.esc=';($event.target as any).blur()' />
       <a-button type='text' size='small' tabindex='-1' style='border: none'
-                @click="() => topSearchAll('topSearchAll高级搜索')">高级搜索
+                @click="() => topSearchAll('topSearchAll高级搜索', inputsearchType)">高级搜索
       </a-button>
     </div>
 
