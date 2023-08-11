@@ -85,8 +85,6 @@ export default class TreeStore {
 
       for (let i = 0, maxi = children.length; i < maxi; i++) {
         item = children[i]
-        if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
-        if (item.file_id === 'root') item.file_id = driveType.key
         OneDriver.DirMap.set(item.file_id, item)
         OneDriver.DirFileSizeMap[item.file_id] = sizeMap[item.file_id] || 0
         OneDriver.DirFileSizeTimeMap[item.file_id] = sizeTimeMap[item.file_id] || 0
@@ -191,7 +189,7 @@ export default class TreeStore {
     while (true) {
       driverData.DirTotalSizeMap[dirID] = TotalSize(dirID, driverData.DirTotalSizeMap, driverData.DirFileSizeMap, driverData.DirChildrenMap)
       const tdir = driverData.DirMap.get(dirID)
-      if (tdir && tdir.parent_file_id != 'root' && tdir.parent_file_id != '') dirID = tdir.parent_file_id
+      if (tdir && !tdir.parent_file_id.includes('root') && tdir.parent_file_id != '') dirID = tdir.parent_file_id
       else break
     }
     if (!oneDir.dirID.includes('_root')) _SaveDirSize()

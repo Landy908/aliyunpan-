@@ -7,7 +7,6 @@ import dayjs from 'dayjs'
 import AliTrash from './trash'
 import { DirData } from '../store/treestore'
 import AliUser from './user'
-import { GetDriveType } from './utils'
 
 export interface IAliDirResp {
   items: IAliGetDirModel[]
@@ -367,15 +366,13 @@ export default class AliDirList {
   }
 
   
-  static async ApiFastAllDirListByPID(user_id: string, drive_id: string): Promise<IDirDataResp> {
-    const driveType = GetDriveType(user_id, drive_id)
-    console.log('ApiFastAllDirListByPID', driveType)
+  static async ApiFastAllDirListByPID(user_id: string, drive_id: string, drive_root: string): Promise<IDirDataResp> {
     const result: IDirDataResp = {
       items: [],
       next_marker: '',
       m_user_id: user_id,
       m_drive_id: drive_id,
-      dirID: driveType.key,
+      dirID: drive_root,
       dirName: ''
     }
     if (!user_id || !drive_id) return result
@@ -387,8 +384,9 @@ export default class AliDirList {
     const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, 'root', '', 'name ASC', 'folder', 0)
     for (let i = 0, maxi = root.items.length; i < maxi; i++) {
       const item = root.items[i]
-      if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
-      if (item.file_id === 'root') item.file_id = driveType.key
+      if (item.parent_file_id === 'root') {
+        item.parent_file_id = drive_root
+      }
       const add: DirData = {
         file_id: item.file_id,
         parent_file_id: item.parent_file_id,
@@ -396,7 +394,6 @@ export default class AliDirList {
         time: item.time,
         size: 0
       }
-
       allMap.set(add.file_id, add)
       PIDList.push(add.file_id)
     }
@@ -470,8 +467,6 @@ export default class AliDirList {
                   if (dir.next_marker) list.push(dir)
                   for (let i = 0, maxi = items.length; i < maxi; i++) {
                     const item = items[i]
-                    if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
-                    if (item.file_id === 'root') item.file_id = driveType.key
                     if (allMap.has(item.file_id)) continue
                     const add: DirData = {
                       file_id: item.file_id,

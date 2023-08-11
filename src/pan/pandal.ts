@@ -42,7 +42,7 @@ export default class PanDAL {
         return
       }
     }
-    window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: default_drive_id })
+    window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: default_drive_id, drive_root: 'backup_root' })
   }
 
   static async aReLoadResourceDrive(token: ITokenInfo): Promise<void> {
@@ -63,7 +63,7 @@ export default class PanDAL {
         return
       }
     }
-    window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: resource_drive_id })
+    window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: resource_drive_id, drive_root: 'resource_root' })
   }
 
   static async aReLoadDriveSave(OneDriver: IDriverModel, error: string): Promise<void> {
@@ -179,11 +179,6 @@ export default class PanDAL {
     }
     // 展开列表节点
     const treeExpandedKeys = new Set(panTreeStore.treeExpandedKeys)
-    if (file_id.startsWith('backup')) {
-      treeExpandedKeys.add('backup_root')
-    } else if (file_id.startsWith('resource')) {
-      treeExpandedKeys.add('resource_root')
-    }
     for (let i = 0, maxi = dirPath.length - 1; i < maxi; i++) {
       treeExpandedKeys.add(dirPath[i].file_id)
     }

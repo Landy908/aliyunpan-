@@ -145,14 +145,11 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
         if (status >= 200 && status <= 205) {
           const respi = responses[j]
           const id = respi.id || ''
-          console.log('respi.id', respi.id)
           for (let i = 0, maxi = dirList.length; i < maxi; i++) {
             if (dirList[i].dirID.includes(id)) {
               const dir = dirList[i]
-              console.log('dir', dir)
               const items = respi.body.items
               dir.next_marker = respi.body.next_marker
-              console.log('items', items)
               for (let i = 0, maxi = items.length; i < maxi; i++) {
                 if (dir.itemsKey.has(items[i].file_id)) continue
                 const add = AliDirFileList.getFileInfo(items[i], '')
