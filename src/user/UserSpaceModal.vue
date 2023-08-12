@@ -149,7 +149,7 @@ export default defineComponent({
         </div>
         <div class="mt-5">
           <div class="mb-4 flex h-2.5 items-center rounded bg-light-300 dark:bg-2x-dark-foreground" style="display: flex">
-            <div class="chart-wrapper" :style="{ minWidth: '10px', width: ((driveDetails.backup_drive_used_size || driveDetails.default_drive_used_size * 100) / driveDetails.drive_total_size).toFixed(2) + '%' }">
+            <div class="chart-wrapper" :style="{ minWidth: '10px', width: ((driveDetails.backup_drive_used_size || driveDetails.default_drive_used_size) * 100 / driveDetails.drive_total_size).toFixed(2) + '%' }">
               <span class="chart-progress block h-2.5 w-full rounded-tl-lg rounded-bl-lg border-r-2 border-white dark:border-gray-800 border-r-2 border-white dark:border-gray-800 success"></span>
             </div>
             <div class="chart-wrapper" :style="{ minWidth: '10px', width: ((driveDetails.resource_drive_used_size * 100) / driveDetails.drive_total_size).toFixed(2) + '%' }">
