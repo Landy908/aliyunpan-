@@ -21,7 +21,7 @@ import {
   TestKeyboardScroll,
   TestKeyboardSelect
 } from '../utils/keyboardhelper'
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref, watch, watchEffect } from 'vue'
 import PanDAL from './pandal'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
@@ -54,7 +54,8 @@ import { GetDriveType } from '../aliapi/utils'
 
 const viewlist = ref()
 const inputsearch = ref()
-const inputsearchType = ref('backup')
+const isresourcedrive = ref(false)
+const inputsearchType = ref('backup_root')
 const videoSelectType = ref('recent')
 
 const appStore = useAppStore()
@@ -64,12 +65,17 @@ const panfileStore = usePanFileStore()
 const panTreeStore = usePanTreeStore()
 
 let dirID = ''
+let DriveID = panfileStore.DriveID
 panfileStore.$subscribe((_m: any, state: PanFileState) => {
   if (state.DirID != dirID) {
     dirID = state.DirID
     if (viewlist.value) viewlist.value.scrollIntoView(0)
   }
-
+  if (state.DriveID != DriveID) {
+    DriveID = state.DriveID
+    let key = GetDriveType(panTreeStore.user_id, DriveID).key
+    isresourcedrive.value = key == 'resource_root'
+  }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()
   const isShowVideo = !isTrash && panfileStore.ListSelected.size == 1 && selectItem?.category == 'video'
@@ -84,6 +90,12 @@ watchEffect(() => {
     if (viewlist.value) viewlist.value.scrollIntoView({ key: scrollToFile, align: 'top', offset: 220 })
     panfileStore.mSaveFileScrollTo('')
   }
+})
+
+watch(inputsearchType, () =>{
+  DriveID = inputsearchType.value.includes('backup')
+    ? panTreeStore.backup_drive_id : panTreeStore.resource_drive_id
+  handleRefresh()
 })
 
 const keyboardStore = useKeyboardStore()
@@ -118,9 +130,7 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
   if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
   if (TestCtrl('s', state.KeyDownEvent, () => {
-    if (GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == 'resource_root') {
-      menuCreatShare(false, 'pan', 'resource_root')
-    }
+    isresourcedrive && menuCreatShare(false, 'pan', 'resource_root')
   })) return
   if (TestCtrl('t', state.KeyDownEvent, () => menuCreatShare(false, 'pan', 'backup_root'))) return
   if (TestCtrl('g', state.KeyDownEvent, () => menuFavSelectFile(false, !panfileStore.IsListSelectedFavAll))) return
@@ -144,14 +154,22 @@ mouseStore.$subscribe((_m: any, state: MouseState) => {
   })) return
   if (TestButton(3, mouseEvent, () => handleBack())) return
 })
-const handleRefresh = () => PanDAL.aReLoadOneDirToShow('', 'refresh', false)
-const handleDingWei = () => PanDAL.aTreeScrollToDir('refresh')
+const handleRefresh = () => {
+  PanDAL.aReLoadOneDirToShow(DriveID, 'refresh', false)
+}
+const handleDingWei = () => {
+  PanDAL.aTreeScrollToDir('refresh')
+}
 const handleBack = () => {
   if (!usePanTreeStore().PanHistoryCount) return
-  PanDAL.aReLoadOneDirToShow('', 'back', false)
+  PanDAL.aReLoadOneDirToShow(DriveID, 'back', false)
 }
-const handleHome = () => PanDAL.aReLoadOneDirToShow('', 'backup_root', false)
-const handleSelectAll = () => panfileStore.mSelectAll()
+const handleHome = () => {
+  PanDAL.aReLoadOneDirToShow('', 'backup_root', false)
+}
+const handleSelectAll = () => {
+  panfileStore.mSelectAll()
+}
 
 
 const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
@@ -195,11 +213,11 @@ const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
 
 const handleSelectAllCompilation = () => {
   videoSelectType.value = 'allComp'
-  PanDAL.aReLoadOneDirToShow(panfileStore.DriveID, 'video.compilation', true)
+  PanDAL.aReLoadOneDirToShow('', 'video.compilation', true)
 }
 const handleSelectRecentPlay = () => {
   videoSelectType.value = 'recent'
-  PanDAL.aReLoadOneDirToShow(panfileStore.DriveID, 'video.recentplay', true)
+  PanDAL.aReLoadOneDirToShow('', 'video.recentplay', true)
 }
 
 const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
@@ -515,6 +533,16 @@ const onPanDragEnd = (ev: any) => {
         </template>
       </a-button>
     </div>
+    <div v-show="panfileStore.SelectDirType !== 'pan' &&
+                 panfileStore.SelectDirType !== 'video' &&
+                 panfileStore.SelectDirType !== 'recover'"
+         class='toppanbtn'>
+      <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
+                style='width: 100px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
+        <a-option value='backup_root'>备份盘</a-option>
+        <a-option value='resource_root'>资源盘</a-option>
+      </a-select>
+    </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
       <a-space direction='horizontal'>
         <a-button size='small' tabindex='-1'
@@ -533,11 +561,6 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
     <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
-      <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
-                style='width: 100px; flex-shrink: 0; margin: 0 4px 0 -8px' :disabled='panfileStore.ListLoading'>
-        <a-option value='backup'>备份盘</a-option>
-        <a-option value='resource'>资源盘</a-option>
-      </a-select>
       <a-input-search
         class='searchpan'
         style='width: 240px'
@@ -554,11 +577,12 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
 
-    <PanTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' />
+    <PanTopbtn :dirtype='panfileStore.SelectDirType'
+               :isselected='panfileStore.IsListSelected' />
     <FileTopbtn :dirtype='panfileStore.SelectDirType'
                 :isselected='panfileStore.IsListSelected'
                 :isvideo='menuShowVideo'
-                :isresourcedrive='GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == "resource_root"'
+                :isresourcedrive='isresourcedrive'
                 :isselectedmulti='panfileStore.IsListSelectedMulti'
                 :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' />
@@ -1052,7 +1076,7 @@ const onPanDragEnd = (ev: any) => {
                    :isvideo='menuShowVideo'
                    :isselected='panfileStore.IsListSelected'
                    :isselectedmulti='panfileStore.IsListSelectedMulti'
-                   :isresourcedrive='GetDriveType(panTreeStore.user_id, panfileStore.DriveID).key == "resource_root"'
+                   :isresourcedrive='isresourcedrive'
                    :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashRightMenu :dirtype='panfileStore.SelectDirType' />
   </div>

@@ -3,7 +3,7 @@ import { computed, ref, watchEffect } from 'vue'
 
 import { Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
-import usePanTreeStore from './pantreestore'
+import usePanTreeStore, { PanTreeState } from './pantreestore'
 import MySwitchTab from '../layout/MySwitchTab.vue'
 import { KeyboardState, useAppStore, useKeyboardStore, usePanFileStore, useSettingStore, useWinStore } from '../store'
 import PanDAL from './pandal'
@@ -16,6 +16,7 @@ import { modalUpload } from '../utils/modal'
 import { GetDriveType } from '../aliapi/utils'
 
 const treeref = ref()
+const isresourcedrive = ref(false)
 const winStore = useWinStore()
 const treeHeight = computed(() => winStore.height - 42 - 56 - 24 - 4)
 const quickHeight = computed(() => winStore.height - 42 - 56 - 24 - 4 - 280 - 28)
@@ -42,20 +43,18 @@ const switchValues = [
   { key: 'kuaijie', title: '快捷方式', alt: '' }
 ]
 
-const colorTreeData = ref<TreeNodeData[]>([])
+let DriveID = pantreeStore.drive_id
+pantreeStore.$subscribe((_m: any, state: PanTreeState) => {
+  if (state.drive_id != DriveID) {
+    DriveID = state.drive_id
+    isresourcedrive.value = GetDriveType(state.user_id, state.drive_id).key == 'resource_root'
+  }
+})
 
+const colorTreeData = ref<TreeNodeData[]>([])
 watchEffect(() => {
   const list = settingStore.uiFileColorArray
   const nodeList: TreeNodeData[] = []
-  // nodeList.push({
-  //   __v_skip: true,
-  //   key: 'video',
-  //   title: '放映室',
-  //   namesearch: 'ca760ef',
-  //   icon: fileiconfn('iconrss_video'),
-  //   children: [],
-  //   isLeaf: true
-  // } as TreeNodeData)
   for (let i = 0; i < list.length; i++) {
     nodeList.push({
       __v_skip: true,
@@ -66,14 +65,6 @@ watchEffect(() => {
       isLeaf: true
     } as TreeNodeData)
   }
-  // nodeList.push({
-  //   __v_skip: true,
-  //   key: 'colorce74c3c 已看视频',
-  //   title: '已看视频',
-  //   namesearch: 'ce74c3c',
-  //   children: [],
-  //   isLeaf: true
-  // } as TreeNodeData)
   Object.freeze(nodeList)
   colorTreeData.value = nodeList
 })
@@ -86,18 +77,7 @@ watchEffect(() => {
 const handleTreeRightClick = (e: { event: MouseEvent; node: any }) => {
   const { parent = undefined, key } = e.node
   if (key.length < 40 || key.startsWith('search')) return
-  const panTreeStore = usePanTreeStore()
-  const getParentNode = (node: any): any => {
-    if (!node.parent) return node
-    return node.parent ? getParentNode(node.parent) : node
-  }
-  let parentNode = parent && getParentNode(parent)
-  if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
-    panTreeStore.drive_id = panTreeStore.default_drive_id
-  } else {
-    panTreeStore.drive_id = panTreeStore.resource_drive_id
-  }
-  PanDAL.aReLoadOneDirToShow('', key, true)
+  pantreeStore.mTreeSelected(e)
   onShowRightMenu('leftpanmenu', e.event.clientX, e.event.clientY)
 }
 
@@ -149,7 +129,7 @@ const onQuickDrop = (ev: any) => {
       list.push({
         key: selectedFile[i].file_id,
         drive_id: selectedFile[i].drive_id,
-        drive_name: GetDriveType(usePanTreeStore().user_id, selectedFile[i].drive_id).title,
+        drive_name: GetDriveType(pantreeStore.user_id, selectedFile[i].drive_id).title,
         title: selectedFile[i].name
       })
     }
@@ -160,7 +140,7 @@ const onQuickDrop = (ev: any) => {
   }
   PanDAL.updateQuickFile(list)
 }
-const handleQuickDelete = (key: string, dataRef: any) => {
+const handleQuickDelete = (key: string) => {
   PanDAL.deleteQuickFile(key)
 }
 const handleQuickSelect = (index: number) => {
@@ -205,7 +185,7 @@ const handleQuickSelect = (index: number) => {
             :expanded-keys='pantreeStore.treeExpandedKeys'
             :selected-keys='pantreeStore.treeSelectedKeys'
             :tree-data='pantreeStore.treeData'
-            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e)'
+            @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e, false)'
             @expand='(_:any[],e:any)=>pantreeStore.mTreeExpand(e.node.key)'
             @right-click='handleTreeRightClick'
             @scroll='onHideRightMenuScroll'>
@@ -239,8 +219,9 @@ const handleQuickSelect = (index: number) => {
             selectable
             :auto-expand-parent='false'
             show-icon
+            :style="{ marginLeft: '-18px' }"
             :item-height='30'
-            :show-line='{ showLeafIcon: false }'
+            :show-line='false'
             :open-animation='{}'
             :selected-keys='pantreeStore.treeSelectedKeys'
             :tree-data='colorTreeData'
@@ -268,9 +249,9 @@ const handleQuickSelect = (index: number) => {
             :auto-expand-parent='false'
             show-icon
             :height='quickHeight'
-            :style="{ height: quickHeight + 'px' }"
+            :style="{ height: quickHeight + 'px', marginLeft: '-18px' }"
             :item-height='30'
-            :show-line='{ showLeafIcon: false }'
+            :show-line='false'
             :open-animation='{}'
             :selected-keys='pantreeStore.treeSelectedKeys'
             :tree-data='pantreeStore.quickData'
@@ -283,8 +264,7 @@ const handleQuickSelect = (index: number) => {
                 {{ dataRef.drive_name }} · {{ dataRef.title }}
               </span>
               <span class='quickbtn'>
-                <a-button type='text' size='mini'
-                          @click.stop='handleQuickDelete(dataRef.key, dataRef)'>
+                <a-button type='text' size='mini' @click.stop='handleQuickDelete(dataRef.key)'>
                   删除
                 </a-button>
               </span>
@@ -293,8 +273,7 @@ const handleQuickSelect = (index: number) => {
         </a-tab-pane>
       </a-tabs>
     </div>
-    <DirLeftMenu
-      :isresourcedrive='GetDriveType(pantreeStore.user_id, pantreeStore.drive_id).key == "resource_root"'/>
+    <DirLeftMenu :isresourcedrive='isresourcedrive'/>
   </div>
 </template>
 
@@ -438,7 +417,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   height: 50px;
   flex-shrink: 0;
   flex-grow: 0;
-  margin: 0 4px 10px -16px;
+  margin: 0 4px 10px -40px;
   border: 3px dotted var(--color-border-2);
   display: flex;
   align-items: center;
@@ -477,12 +456,12 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
 }
 
 .quicktree .quickbtn {
+  display: inline-block;
+  flex-grow: 1;
   padding-left: 2px;
   padding-right: 2px;
   font-size: 12px;
   color: var(--color-text-3);
-  flex-shrink: 0;
-  flex-grow: 0;
 }
 
 .quicktree .quickbtn .arco-btn-size-mini {

@@ -229,7 +229,7 @@ export async function topRestoreSelectedFile() {
     const pset = new Set<string>()
     for (let i = 0, maxi = dirList.length; i < maxi; i++) {
       let parent_file_id = dirList[i].parent_file_id
-      if(parent_file_id.includes('root')) parent_file_id = 'root'
+      if (parent_file_id.includes('root')) parent_file_id = 'root'
       if (pset.has(parent_file_id)) continue
       pset.add(parent_file_id)
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, parent_file_id)
@@ -371,10 +371,10 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
   }
   AliFileCmd.ApiMoveBatch(selectedData.user_id, selectedData.drive_id, file_idList, to_drive_id, movetodirid)
     .then((success: string[]) => {
-    usePanFileStore().mDeleteFiles(selectedData.dirID, success, true)
-    PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, movetodirid)
-    TreeStore.ClearDirSize(to_drive_id, [movetodirid, ...selectedData.selectedParentKeys])
-  })
+      usePanFileStore().mDeleteFiles(selectedData.dirID, success, true)
+      PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, movetodirid)
+      TreeStore.ClearDirSize(to_drive_id, [movetodirid, ...selectedData.selectedParentKeys])
+    })
 }
 
 
@@ -459,15 +459,12 @@ export async function topFavorDeleteAll() {
     message.loading('清空收藏夹执行中...', 60, loadingKey)
     let count = 0
     while (true) {
-
       const resp: IAliFileResp = NewIAliFileResp(selectedData.user_id, selectedData.drive_id, 'favorite', '收藏夹')
       await AliTrash.ApiFavorFileListOnePageForClean('updated_at', 'DESC', resp)
       if (resp.items.length > 0) {
-
         const selectkeys = ArrayKeyList<string>('file_id', resp.items)
         const successList = await AliFileCmd.ApiFavorBatch(selectedData.user_id, selectedData.drive_id, false, false, selectkeys)
         count += successList.length
-
         message.loading('清空收藏夹执行中...(' + count.toString() + ')', 60, loadingKey)
       } else {
         break
@@ -600,7 +597,7 @@ export async function topSearchAll(word: string, inputsearchType: string) {
     return
   }
   const searchid = 'search' + word
-  const drive_id =  inputsearchType === 'backup' ? pantreeStore.backup_drive_id : pantreeStore.resource_drive_id
+  const drive_id = inputsearchType.includes('backup') ? pantreeStore.backup_drive_id : pantreeStore.resource_drive_id
   PanDAL.aReLoadOneDirToShow(drive_id, searchid, false)
 }
 
