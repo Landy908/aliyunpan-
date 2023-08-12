@@ -9,6 +9,7 @@ import {
   menuDLNA,
   menuDownload,
   menuFavSelectFile,
+  menuFileColorChange,
   menuJumpToDir,
   menuM3U8Download,
   menuTrashSelectFile,
@@ -38,6 +39,10 @@ export default defineComponent({
       type: Boolean,
       required: true
     },
+    isallcolored: {
+      type: Boolean,
+      required: true
+    },
     isresourcedrive: {
       type: Boolean,
       required: true
@@ -45,7 +50,23 @@ export default defineComponent({
   },
   setup() {
     const istree = false
-    return { istree, menuDownload, menuCreatShare, menuFavSelectFile, menuTrashSelectFile, modalRename, menuCopySelectedFile, modalShuXing, menuJumpToDir, menuVideoXBT, menuDLNA, menuM3U8Download, menuCopyFileName, menuCopyFileTree }
+    return {
+      istree,
+      menuDownload,
+      menuCreatShare,
+      menuFavSelectFile,
+      menuTrashSelectFile,
+      modalRename,
+      menuCopySelectedFile,
+      modalShuXing,
+      menuJumpToDir,
+      menuVideoXBT,
+      menuDLNA,
+      menuM3U8Download,
+      menuCopyFileName,
+      menuCopyFileTree,
+      menuFileColorChange
+    }
   }
 })
 </script>
@@ -57,6 +78,7 @@ export default defineComponent({
     <a-button v-show="dirtype == 'pan'" type="text" size="small" tabindex="-1" title="Ctrl+S" @click="() => menuCreatShare(istree, 'pan', 'backup_root')"><i class="iconfont iconrss" />快传</a-button>
     <a-button v-show="!isallfavored" type="text" size="small" tabindex="-1" title="Ctrl+G" @click="() => menuFavSelectFile(istree, true)"><i class="iconfont iconcrown" />收藏</a-button>
     <a-button v-show="isallfavored" type="text" size="small" tabindex="-1" title="Ctrl+G" @click="() => menuFavSelectFile(istree, false)"><i class="iconfont iconcrown2" />取消收藏</a-button>
+    <a-button v-show="isallcolored" type="text" size="small" tabindex="-1" title="Ctrl+M" @click="() => menuFileColorChange(istree, '')"><i class="iconfont iconfangkuang" />清除标记</a-button>
 
     <a-dropdown v-if="dirtype !== 'video'" trigger="hover" class="rightmenu" position="bl">
       <a-button type="text" size="small" tabindex="-1" class="danger"><i class="iconfont icondelete" />删除<i class="iconfont icondown" /></a-button>

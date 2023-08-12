@@ -73,8 +73,8 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   }
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
-    let key = GetDriveType(panTreeStore.user_id, DriveID).key
-    isresourcedrive.value = key == 'resource_root'
+    inputsearchType.value = GetDriveType(panTreeStore.user_id, DriveID).key
+    isresourcedrive.value = inputsearchType.value == 'resource_root'
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()
@@ -584,7 +584,8 @@ const onPanDragEnd = (ev: any) => {
                 :isvideo='menuShowVideo'
                 :isresourcedrive='isresourcedrive'
                 :isselectedmulti='panfileStore.IsListSelectedMulti'
-                :isallfavored='panfileStore.IsListSelectedFavAll' />
+                :isallfavored='panfileStore.IsListSelectedFavAll'
+                :isallcolored='panfileStore.IsListSelectedColorAll' />
     <TrashTopbtn :dirtype='panfileStore.SelectDirType' :isselected='panfileStore.IsListSelected' />
 
     <div style='flex-grow: 1'></div>

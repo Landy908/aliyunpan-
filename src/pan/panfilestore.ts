@@ -113,9 +113,25 @@ const usePanFileStore = defineStore('panfile', {
           }
         }
       }
-
       return isAllFav
     },
+
+    IsListSelectedColorAll(state: State): boolean  {
+      const list = state.ListDataShow
+      const len = list.length
+      let isAllColor = true
+
+      for (let i = 0, maxi = len; i < maxi; i++) {
+        if (state.ListSelected.has(list[i].file_id)) {
+          if (!list[i].description) {
+            isAllColor = false
+            break
+          }
+        }
+      }
+      return isAllColor
+    },
+
     SelectDirType(state: State): string {
       const file_id = state.DirID
       if (file_id == 'recover') return 'recover'

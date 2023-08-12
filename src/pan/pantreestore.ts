@@ -74,27 +74,28 @@ const usePanTreeStore = defineStore('pantree', {
   },
   actions: {
     mTreeSelected(e: any, kuaijie: boolean = false) {
-      // console.log('mTreeSelected', e)
+      console.log('mTreeSelected', e)
       let { parent = undefined, key, drive_id = undefined } = e.node
-      let is_refresh_drive_id = ['backup_root', 'resource_root'].includes(key)
+      let is_refresh_drive_id = !['favorite', 'trash', 'recover'].includes(key) || !/color.*/g.test(key)
       if (!kuaijie) {
         const getParentNode = (node: any): any => {
           if (!node.parent) return node
           return node.parent ? getParentNode(node.parent) : node
         }
         let parentNode = parent && getParentNode(parent)
-        if ((parentNode && parentNode.key.startsWith('backup')) || key.startsWith('backup')) {
-          drive_id = this.default_drive_id
-        } else {
-          drive_id = this.resource_drive_id
+        if (parentNode) {
+          if (parentNode.key.startsWith('backup') || key.startsWith('backup')) {
+            drive_id = this.default_drive_id
+          } else {
+            drive_id = this.resource_drive_id
+          }
         }
       }
-      if (is_refresh_drive_id) {
+      if (is_refresh_drive_id && drive_id) {
         this.drive_id = drive_id
       }
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
-
     mTreeExpand(key: string) {
       console.log('mTreeExpand', key)
       const arr = this.treeExpandedKeys
