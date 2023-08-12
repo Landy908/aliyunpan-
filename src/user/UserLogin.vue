@@ -93,7 +93,7 @@ const loginbizExt = (msg: string) => {
         default_drive_id: result.defaultDriveId,
         default_sbox_drive_id: result.defaultSboxDriveId,
         resource_drive_id: '',
-        backup_drive_id: result.defaultDriveId,
+        backup_drive_id: '',
         sbox_drive_id: '',
         role: result.role,
         status: result.status,

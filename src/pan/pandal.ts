@@ -28,10 +28,10 @@ export default class PanDAL {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
-    pantreeStore.drive_id = default_drive_id
-    if (!user_id || !default_drive_id) return
-    const backupCache = await DB.getValueObject('AllDir_' + default_drive_id)
+    pantreeStore.mSaveUser(user_id, backup_drive_id || default_drive_id, resource_drive_id, backup_drive_id)
+    pantreeStore.drive_id = backup_drive_id || default_drive_id
+    if (!user_id || !pantreeStore.drive_id) return
+    const backupCache = await DB.getValueObject('AllDir_' + default_drive_id || backup_drive_id)
     if (backupCache) {
       console.log('aReLoadDrive backupCache')
       await TreeStore.ConvertToOneDriver(default_drive_id, backupCache as IAliGetDirModel[], false, true)
@@ -49,8 +49,8 @@ export default class PanDAL {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
-    pantreeStore.drive_id = default_drive_id
+    pantreeStore.mSaveUser(user_id, backup_drive_id || default_drive_id, resource_drive_id, backup_drive_id)
+    pantreeStore.drive_id = backup_drive_id || default_drive_id
     if (!user_id || !resource_drive_id) return
     const resourceCache = await DB.getValueObject('AllDir_' + resource_drive_id)
     if (resourceCache) {
