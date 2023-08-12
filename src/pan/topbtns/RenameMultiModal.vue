@@ -766,6 +766,7 @@ const handleSelectRow = (visible: boolean, treeNodeKey: string) => {
                     <a-select v-model='renameConfig.index.type' size='small' style='width: 100%'>
                       <a-option value='begin'>文件名前面 01name.mp4</a-option>
                       <a-option value='end'>文件名结尾 name01.mp4</a-option>
+                      <a-option value='cover'>覆盖文件名 name01.mp4</a-option>
                     </a-select>
                   </a-col>
                 </a-row>
