@@ -1,14 +1,14 @@
-import { B64decode, b64decode, humanSize } from '../utils/format'
+import { b64decode } from '../utils/format'
 import { getPkgVersion } from '../utils/utils'
 import axios, { AxiosResponse } from 'axios'
 import message from '../utils/message'
 import { IShareSiteModel, useServerStore } from '../store'
-import { Modal, Button, Space } from '@arco-design/web-vue'
+import { Button, Modal, Space } from '@arco-design/web-vue'
 import { h } from 'vue'
 import { getAppNewPath, getResourcesPath, getUserDataPath, openExternal } from '../utils/electronhelper'
 import ShareDAL from '../share/share/ShareDAL'
 import DebugLog from '../utils/debuglog'
-import { writeFile, rmSync, existsSync, readFileSync } from 'fs'
+import { existsSync, readFileSync, rmSync, writeFile } from 'fs'
 import { execFile, SpawnOptions } from 'child_process'
 import path from 'path'
 
@@ -255,7 +255,7 @@ export default class ServerHttp {
               ])
             })
           } else if (showMessage && remoteVer <= configVer) {
-            message.info('已经是最新版 ' + tagName, 6)
+            message.info('已经是最新版 ' + configVer, 6)
           }
         }
       })
