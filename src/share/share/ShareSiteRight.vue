@@ -5,7 +5,6 @@ import { B64decode } from '../../utils/format'
 import { modalDaoRuShareLink } from '../../utils/modal'
 import message from '../../utils/message'
 import { openExternal } from '../../utils/electronhelper'
-import PageLoading from '../../layout/PageLoading.vue'
 
 const appStore = useAppStore()
 const serverStore = useServerStore()
@@ -34,7 +33,6 @@ const handleSite = (item: IShareSiteModel) => {
   webview.value.className = 'siteContent'
   webview.value.setAttribute('allowpopups', '')
   content.value.appendChild(webview.value)
-  webview.value.addEventListener('did-start-loading', handleStartLoad)
   webview.value.addEventListener('new-window', handleSiteShareUrl)
 }
 
@@ -49,11 +47,6 @@ const handleSiteShareUrl = (event: any) => {
   }
 }
 
-const handleStartLoad = () => {
-  siteLoading.value = true
-  setTimeout(()=> siteLoading.value = false, 2000)
-}
-
 const handleClose = () => {
   if (!webview.value) {
     message.error('打开网页失败，请手动刷新网页')
@@ -61,7 +54,6 @@ const handleClose = () => {
   }
   siteUrl.value = ''
   webview.value.removeEventListener('new-window', handleSiteShareUrl)
-  webview.value.removeEventListener('did-start-loading', handleStartLoad)
   content.value.removeChild(webview.value)
   webview.value = {}
 }
@@ -104,7 +96,6 @@ const handleRefresh = () => {
         <a @click='handleSite(item)' v-html="item.title.replace('[', '<small>').replace(']', '</small>')"></a>
       </a-card-grid>
     </a-card>
-    <PageLoading v-show='siteUrl && siteLoading'/>
   </div>
 </template>
 
