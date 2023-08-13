@@ -186,7 +186,7 @@ const createVideo = async (name: string) => {
       const currentTime = ArtPlayerRef.currentTime
       if (totalDuration && totalDuration - currentTime > 0
         && totalDuration - currentTime <= endDuration) {
-        ArtPlayerRef.seek = currentTime
+        ArtPlayerRef.seek = totalDuration
       }
     })
   })
