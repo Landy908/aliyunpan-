@@ -154,22 +154,19 @@ export default defineComponent({
       nativeEvent: MouseEvent;
       node: any
     }) => {
-      let { parent = undefined, key, title, isLeaf } = info.node
+      let { key, title, isLeaf } = info.node
       const getParentNode = (node: any): any => {
-        if (!node.parent) return node
         return node.parent ? getParentNode(node.parent) : node
       }
-      let parentNode = parent && getParentNode(parent)
-      if (parentNode) {
-        if (parentNode.key.startsWith('backup') || key.startsWith('backup')) {
-          to_drive_id.value = usePanTreeStore().default_drive_id
-        } else {
-          to_drive_id.value = usePanTreeStore().resource_drive_id
-        }
+      const parentNode = getParentNode(info.node)
+      if (parentNode && parentNode.key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
+      } else if (key && key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
       } else {
-        to_drive_id.value = drive_id.value
+        to_drive_id.value = usePanTreeStore().resource_drive_id
       }
-      localStorage.setItem('selectpandir-' + to_drive_id.value, info.node.key as string)
+      localStorage.setItem('selectpandir-' + to_drive_id.value, key)
       selectDir.value = { dirID: key, dirName: title, isLeaf: isLeaf || false }
       treeSelectedKeys.value = [key]
       treeSelectToExpand(keys, info)
@@ -247,20 +244,17 @@ export default defineComponent({
       nativeEvent: MouseEvent
     }) => {
       const arr = treeExpandedKeys.value
-      let { parent = undefined, key } = info.node
+      let { key } = info.node
       const getParentNode = (node: any): any => {
-        if (!node.parent) return node
         return node.parent ? getParentNode(node.parent) : node
       }
-      let parentNode = parent && getParentNode(parent)
-      if (parentNode) {
-        if (parentNode.key.startsWith('backup') || key.startsWith('backup')) {
-          to_drive_id.value = usePanTreeStore().default_drive_id
-        } else {
-          to_drive_id.value = usePanTreeStore().resource_drive_id
-        }
+      const parentNode = getParentNode(info.node)
+      if (parentNode && parentNode.key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
+      } else if (key && key.startsWith('backup')) {
+        to_drive_id.value = usePanTreeStore().default_drive_id
       } else {
-        to_drive_id.value = drive_id.value
+        to_drive_id.value = usePanTreeStore().resource_drive_id
       }
       if (arr.includes(key)) {
         treeExpandedKeys.value = arr.filter((t) => t != key)
