@@ -259,7 +259,6 @@ export default class AliDirList {
             .replaceAll(':', '')
             .replaceAll(',', '')
         if (id.includes('root')) id = 'root'
-        if (!id.length) continue
         const data2 = {
           body: {
             drive_id: drive_id,
@@ -428,7 +427,6 @@ export default class AliDirList {
           .replaceAll(' ', '')
           .replaceAll(',', '').substring(0, 54)
         if (id.includes('root')) id = 'root'
-        if (!id.length) continue
         const data2 = {
           body: {
             drive_id: drive_id,

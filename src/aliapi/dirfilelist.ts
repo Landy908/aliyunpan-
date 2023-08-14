@@ -647,13 +647,11 @@ export default class AliDirFileList {
     size: number
   }[] | undefined> {
     const list: Map<string, { dirID: string; size: number }> = new Map<string, { dirID: string; size: number }>()
-
     let postData = '{"requests":['
     for (let i = 0, maxi = file_idList.length; i < maxi; i++) {
       list.set(file_idList[i], { dirID: file_idList[i], size: 0 })
       if (i > 0) postData = postData + ','
       let id = file_idList[i].includes('root') ? 'root' : file_idList[i]
-      if (!id.length) continue
       const data2 = {
         body: {
           drive_id: drive_id,
