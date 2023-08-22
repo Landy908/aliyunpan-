@@ -50,12 +50,12 @@ import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
-import { GetDriveType } from '../aliapi/utils'
+import { GetDriveID } from '../aliapi/utils'
 
 const viewlist = ref()
 const inputsearch = ref()
 const isresourcedrive = ref(false)
-const inputsearchType = ref('backup_root')
+const inputsearchType = ref('backup')
 const videoSelectType = ref('recent')
 
 const appStore = useAppStore()
@@ -73,7 +73,6 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   }
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
-    inputsearchType.value = GetDriveType(panTreeStore.user_id, DriveID).key
     isresourcedrive.value = inputsearchType.value == 'resource_root'
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
@@ -92,10 +91,11 @@ watchEffect(() => {
   }
 })
 
-watch(inputsearchType, () =>{
-  DriveID = inputsearchType.value.includes('backup')
-    ? panTreeStore.backup_drive_id : panTreeStore.resource_drive_id
-  handleRefresh()
+watch(inputsearchType, (n: any, o: any) => {
+  if (n != o) {
+    DriveID = GetDriveID(panTreeStore.user_id, n)
+    handleRefresh()
+  }
 })
 
 const keyboardStore = useKeyboardStore()
@@ -539,8 +539,8 @@ const onPanDragEnd = (ev: any) => {
          class='toppanbtn'>
       <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
                 style='width: 100px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
-        <a-option value='backup_root'>备份盘</a-option>
-        <a-option value='resource_root'>资源盘</a-option>
+        <a-option value='backup'>备份盘</a-option>
+        <a-option value='resource'>资源盘</a-option>
       </a-select>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
@@ -582,7 +582,7 @@ const onPanDragEnd = (ev: any) => {
     <FileTopbtn :dirtype='panfileStore.SelectDirType'
                 :isselected='panfileStore.IsListSelected'
                 :isvideo='menuShowVideo'
-                :isresourcedrive='isresourcedrive'
+                :inputsearchType='inputsearchType'
                 :isselectedmulti='panfileStore.IsListSelectedMulti'
                 :isallfavored='panfileStore.IsListSelectedFavAll'
                 :isallcolored='panfileStore.IsListSelectedColorAll' />
@@ -1077,7 +1077,7 @@ const onPanDragEnd = (ev: any) => {
                    :isvideo='menuShowVideo'
                    :isselected='panfileStore.IsListSelected'
                    :isselectedmulti='panfileStore.IsListSelectedMulti'
-                   :isresourcedrive='isresourcedrive'
+                   :inputsearchType='inputsearchType'
                    :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashRightMenu :dirtype='panfileStore.SelectDirType' />
   </div>

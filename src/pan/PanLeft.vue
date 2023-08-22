@@ -16,7 +16,7 @@ import { modalUpload } from '../utils/modal'
 import { GetDriveType } from '../aliapi/utils'
 
 const treeref = ref()
-const isresourcedrive = ref(false)
+const inputsearchType = ref('backup')
 const winStore = useWinStore()
 const treeHeight = computed(() => winStore.height - 42 - 56 - 24 - 4)
 const quickHeight = computed(() => winStore.height - 42 - 56 - 24 - 4 - 280 - 28)
@@ -47,7 +47,7 @@ let DriveID = pantreeStore.drive_id
 pantreeStore.$subscribe((_m: any, state: PanTreeState) => {
   if (state.drive_id != DriveID) {
     DriveID = state.drive_id
-    isresourcedrive.value = GetDriveType(state.user_id, state.drive_id).key == 'resource_root'
+    inputsearchType.value = GetDriveType(state.user_id, state.drive_id).name
   }
 })
 
@@ -273,7 +273,7 @@ const handleQuickSelect = (index: number) => {
         </a-tab-pane>
       </a-tabs>
     </div>
-    <DirLeftMenu :isresourcedrive='isresourcedrive'/>
+    <DirLeftMenu :inputsearchType='inputsearchType' />
   </div>
 </template>
 

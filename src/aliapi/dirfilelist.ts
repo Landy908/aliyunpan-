@@ -260,8 +260,8 @@ export default class AliDirFileList {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         return resp.body.total_count || 0
-      } else {
-        DebugLog.mSaveWarning('_ApiDirFileListCount err=' + dir.dirID + ' ' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ApiDirFileListCount err=' + dir.dirID + ' ' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ApiDirFileListCount ' + dir.dirID, err)
@@ -286,8 +286,8 @@ export default class AliDirFileList {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         return resp.body.total_count || 0
-      } else {
-        DebugLog.mSaveWarning('_ApiFavoriteFileListCount err=' + dir.dirID + ' ' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ApiFavoriteFileListCount err=' + dir.dirID + ' ' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ApiFavoriteFileListCount ' + dir.dirID, err)
@@ -493,8 +493,8 @@ export default class AliDirFileList {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         return (resp.body.total_count as number) || 0
-      } else {
-        DebugLog.mSaveWarning('_ApiSearchFileListCount err=' + dir.dirID + ' ' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ApiSearchFileListCount err=' + dir.dirID + ' ' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ApiSearchFileListCount ' + dir.dirID, err)
@@ -631,8 +631,8 @@ export default class AliDirFileList {
         dir.next_marker = resp.body.code
         message.warning('列出文件出错 ' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('_FileListOnePage err=' + dir.dirID + ' ' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_FileListOnePage err=' + dir.dirID + ' ' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_FileListOnePage ' + dir.dirID, err)
@@ -693,8 +693,7 @@ export default class AliDirFileList {
         }
         return MapValueToArray(list)
       } else {
-
-        DebugLog.mSaveWarning('ApiDirFileSize err=' + (resp.code || ''))
+        DebugLog.mSaveWarning('ApiDirFileSize err=' + (resp.code || ''), resp.body)
         return undefined
       }
     } catch (err: any) {

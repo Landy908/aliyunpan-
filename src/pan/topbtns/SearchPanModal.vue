@@ -5,6 +5,7 @@ import { modalCloseAll } from '../../utils/modal'
 import { defineComponent, nextTick, reactive, ref } from 'vue'
 import PanDAL from '../pandal'
 import dayjs from 'dayjs'
+import { GetDriveID } from '../../aliapi/utils'
 
 export default defineComponent({
   props: {
@@ -93,7 +94,7 @@ export default defineComponent({
         }
 
         searchid = searchid.trim()
-        drive_id = this.inputsearchType == 'backup' ? pantreeStore.backup_drive_id : pantreeStore.resource_drive_id
+        drive_id = GetDriveID(pantreeStore.user_id, this.inputsearchType)
         if (searchid) {
           PanDAL.aReLoadOneDirToShow(drive_id, 'search' + searchid, false)
           modalCloseAll()

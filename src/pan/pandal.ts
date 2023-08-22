@@ -7,7 +7,7 @@ import DB from '../utils/db'
 import DebugLog from '../utils/debuglog'
 import message from '../utils/message'
 import usePanTreeStore from './pantreestore'
-import { GetDriveType } from '../aliapi/utils'
+import { GetDriveID, GetDriveType } from '../aliapi/utils'
 
 export interface PanSelectedData {
   isError: boolean
@@ -126,17 +126,10 @@ export default class PanDAL {
 
   static async aReLoadOneDirToShow(drive_id: string, file_id: string, selfExpand: boolean): Promise<boolean> {
     const panTreeStore = usePanTreeStore()
-    const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
+    const user_id = panTreeStore.user_id
+    const driveType = GetDriveType(user_id, drive_id)
     const isBack = file_id == 'back'
-    if (!drive_id) {
-      if (file_id.startsWith('backup')) {
-        drive_id = panTreeStore.default_drive_id
-      } else if (file_id.startsWith('resource')) {
-        drive_id = panTreeStore.resource_drive_id
-      } else {
-        drive_id = panTreeStore.drive_id
-      }
-    }
+    if (!drive_id) drive_id = GetDriveID(user_id, file_id) || panTreeStore.drive_id
     panTreeStore.drive_id = drive_id
     if (file_id == 'refresh') {
       file_id = panTreeStore.selectDir.file_id

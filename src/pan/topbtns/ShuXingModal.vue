@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang='ts'>
 import { IAliFileItem, IAliGetForderSizeModel } from '../../aliapi/alimodels'
 import AliFile from '../../aliapi/file'
 import { useFootStore, usePanFileStore, usePanTreeStore } from '../../store'
@@ -8,6 +8,7 @@ import { modalCloseAll } from '../../utils/modal'
 import { humanDateTimeDateStr, humanSize, humanTime } from '../../utils/format'
 import { defineComponent, ref } from 'vue'
 import DebugLog from '../../utils/debuglog'
+import { GetDriveID } from '../../aliapi/utils'
 
 export default defineComponent({
   props: {
@@ -18,6 +19,10 @@ export default defineComponent({
     istree: {
       type: Boolean,
       required: true
+    },
+    inputsearchType: {
+      type: String,
+      required: true
     }
   },
   setup(props) {
@@ -26,10 +31,9 @@ export default defineComponent({
     const dirInfo = ref<IAliGetForderSizeModel>()
     const dirPath = ref('')
     const handleOpen = async () => {
-      
-      let file_id = ''
       const pantreeStore = usePanTreeStore()
-
+      let file_id = ''
+      let drive_id = GetDriveID(pantreeStore.user_id, props.inputsearchType)
       if (props.istree) {
         file_id = pantreeStore.selectDir.file_id
       } else {
@@ -45,27 +49,27 @@ export default defineComponent({
       if (!file_id) {
         message.error('没有选中任何文件')
       } else {
-        AliFile.ApiFileGetPathString(pantreeStore.user_id, pantreeStore.drive_id, file_id, '/').then((data) => {
+        AliFile.ApiFileGetPathString(pantreeStore.user_id, drive_id, file_id, '/').then((data) => {
           dirPath.value = '/' + data
         })
-        fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, pantreeStore.drive_id, file_id)
+        fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, drive_id, file_id)
 
         if (fileInfo.value?.category == 'audio') {
-          const audio = await AliFile.ApiAudioPreviewUrl(pantreeStore.user_id, pantreeStore.drive_id, file_id)
+          const audio = await AliFile.ApiAudioPreviewUrl(pantreeStore.user_id, drive_id, file_id)
           if (audio && audio.url) fileInfo.value.thumbnail = audio.url
         } else if (fileInfo.value?.category == 'video') {
-          const video = await AliFile.ApiVideoPreviewUrl(pantreeStore.user_id, pantreeStore.drive_id, file_id)
+          const video = await AliFile.ApiVideoPreviewUrl(pantreeStore.user_id, drive_id, file_id)
           if (video && video.url) fileInfo.value.thumbnail = video.url
         }
 
         if (fileInfo.value?.type == 'folder') {
-          dirInfo.value = await AliFile.ApiFileGetFolderSize(pantreeStore.user_id, pantreeStore.drive_id, file_id)
+          dirInfo.value = await AliFile.ApiFileGetFolderSize(pantreeStore.user_id, drive_id, file_id)
         }
       }
     }
 
     const handleClose = () => {
-      
+
       if (okLoading.value) okLoading.value = false
       dirInfo.value = { size: 0, folder_count: 0, file_count: 0, reach_limit: undefined }
       fileInfo.value = undefined
@@ -117,13 +121,32 @@ export default defineComponent({
     const handleSize = () => {
       formateSize.value = !formateSize.value
     }
-    return { okLoading, handleOpen, handleClose, fileInfo, dirInfo, dirPath, humanDateTimeDateStr, humanSize, humanTime, makeFenBianLv, makeImageSheBei, makeImageShiJian, handleAudioPlay, formateCRC, handleCRC, formateSize, handleSize }
+    return {
+      okLoading,
+      handleOpen,
+      handleClose,
+      fileInfo,
+      dirInfo,
+      dirPath,
+      humanDateTimeDateStr,
+      humanSize,
+      humanTime,
+      makeFenBianLv,
+      makeImageSheBei,
+      makeImageShiJian,
+      handleAudioPlay,
+      formateCRC,
+      handleCRC,
+      formateSize,
+      handleSize
+    }
   },
   methods: {
     handleHide() {
       modalCloseAll()
     },
-    handleOK() {},
+    handleOK() {
+    },
 
     handleCopyFileName() {
       if (this.fileInfo?.name) {
@@ -159,72 +182,77 @@ export default defineComponent({
 </script>
 
 <template>
-  <a-modal :visible="visible" modal-class="modalclass shuxingmodal" :footer="false" :unmount-on-close="true" :mask-closable="false" @cancel="handleHide" @before-open="handleOpen" @close="handleClose">
+  <a-modal :visible='visible' modal-class='modalclass shuxingmodal' :footer='false' :unmount-on-close='true'
+           :mask-closable='false' @cancel='handleHide' @before-open='handleOpen' @close='handleClose'>
     <template #title>
-      <span class="modaltitle">查看属性</span>
+      <span class='modaltitle'>查看属性</span>
     </template>
-    <div class="modalbody" style="width: 500px; max-height: calc(80vh - 100px); overflow-y: scroll">
+    <div class='modalbody' style='width: 500px; max-height: calc(80vh - 100px); overflow-y: scroll'>
       <a-row>
-        <a-col flex="auto"> 路径：</a-col>
+        <a-col flex='auto'> 路径：</a-col>
       </a-row>
-      <div class="pathtitle">
+      <div class='pathtitle'>
         {{ dirPath }}
       </div>
-      <div class="h16"></div>
+      <div class='h16'></div>
 
       <a-row>
-        <a-col flex="auto"> 文件名：</a-col>
+        <a-col flex='auto'> 文件名：</a-col>
       </a-row>
-      <div class="shuxingbox">
-        <span class="shuxingtitle">{{ fileInfo?.name }}</span>
-        <a-button type="outline" size="mini" tabindex="-1" title="复制" @click="handleCopyFileName">复制</a-button>
+      <div class='shuxingbox'>
+        <span class='shuxingtitle'>{{ fileInfo?.name }}</span>
+        <a-button type='outline' size='mini' tabindex='-1' title='复制' @click='handleCopyFileName'>复制</a-button>
       </div>
-      <div class="h16"></div>
+      <div class='h16'></div>
 
       <a-row>
-        <a-col flex="110px"> 文件大小： <i class="iconfont iconchakan link" title="点击切换格式" @click="handleSize"></i></a-col>
-        <a-col flex="auto"></a-col>
-        <a-col flex="170px"> 创建日期：</a-col>
-        <a-col flex="auto"></a-col>
-        <a-col flex="180px"> 更新日期：</a-col>
+        <a-col flex='110px'> 文件大小： <i class='iconfont iconchakan link' title='点击切换格式' @click='handleSize'></i>
+        </a-col>
+        <a-col flex='auto'></a-col>
+        <a-col flex='170px'> 创建日期：</a-col>
+        <a-col flex='auto'></a-col>
+        <a-col flex='180px'> 更新日期：</a-col>
       </a-row>
       <a-row>
-        <a-col flex="110px">
-          <a-input size="small" tabindex="-1" :model-value="formateSize ? humanSize(fileInfo?.size || dirInfo?.size || 0) : (fileInfo?.size || dirInfo?.size || 0) + ' 字节'" readonly />
+        <a-col flex='110px'>
+          <a-input size='small' tabindex='-1'
+                   :model-value="formateSize ? humanSize(fileInfo?.size || dirInfo?.size || 0) : (fileInfo?.size || dirInfo?.size || 0) + ' 字节'"
+                   readonly />
         </a-col>
-        <a-col flex="auto"></a-col>
-        <a-col flex="170px">
-          <a-input size="small" tabindex="-1" :model-value="humanDateTimeDateStr(fileInfo?.created_at)" readonly />
+        <a-col flex='auto'></a-col>
+        <a-col flex='170px'>
+          <a-input size='small' tabindex='-1' :model-value='humanDateTimeDateStr(fileInfo?.created_at)' readonly />
         </a-col>
-        <a-col flex="auto"></a-col>
-        <a-col flex="180px">
-          <a-input size="small" tabindex="-1" :model-value="humanDateTimeDateStr(fileInfo?.updated_at)" readonly />
+        <a-col flex='auto'></a-col>
+        <a-col flex='180px'>
+          <a-input size='small' tabindex='-1' :model-value='humanDateTimeDateStr(fileInfo?.updated_at)' readonly />
         </a-col>
       </a-row>
-      <div class="h16"></div>
+      <div class='h16'></div>
 
       <div v-if="fileInfo?.type == 'file'">
         <a-row>
-          <a-col flex="110px"> 分类：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px"> mime_type：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px"> crc64：<i class="iconfont iconchakan link" title="点击切换格式" @click="handleCRC"></i></a-col>
+          <a-col flex='110px'> 分类：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'> mime_type：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'> crc64：<i class='iconfont iconchakan link' title='点击切换格式' @click='handleCRC'></i>
+          </a-col>
         </a-row>
         <a-row>
-          <a-col flex="110px">
-            <a-input size="small" tabindex="-1" :model-value="fileInfo?.category" readonly />
+          <a-col flex='110px'>
+            <a-input size='small' tabindex='-1' :model-value='fileInfo?.category' readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px">
-            <a-input size="small" tabindex="-1" :model-value="fileInfo?.mime_type" readonly />
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'>
+            <a-input size='small' tabindex='-1' :model-value='fileInfo?.mime_type' readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px">
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'>
             <a-input
-              size="small"
-              class="small"
-              tabindex="-1"
+              size='small'
+              class='small'
+              tabindex='-1'
               :model-value="
                 formateCRC
                   ? fileInfo?.crc64_hash
@@ -235,92 +263,110 @@ export default defineComponent({
               readonly />
           </a-col>
         </a-row>
-        <div class="h16"></div>
+        <div class='h16'></div>
 
         <a-row>
-          <a-col flex="1"> SHA1：</a-col>
+          <a-col flex='1'> SHA1：</a-col>
         </a-row>
         <a-row>
-          <a-col flex="1">
-            <a-input size="small" class="small" tabindex="-1" :model-value="fileInfo?.content_hash" readonly />
+          <a-col flex='1'>
+            <a-input size='small' class='small' tabindex='-1' :model-value='fileInfo?.content_hash' readonly />
           </a-col>
         </a-row>
       </div>
       <div v-else>
         <a-row>
-          <a-col flex="1"> 文件夹信息：</a-col>
+          <a-col flex='1'> 文件夹信息：</a-col>
         </a-row>
         <a-row>
-          <a-col flex="1">
-            <a-input size="small" class="small" tabindex="-1" :model-value="'子文件大小：' + humanSize(dirInfo?.size) + '，子文件：' + dirInfo?.file_count + '个，子文件夹：' + dirInfo?.folder_count + '个'" readonly />
+          <a-col flex='1'>
+            <a-input size='small' class='small' tabindex='-1'
+                     :model-value="'子文件大小：' + humanSize(dirInfo?.size) + '，子文件：' + dirInfo?.file_count + '个，子文件夹：' + dirInfo?.folder_count + '个'"
+                     readonly />
           </a-col>
         </a-row>
       </div>
 
       <div v-if="fileInfo?.category == 'video'">
-        <div class="h16"></div>
+        <div class='h16'></div>
         <a-row>
-          <a-col flex="110px"> 分辨率：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px"> 视频时长：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px"> 制作日期：</a-col>
+          <a-col flex='110px'> 分辨率：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'> 视频时长：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'> 制作日期：</a-col>
         </a-row>
         <a-row>
-          <a-col flex="110px">
-            <a-input size="small" tabindex="-1" :model-value="makeFenBianLv(fileInfo?.video_media_metadata?.width, fileInfo?.video_media_metadata?.height)" readonly />
+          <a-col flex='110px'>
+            <a-input size='small' tabindex='-1'
+                     :model-value='makeFenBianLv(fileInfo?.video_media_metadata?.width, fileInfo?.video_media_metadata?.height)'
+                     readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px">
-            <a-input size="small" tabindex="-1" :model-value="humanTime(fileInfo?.video_media_metadata?.duration)" readonly />
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'>
+            <a-input size='small' tabindex='-1' :model-value='humanTime(fileInfo?.video_media_metadata?.duration)'
+                     readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px">
-            <a-input size="small" tabindex="-1" :model-value="humanDateTimeDateStr(fileInfo?.video_media_metadata?.time)" readonly />
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'>
+            <a-input size='small' tabindex='-1'
+                     :model-value='humanDateTimeDateStr(fileInfo?.video_media_metadata?.time)' readonly />
           </a-col>
         </a-row>
       </div>
 
       <div v-if="fileInfo?.category == 'image'">
-        <div class="h16"></div>
+        <div class='h16'></div>
         <a-row>
-          <a-col flex="110px"> 分辨率：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px"> 拍摄设备：</a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px"> 拍摄日期：</a-col>
+          <a-col flex='110px'> 分辨率：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'> 拍摄设备：</a-col>
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'> 拍摄日期：</a-col>
         </a-row>
         <a-row>
-          <a-col flex="110px">
-            <a-input size="small" tabindex="-1" :model-value="makeFenBianLv(fileInfo?.image_media_metadata?.width, fileInfo?.image_media_metadata?.height)" readonly />
+          <a-col flex='110px'>
+            <a-input size='small' tabindex='-1'
+                     :model-value='makeFenBianLv(fileInfo?.image_media_metadata?.width, fileInfo?.image_media_metadata?.height)'
+                     readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="170px">
-            <a-input size="small" tabindex="-1" :model-value="makeImageSheBei(fileInfo?.image_media_metadata?.exif)" readonly />
+          <a-col flex='auto'></a-col>
+          <a-col flex='170px'>
+            <a-input size='small' tabindex='-1' :model-value='makeImageSheBei(fileInfo?.image_media_metadata?.exif)'
+                     readonly />
           </a-col>
-          <a-col flex="auto"></a-col>
-          <a-col flex="180px">
-            <a-input size="small" tabindex="-1" :model-value="makeImageShiJian(fileInfo?.image_media_metadata?.exif)" readonly />
+          <a-col flex='auto'></a-col>
+          <a-col flex='180px'>
+            <a-input size='small' tabindex='-1' :model-value='makeImageShiJian(fileInfo?.image_media_metadata?.exif)'
+                     readonly />
           </a-col>
         </a-row>
       </div>
 
       <div v-if="fileInfo?.category == 'audio'">
-        <div class="h16"></div>
-        <div width="100%">
-          <audio controls style="width: 100%; height: 32px" :src="fileInfo?.thumbnail" @play="handleAudioPlay">您的浏览器不支持 audio 元素</audio>
+        <div class='h16'></div>
+        <div width='100%'>
+          <audio controls style='width: 100%; height: 32px' :src='fileInfo?.thumbnail' @play='handleAudioPlay'>您的浏览器不支持
+            audio 元素
+          </audio>
         </div>
       </div>
 
-      <div class="h16"></div>
+      <div class='h16'></div>
     </div>
-    <div class="h16"></div>
-    <div class="modalfoot">
-      <a-button type="outline" size="small" @click="handleCopyJson">复制JSON</a-button>
-      <div style="flex-grow: 1"></div>
-      <a-button v-if="fileInfo?.category == 'video'" type="outline" size="small" @click="handleCopyThumbnail">复制M3U8链接</a-button>
-      <a-button v-if="fileInfo?.category == 'audio'" type="outline" size="small" @click="handleCopyThumbnail">复制M3U8链接</a-button>
-      <a-button v-if="fileInfo?.type !== 'folder'" type="outline" size="small" @click="handleCopyDownload">复制下载链接</a-button>
+    <div class='h16'></div>
+    <div class='modalfoot'>
+      <a-button type='outline' size='small' @click='handleCopyJson'>复制JSON</a-button>
+      <div style='flex-grow: 1'></div>
+      <a-button v-if="fileInfo?.category == 'video'" type='outline' size='small' @click='handleCopyThumbnail'>
+        复制M3U8链接
+      </a-button>
+      <a-button v-if="fileInfo?.category == 'audio'" type='outline' size='small' @click='handleCopyThumbnail'>
+        复制M3U8链接
+      </a-button>
+      <a-button v-if="fileInfo?.type !== 'folder'" type='outline' size='small' @click='handleCopyDownload'>
+        复制下载链接
+      </a-button>
     </div>
   </a-modal>
 </template>
@@ -350,6 +396,7 @@ export default defineComponent({
   word-wrap: break-word;
   user-select: text;
 }
+
 .shuxingbox button {
   align-self: flex-end;
   padding: 0 8px;

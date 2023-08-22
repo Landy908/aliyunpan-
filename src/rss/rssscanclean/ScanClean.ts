@@ -141,15 +141,15 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
                 dir.items.push(add)
                 dir.itemsKey.add(add.file_id)
               }
-              if (dir.items.length >= 3000) dir.next_marker = '' 
+              if (dir.items.length >= 3000) dir.next_marker = ''
               break
             }
           }
         }
       }
       return true
-    } else {
-      DebugLog.mSaveWarning('SCApiDuplicateList err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('SCApiDuplicateList err=' + (resp.code || ''), resp.body)
     }
   } catch (err: any) {
     DebugLog.mSaveWarning('ApiBatchDirFileList', err)

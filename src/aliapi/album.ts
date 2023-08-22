@@ -1,6 +1,6 @@
-import {IAliFileItem} from "./alimodels";
-import AliHttp from "./alihttp";
-import DebugLog from "../utils/debuglog";
+import { IAliFileItem } from './alimodels'
+import AliHttp from './alihttp'
+import DebugLog from '../utils/debuglog'
 
 export default class AliAlbum {
 
@@ -19,8 +19,8 @@ export default class AliAlbum {
         const resp = await AliHttp.Post(url, postData, user_id, '')
         if (AliHttp.IsSuccess(resp.code)) {
             return resp.body as IAliFileItem
-        } else {
-            DebugLog.mSaveWarning('ApiAlbumFileList err=' + file_id + ' ' + (resp.code || ''))
+        } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+            DebugLog.mSaveWarning('ApiAlbumFileList err=' + file_id + ' ' + (resp.code || ''), resp.body)
         }
         return undefined
     }

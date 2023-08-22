@@ -124,12 +124,11 @@ export default class AliDirList {
             break
           }
         } else if (resp.code == 402) {
-          
-          DebugLog.mSaveWarning('ApiFastAllDirList err=' + drive_id + ' ' + (resp.code || ''))
+          DebugLog.mSaveWarning('ApiFastAllDirList err=' + drive_id + ' ' + (resp.code || ''), resp.body)
           break
-        } else {
+        } else if (!AliHttp.HttpCodeBreak(resp.code)) {
           errorMessage += 'err' + (resp.code || '')
-          DebugLog.mSaveWarning('ApiFastAllDirList err=' + (resp.code || ''))
+          DebugLog.mSaveWarning('ApiFastAllDirList err=' + (resp.code || ''), resp.body)
         }
       } catch (err: any) {
         
@@ -207,8 +206,8 @@ export default class AliDirList {
           }
         }
         return true
-      } else {
-        DebugLog.mSaveWarning('ApiBatchDirFileList err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('ApiBatchDirFileList err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveWarning('ApiBatchDirFileList', err)
@@ -318,9 +317,9 @@ export default class AliDirList {
           }
           dirList.length = 0
           dirList = list
-        } else {
+        } else if (!AliHttp.HttpCodeBreak(resp.code)) {
           errorMessage = (resp.code || '').toString()
-          DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''))
+          DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''), resp.body)
         }
       } catch (err: any) {
         errorMessage = err.message || ''
@@ -355,8 +354,8 @@ export default class AliDirList {
         const created_at = items.length > 0 ? new Date(items[0].created_at) : new Date()
         const total_count = resp.body.total_count || 0
         return { created_at, total_count }
-      } else {
-        DebugLog.mSaveWarning('_ApiDirFileListInfo err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ApiDirFileListInfo err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ApiDirFileListInfo', err)
@@ -483,10 +482,15 @@ export default class AliDirList {
           }
           dirList.length = 0
           dirList = list
-          if (window.WinMsgToMain) window.WinMsgToMain({ cmd: 'MainShowAllDirProgress', drive_id, index: allMap.size, total: dirCount })
-        } else {
+          if (window.WinMsgToMain) window.WinMsgToMain({
+            cmd: 'MainShowAllDirProgress',
+            drive_id,
+            index: allMap.size,
+            total: dirCount
+          })
+        } else if (!AliHttp.HttpCodeBreak(resp.code)) {
           errorMessage = (resp.code || '').toString()
-          DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''))
+          DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''), resp.body)
         }
       } catch (err: any) {
         errorMessage = err.message || ''

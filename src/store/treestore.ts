@@ -363,6 +363,9 @@ export default class TreeStore {
     if (!driverData) return undefined
     const dir = driverData.DirMap.get(file_id)
     if (!dir) return undefined
+    const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
+    if (dir.parent_file_id === 'root') dir.parent_file_id = driveType.key
+    if (dir.file_id === 'root') dir.file_id = driveType.key
     return { __v_skip: true, drive_id, namesearch: '', description: '', ...dir }
   }
 
@@ -590,7 +593,7 @@ export default class TreeStore {
       if (next.done) break
       const file_id = next.value as string
       const time = timeMap[file_id] || 0
-      if (time == 0 || timeNow - time > maxCacheTime) {
+      if (file_id && (time == 0 || timeNow - time > maxCacheTime)) {
         diridList.push(file_id)
       }
     }

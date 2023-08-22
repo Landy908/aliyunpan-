@@ -116,8 +116,8 @@ export default class AliTrash {
         dir.next_marker = resp.body.code
         message.warning('列出文件出错 ' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('_FileListOnePage err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_FileListOnePage err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_FileListOnePage ' + dir.dirID, err)

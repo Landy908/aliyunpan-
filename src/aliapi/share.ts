@@ -76,8 +76,8 @@ export default class AliShare {
         share.error = ''
         return share
       }
-    } else {
-      DebugLog.mSaveWarning('ApiGetShareAnonymous err=' + share_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiGetShareAnonymous err=' + share_id + ' ' + (resp.code || ''), resp.body)
     }
 
     if (resp.body?.code == 'ShareLink.Cancelled') share.error = '分享链接被取消分享了'
@@ -96,8 +96,8 @@ export default class AliShare {
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       return true
-    } else {
-      DebugLog.mSaveWarning('ApisSubscription err=' + share_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApisSubscription err=' + share_id + ' ' + (resp.code || ''), resp.body)
     }
     return false
   }
@@ -139,8 +139,8 @@ export default class AliShare {
         password: postData.share_pwd
       })
       return (resp.body.share_token as string | undefined) || '，share_token错误'
-    } else {
-      DebugLog.mSaveWarning('ApiGetShareToken err=' + share_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiGetShareToken err=' + share_id + ' ' + (resp.code || ''), resp.body)
     }
     return '，网络错误请重试'
   }
@@ -223,8 +223,8 @@ export default class AliShare {
         dir.next_marker = resp.body.code
         message.warning('列出分享链接内文件出错 ' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('_ShareFileListOnePage err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ShareFileListOnePage err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ShareFileListOnePage ' + dir.dirID, err)
@@ -255,8 +255,8 @@ export default class AliShare {
       if (item.updated_at) add.updated_at = humanDateTime(item.updated_at)
       add.share_msg = humanExpiration(item.expiration)
       return add
-    } else {
-      DebugLog.mSaveWarning('ApiCreatShare err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiCreatShare err=' + (resp.code || ''), resp.body)
     }
 
     if (resp.body?.code.startsWith('UserPunished')) return '账号分享行为异常，无法分享'

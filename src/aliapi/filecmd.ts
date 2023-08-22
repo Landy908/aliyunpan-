@@ -23,8 +23,8 @@ export default class AliFileCmd {
     if (AliHttp.IsSuccess(resp.code)) {
       const file_id = resp.body.file_id as string | undefined
       if (file_id) return { file_id, error: '' }
-    } else {
-      DebugLog.mSaveWarning('ApiCreatNewForder err=' + parent_file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiCreatNewForder err=' + parent_file_id + ' ' + (resp.code || ''), resp.body)
     }
     if (resp.body?.code == 'QuotaExhausted.Drive') return { file_id: '', error: '网盘空间已满,无法创建' }
     if (resp.body?.code) return { file_id: '', error: resp.body?.code }
@@ -124,8 +124,8 @@ export default class AliFileCmd {
     } else if (resp.code && resp.code == 403) {
       if (resp.body?.code == 'UserNotVip') message.error('文件恢复功能需要开通阿里云盘会员')
       else message.error(resp.body?.code || '拒绝访问')
-    } else {
-      DebugLog.mSaveWarning('ApiRecoverBatch err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiRecoverBatch err=' + (resp.code || ''), resp.body)
       message.error('操作失败')
     }
     return successList

@@ -8,8 +8,8 @@ import TreeStore from '../../store/treestore'
 const istree = true
 
 const props = defineProps({
-  isresourcedrive: {
-    type: Boolean,
+  inputsearchType: {
+    type: String,
     required: true
   }
 })
@@ -22,6 +22,7 @@ const handleExpandAll = (isExpand: boolean) => {
   const diridList = TreeStore.GetDirChildDirID(drive_id, file_id)
   pantreeStore.mTreeExpandAll(diridList, isExpand)
 }
+
 </script>
 
 <template>
@@ -52,8 +53,9 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #icon> <i class="iconfont icondownload" /> </template>
         <template #default>下载</template>
       </a-doption>
-      <a-doption v-show="isresourcedrive" @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
-        <template #icon> <i class="iconfont iconfenxiang" /> </template>
+      <a-doption v-show="inputsearchType.includes('resource')"
+                 @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
+        <template #icon><i class='iconfont iconfenxiang' /></template>
         <template #default>分享</template>
       </a-doption>
       <a-doption @click="() => menuCreatShare(istree, 'pan', 'backup_root')">
@@ -88,8 +90,8 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click="() => modalShuXing(istree, false)">
-        <template #icon> <i class="iconfont iconshuxing" /> </template>
+      <a-doption @click='() => modalShuXing(istree, false, inputsearchType)'>
+        <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>
     </template>

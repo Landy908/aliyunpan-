@@ -89,12 +89,12 @@ async function ApiTestEnmptyDir(user_id: string, drive_id: string, idList: strin
         const status = responses[j].status as number
         if (status >= 200 && status <= 205) {
           const respi = responses[j]
-          if (respi.body.items.length == 0) list.push(respi.id) 
+          if (respi.body.items.length == 0) list.push(respi.id)
         }
       }
       return list
-    } else {
-      DebugLog.mSaveWarning('ApiTestEnmptyDir err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiTestEnmptyDir err=' + (resp.code || ''), resp.body)
     }
   } catch (err: any) {
     DebugLog.mSaveWarning('ApiTestEnmptyDir', err)

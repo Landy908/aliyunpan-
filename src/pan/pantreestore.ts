@@ -3,6 +3,7 @@ import { IAliGetDirModel } from '../aliapi/alimodels'
 import { h } from 'vue'
 import PanDAL from './pandal'
 import TreeStore, { TreeNodeData } from '../store/treestore'
+import { GetDriveID } from '../aliapi/utils'
 
 export interface PanTreeState {
   user_id: string
@@ -82,13 +83,7 @@ const usePanTreeStore = defineStore('pantree', {
           return node.parent ? getParentNode(node.parent) : node
         }
         const parentNode = getParentNode(e.node)
-        if (parentNode && parentNode.key.startsWith('backup')) {
-          drive_id = this.default_drive_id
-        } else if (key && key.startsWith('backup')) {
-          drive_id = this.default_drive_id
-        } else {
-          drive_id = this.resource_drive_id
-        }
+        drive_id = GetDriveID(this.user_id, parentNode.key || key)
       }
       if (is_refresh_drive_id && drive_id) {
         this.drive_id = drive_id

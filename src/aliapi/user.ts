@@ -46,7 +46,7 @@ export default class AliUser {
       UserDAL.SaveUserToken(token)
       return true
     } else {
-      DebugLog.mSaveWarning('ApiSessionRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
+      DebugLog.mSaveWarning('ApiSessionRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
       if (showMessage) {
         message.error('刷新账号[' + token.user_name + '] session 失败')
       }
@@ -107,7 +107,7 @@ export default class AliUser {
       return true
     } else {
       if (resp.body?.code != 'InvalidParameter.RefreshToken') {
-        DebugLog.mSaveWarning('ApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
+        DebugLog.mSaveWarning('ApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
       }
       if (showMessage) {
         message.error('刷新账号[' + token.user_name + '] token 失败,需要重新登录')
@@ -151,16 +151,20 @@ export default class AliUser {
       return true
     }
     let url = 'https://openapi.aliyundrive.com/oauth/access_token'
-    if (useSettingStore().uiEnableOpenApi
-      && useSettingStore().uiOpenApiOauthUrl !== ''
+    let client_id = ''
+    let client_secret = ''
+    if (useSettingStore().uiOpenApiOauthUrl !== ''
       && useSettingStore().uiOpenApi === 'inputToken') {
       url = useSettingStore().uiOpenApiOauthUrl
+    } else {
+      client_id = useSettingStore().uiOpenApiClientId
+      client_secret = useSettingStore().uiOpenApiClientSecret
     }
     const postData = {
       refresh_token: token.open_api_refresh_token,
       grant_type: 'refresh_token',
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret
+      client_id: client_id,
+      client_secret: client_secret
     }
     const resp = await AliHttp.Post(url, postData, '', '')
     OpenApiTokenLockMap.delete(token.user_id)
@@ -185,7 +189,7 @@ export default class AliUser {
       return true
     } else {
       if (resp.body?.code != 'InvalidParameter.RefreshToken') {
-        DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''))
+        DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
       }
       if (showMessage) {
         if (!token.open_api_refresh_token) {
@@ -286,8 +290,8 @@ export default class AliUser {
       token.name = resp.body.personal_rights_info.name
       token.spaceinfo = humanSize(token.used_size) + ' / ' + humanSize(token.total_size)
       return true
-    } else {
-      DebugLog.mSaveWarning('ApiUserInfo err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserInfo err=' + (resp.code || ''), resp.body)
     }
     return false
   }
@@ -303,8 +307,8 @@ export default class AliUser {
       token.resource_drive_id = resp.body.resource_drive_id
       token.sbox_drive_id = resp.body.sbox_drive_id
       return true
-    } else {
-      DebugLog.mSaveWarning('ApiUserDriveInfo err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserDriveInfo err=' + (resp.code || ''), resp.body)
     }
     return false
   }
@@ -377,8 +381,8 @@ export default class AliUser {
         token.vipexpire = ''
       }
       return true
-    } else {
-      DebugLog.mSaveWarning('ApiUserPic err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserPic err=' + (resp.code || ''), resp.body)
     }
     return false
   }
@@ -394,8 +398,8 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       token.pic_drive_id = resp.body.data.driveId
       return true
-    } else {
-      DebugLog.mSaveWarning('ApiUserPic err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserPic err=' + (resp.code || ''), resp.body)
     }
     return false
   }
@@ -427,8 +431,8 @@ export default class AliUser {
       detail.resource_drive_used_size = resp.body.resource_drive_used_size || 0
       detail.sbox_drive_used_size = resp.body.sbox_drive_used_size || 0
       detail.share_album_drive_used_size = resp.body.share_album_drive_used_size || 0
-    } else {
-      DebugLog.mSaveWarning('ApiUserDriveDetails err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserDriveDetails err=' + (resp.code || ''), resp.body)
     }
     return detail
   }
@@ -452,8 +456,8 @@ export default class AliUser {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         return resp.body.total_count || 0
-      } else {
-        DebugLog.mSaveWarning('ApiUserDriveFileCount err=' + category + ' ' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('ApiUserDriveFileCount err=' + category + ' ' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('ApiUserDriveFileCount' + category, err)
@@ -495,8 +499,8 @@ export default class AliUser {
         } as IAliUserDriveCapacity)
       }
       result = result.sort((a, b) => a.latest_receive_time.localeCompare(b.latest_receive_time))
-    } else {
-      DebugLog.mSaveWarning('ApiUserCapacityDetails err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiUserCapacityDetails err=' + (resp.code || ''), resp.body)
     }
     return result
   }

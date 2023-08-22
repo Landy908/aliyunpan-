@@ -41,8 +41,8 @@ export default class AliFile {
       return resp.body as IAliFileItem
     } else if (AliHttp.HttpCodeBreak(resp.code)) {
       return (resp.body.message || resp.body) as string
-    } else {
-      DebugLog.mSaveWarning('ApiFileInfo err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileInfo err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return '网络错误'
   }
@@ -65,8 +65,8 @@ export default class AliFile {
 
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body as IAliFileItem
-    } else {
-      DebugLog.mSaveWarning('ApiFileInfoByPath err=' + file_path + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileInfoByPath err=' + file_path + ' ' + (resp.code || ''), resp.body)
     }
     return undefined
   }
@@ -105,8 +105,8 @@ export default class AliFile {
       return (resp.body.message || resp.body) as string
     } else if (resp.body.code) {
       return resp.body.code as string
-    } else {
-      DebugLog.mSaveWarning('ApiFileDownloadUrl err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileDownloadUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return '网络错误'
   }
@@ -167,14 +167,14 @@ export default class AliFile {
           data.urlLD = taskList[i].url
         }
       }
-      data.url =  data.urlQHD || data.urlFHD || data.urlHD || data.urlSD || data.urlLD || ''
+      data.url = data.urlQHD || data.urlFHD || data.urlHD || data.urlSD || data.urlLD || ''
       data.duration = Math.floor(resp.body.video_preview_play_info?.meta?.duration || 0)
       data.width = resp.body.video_preview_play_info?.meta?.width || 0
       data.height = resp.body.video_preview_play_info?.meta?.height || 0
       data.expire_sec = GetOssExpires(data.url)
       return data
-    } else {
-      DebugLog.mSaveWarning('ApiVideoPreviewUrl err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiVideoPreviewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return undefined
   }
@@ -201,12 +201,12 @@ export default class AliFile {
           url: item.url,
           expire_sec: GetOssExpires(item.url),
           play_cursor: Math.floor(item?.play_cursor || 0),
-          compilation_id: item.compilation_id,
+          compilation_id: item.compilation_id
         })
       }
       return data
-    } else {
-      DebugLog.mSaveWarning('ApiListByFileInfo err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiListByFileInfo err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
   }
 
@@ -243,8 +243,8 @@ export default class AliFile {
       }
 
       return data
-    } else {
-      DebugLog.mSaveWarning('ApiAudioPreviewUrl err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAudioPreviewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return undefined
   }
@@ -264,8 +264,8 @@ export default class AliFile {
       data.access_token = resp.body.access_token
       data.preview_url = resp.body.preview_url
       return data
-    } else {
-      DebugLog.mSaveWarning('ApiOfficePreViewUrl err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiOfficePreViewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return undefined
   }
@@ -286,8 +286,8 @@ export default class AliFile {
 
     if (AliHttp.IsSuccess(resp.code)) {
       return AliDirFileList.getFileInfo(resp.body as IAliFileItem, '')
-    } else {
-      DebugLog.mSaveWarning('ApiGetFile err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiGetFile err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return undefined
   }
@@ -333,8 +333,8 @@ export default class AliFile {
         description: ''
       } as IAliGetDirModel)
       return list
-    } else {
-      DebugLog.mSaveWarning('ApiFileGetPath err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileGetPath err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return []
   }
@@ -359,8 +359,8 @@ export default class AliFile {
         list.push(item.name)
       }
       return list.join(dirsplit)
-    } else {
-      DebugLog.mSaveWarning('ApiFileGetPathString err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileGetPathString err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return ''
   }
@@ -378,8 +378,8 @@ export default class AliFile {
 
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body as IAliGetForderSizeModel
-    } else {
-      DebugLog.mSaveWarning('ApiFileGetFolderSize err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileGetFolderSize err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return { size: 0, folder_count: 0, file_count: 0, reach_limit: false }
   }
@@ -396,8 +396,8 @@ export default class AliFile {
     if (AliHttp.IsSuccess(resp.code)) {
       if (typeof resp.body == 'string') return resp.body
       return JSON.stringify(resp.body, undefined, 2)
-    } else {
-      DebugLog.mSaveWarning('ApiFileDownText err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiFileDownText err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return ''
   }
@@ -460,8 +460,8 @@ export default class AliFile {
           console.log(responses[i])
         }
       }
-    } else {
-      DebugLog.mSaveWarning('ApiBiXueTuBatch err=' + file_id + ' ' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiBiXueTuBatch err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
     return imgList
   }
@@ -485,7 +485,7 @@ export default class AliFile {
     if (AliHttp.IsSuccess(respvideo.code)) {
       return respvideo.body as IAliFileItem
     } else {
-      DebugLog.mSaveWarning('ApiUpdateVideoTime err=' + file_id + ' ' + (respvideo.code || ''))
+      DebugLog.mSaveWarning('ApiUpdateVideoTime err=' + file_id + ' ' + (respvideo.code || ''), respvideo.body)
     }
     return undefined
   }

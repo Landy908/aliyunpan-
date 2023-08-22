@@ -249,10 +249,11 @@ export default class AliUpload {
       const content_hash = resp.body.content_hash.toUpperCase()
       hash = hash.toUpperCase()
       return hash === content_hash
-    } else {
-      DebugLog.mSaveWarning('UploadFileCheckHash err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('UploadFileCheckHash err=' + (resp.code || ''), resp.body)
       return false
     }
+    return false
   }
 
 
@@ -263,10 +264,11 @@ export default class AliUpload {
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       return true
-    } else {
-      DebugLog.mSaveWarning('UploadFileDelete err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('UploadFileDelete err=' + (resp.code || ''), resp.body)
       return false
     }
+    return false
   }
 
 
@@ -368,7 +370,7 @@ export default class AliUpload {
       return 'success'
     } else {
       uploadInfo.part_info_list = []
-      DebugLog.mSaveWarning('UploadFilePartUrl err=' + upload_id + ' ' + (resp.code || ''))
+      DebugLog.mSaveWarning('UploadFilePartUrl err=' + upload_id + ' ' + (resp.code || ''), resp.body)
       return 'error'
     }
   }
@@ -405,7 +407,7 @@ export default class AliUpload {
       }
       return 'success'
     } else {
-      DebugLog.mSaveWarning('UploadFileListUploadedParts err=' + upload_id + ' ' + (resp.code || ''))
+      DebugLog.mSaveWarning('UploadFileListUploadedParts err=' + upload_id + ' ' + (resp.code || ''), resp.body)
       return 'error'
     }
   }

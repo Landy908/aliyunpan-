@@ -77,8 +77,8 @@ export default class AliTransferShareList {
         dir.items.length = 0
         message.warning('列出分享列表出错' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('_ShareListOnePage err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ShareListOnePage err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_ShareListOnePage', err)
@@ -92,8 +92,8 @@ export default class AliTransferShareList {
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body as IAliShareItem
-    } else {
-      DebugLog.mSaveWarning('ApiTransferShareFileStatus err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiTransferShareFileStatus err=' + (resp.code || ''), resp.body)
     }
     return false
   }

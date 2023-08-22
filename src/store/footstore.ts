@@ -1,4 +1,4 @@
-import { ApiGetAsyncTask, ApiGetAsyncTaskUnzip, AsyncType, Drive } from '../aliapi/utils'
+import { ApiGetAsyncTask, ApiGetAsyncTaskUnzip, AsyncType } from '../aliapi/utils'
 import PanDAL from '../pan/pandal'
 import DebugLog from '../utils/debuglog'
 import { humanTimeFM } from '../utils/format'
@@ -188,7 +188,7 @@ const useFootStore = defineStore('foot', {
       this.panSpaceInfo = '总空间 ' + token.spaceinfo
     },
 
-    mSaveDirInfo(drive: Drive, info: string) {
+    mSaveDirInfo(drive: string, info: string) {
       if (drive == 'pan') this.panDirInfo = info
       if (drive == 'pic') this.picDirInfo = info
     }

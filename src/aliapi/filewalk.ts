@@ -74,11 +74,11 @@ export default class AliFileWalk {
         return true
       } else if (resp.body && resp.body.code) {
         dir.items.length = 0
-        dir.next_marker = resp.body.code 
+        dir.next_marker = resp.body.code
         // message.warning('列出文件出错 ' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('_FileListOnePage err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_FileListOnePage err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('_FileListOnePage ' + dir.dirID, err)

@@ -75,9 +75,12 @@ export default defineComponent({
 
   <RenameModal :visible="modalStore.modalName == 'rename'" :istree='modalStore.modalData.istree || false' />
   <RenameMultiModal :visible="modalStore.modalName == 'renamemulti'" :istree='modalStore.modalData.istree || false' />
-  <ShuXingModal :visible="modalStore.modalName == 'shuxing'" :istree='modalStore.modalData.istree || false' />
-  <ShuXingMultiModal :visible="modalStore.modalName == 'shuxingmulti'" :istree='modalStore.modalData.istree || false' />
-  <SearchPanModal :visible="modalStore.modalName == 'searchpan'" :inputsearch-type="modalStore.modalData.inputsearchType || ''"/>
+  <ShuXingModal :visible="modalStore.modalName == 'shuxing'" :istree='modalStore.modalData.istree || false'
+                :inputsearchType="modalStore.modalData.inputsearchType || ''" />
+  <ShuXingMultiModal :visible="modalStore.modalName == 'shuxingmulti'" :istree='modalStore.modalData.istree || false'
+                     :inputsearchType="modalStore.modalData.inputsearchType || ''" />
+  <SearchPanModal :visible="modalStore.modalName == 'searchpan'"
+                  :inputsearchType="modalStore.modalData.inputsearchType || ''" />
 
   <DLNAPlayerModal :visible="modalStore.modalName == 'dlna'" />
   <M3U8DownloadModal :visible="modalStore.modalName == 'm3u8download'" />

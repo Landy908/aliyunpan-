@@ -80,6 +80,7 @@ export default class AliHttp {
         if (status == 429) isNeedLog = false
         if (data && data.code) {
           let errCode = [
+            'NotFound.File',
             'InvalidParameter.Limit',
             'ForbiddenFileInTheRecycleBin',
             'PreHashMatched',

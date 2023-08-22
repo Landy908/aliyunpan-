@@ -153,19 +153,19 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
               for (let i = 0, maxi = items.length; i < maxi; i++) {
                 if (dir.itemsKey.has(items[i].file_id)) continue
                 const add = AliDirFileList.getFileInfo(items[i], '')
-                add.namesearch = items[i].content_hash 
+                add.namesearch = items[i].content_hash
                 dir.items.push(add)
                 dir.itemsKey.add(add.file_id)
               }
-              if (dir.items.length >= 3000) dir.next_marker = '' 
+              if (dir.items.length >= 3000) dir.next_marker = ''
               break
             }
           }
         }
       }
       return true
-    } else {
-      DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''))
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''), resp.body)
     }
   } catch (err: any) {
     DebugLog.mSaveWarning('ApiBatchDirFileList', err)
@@ -203,11 +203,11 @@ async function ApiWalkDirFileList(user_id: string, drive_id: string, file_id: st
         break
       } else if (resp.body && resp.body.code) {
         items.length = 0
-        next_marker = resp.body.code 
+        next_marker = resp.body.code
         message.warning('列出文件出错 ' + resp.body.code, 2)
         return false
-      } else {
-        DebugLog.mSaveWarning('ApiWalkDirFileList err=' + (resp.code || ''))
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('ApiWalkDirFileList err=' + (resp.code || ''), resp.body)
       }
     } catch (err: any) {
       DebugLog.mSaveDanger('ApiWalkDirFileList' + file_id, err)
