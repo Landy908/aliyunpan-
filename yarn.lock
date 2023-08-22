@@ -1022,6 +1022,11 @@ artplayer@^5.0.9:
   dependencies:
     option-validator "^2.0.6"
 
+ass-html5@^0.3.5:
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/ass-html5/-/ass-html5-0.3.5.tgz#36d3b9be0a09fe4d0b1e8acac732fe785161a354"
+  integrity sha512-Suu3rbtXnuKPjWBRvSZqBd12KJOmtsZOg6gGqGaoQYNA0OdxMmuhVzVQbYXZK+YD6v1cDZaUVxykOPzrej3HIA==
+
 assert-plus@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmmirror.com/assert-plus/-/assert-plus-1.0.0.tgz#f12e0f3c5d77b0b1cdd9146942e4e96c1e4dd525"

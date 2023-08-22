@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.23.81420",
+  "version": "3.23.82218",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -34,6 +34,7 @@
     "ant-design-vue": "^3.2.20",
     "aria2-lib": "1.0.1",
     "artplayer": "^5.0.9",
+    "ass-html5": "^0.3.5",
     "axios": "^1.4.0",
     "consola": "^3.1.0",
     "crypto-js": "^4.1.1",
