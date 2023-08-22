@@ -180,7 +180,7 @@ export async function menuTrashSelectFile(istree: boolean, isDelete: boolean) {
     } else {
       usePanFileStore().mDeleteFiles(selectedData.dirID, successList, selectedData.dirID !== 'trash')
       if (selectedData.dirID !== 'trash') {
-        // PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, selectedData.dirID)
+        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, selectedData.dirID)
         TreeStore.ClearDirSize(selectedData.drive_id, selectedData.selectedParentKeys)
       }
     }
@@ -302,11 +302,11 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
       if (!istree) {
         usePanFileStore().mDeleteFiles(selectedData.dirID, successList, true)
       }
-      await PanDAL.aReLoadOneDirToShow(to_drive_id, dirID, true)
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, parent_file_id)
       if (selectedData.drive_id != to_drive_id) {
         await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, dirID)
       }
+      await PanDAL.aReLoadOneDirToShow(to_drive_id, dirID, true)
       TreeStore.ClearDirSize(selectedData.drive_id, [dirID, ...selectedData.selectedParentKeys])
     }
   })
@@ -372,11 +372,11 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
   AliFileCmd.ApiMoveBatch(selectedData.user_id, selectedData.drive_id, file_idList, to_drive_id, movetodirid)
     .then(async (success: string[]) => {
       usePanFileStore().mDeleteFiles(selectedData.dirID, success, true)
-      await PanDAL.aReLoadOneDirToShow(to_drive_id, movetodirid, true)
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, selectedData.dirID)
       if (selectedData.drive_id != to_drive_id) {
         await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, movetodirid)
       }
+      await PanDAL.aReLoadOneDirToShow(to_drive_id, movetodirid, true)
       TreeStore.ClearDirSize(selectedData.drive_id, [movetodirid, ...selectedData.selectedParentKeys])
     })
 }
