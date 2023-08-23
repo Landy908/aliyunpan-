@@ -307,8 +307,7 @@ export default class AliFile {
       const list: IAliGetDirModel[] = []
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i]
-        if (item.file_id === 'root') item.file_id = driveType.key
-        if (item.parent_file_id === 'root') item.parent_file_id = driveType.key
+        if (item.file_id === 'root') continue
         list.push({
           __v_skip: true,
           drive_id: item.drive_id,

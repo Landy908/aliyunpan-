@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.23.82222",
+  "version": "3.23.82318",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
