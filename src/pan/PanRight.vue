@@ -50,7 +50,7 @@ import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
-import { GetDriveID } from '../aliapi/utils'
+import { GetDriveID, GetDriveType } from '../aliapi/utils'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -73,7 +73,8 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   }
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
-    isresourcedrive.value = inputsearchType.value == 'resource_root'
+    isresourcedrive.value = inputsearchType.value.includes('resource')
+    inputsearchType.value = GetDriveType(panTreeStore.user_id, DriveID).name
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()
