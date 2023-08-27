@@ -75,7 +75,7 @@ export default defineComponent({
           <template #icon><i class='iconfont iconwenjian' /></template>
           <template #default>上传文件</template>
         </a-doption>
-        <a-doption value='uploaddir' title='Ctrl+Shift+U' @click="() => handleUpload('folder', isPic)">
+        <a-doption value='uploaddir' title='Ctrl+Shift+U' @click="() => handleUpload('folder', false)">
           <template #icon><i class='iconfont iconfile-folder' /></template>
           <template #default>上传文件夹</template>
         </a-doption>

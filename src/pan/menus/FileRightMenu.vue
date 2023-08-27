@@ -113,7 +113,8 @@ const isShowBtn = computed(() => {
           </div>
         </template>
         <template #content>
-          <a-doption v-show='isShowBtn && inputpicType !== "mypic"' @click='() => menuAddAlbumSelectFile()'>
+          <a-doption v-show='isShowBtn && inputpicType !== "mypic" && dirtype !== "pan"'
+                     @click='() => menuAddAlbumSelectFile()'>
             <template #icon><i class='iconfont iconmoveto' /></template>
             <template #default>添加到相册</template>
           </a-doption>
