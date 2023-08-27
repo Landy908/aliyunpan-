@@ -41,8 +41,10 @@ export default class AliFile {
       let fileInfo = resp.body as IAliFileItem
       if (fileInfo.name.toLowerCase() === 'default') {
         fileInfo.name = '备份盘'
-      } else if (fileInfo.name.toLowerCase() === 'default') {
+      } else if (fileInfo.name.toLowerCase() === 'resource') {
         fileInfo.name = '资源盘'
+      } else if (fileInfo.name.toLowerCase() === 'alibum') {
+        fileInfo.name = '相册'
       }
       return fileInfo
     } else if (AliHttp.HttpCodeBreak(resp.code)) {
