@@ -15,6 +15,7 @@ import {
 } from '../topbtns/topbtn'
 import { modalRename, modalShuXing } from '../../utils/modal'
 import { useSettingStore } from '../../store'
+import { computed } from 'vue'
 
 let istree = false
 const settingStore = useSettingStore()
@@ -43,9 +44,17 @@ const props = defineProps({
   inputsearchType: {
     type: String,
     required: true
+  },
+  inputpicType: {
+    type: String,
+    required: true
   }
 })
 
+const isShowBtn = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
+    || props.dirtype === 'mypic' || props.dirtype === 'pan'
+})
 </script>
 
 <template>
@@ -104,15 +113,15 @@ const props = defineProps({
           </div>
         </template>
         <template #content>
-          <a-doption v-show='!isallfavored' @click='() => menuAddAlbumSelectFile()'>
+          <a-doption v-show='isShowBtn && inputpicType !== "mypic"' @click='() => menuAddAlbumSelectFile()'>
             <template #icon><i class='iconfont iconmoveto' /></template>
             <template #default>添加到相册</template>
           </a-doption>
-          <a-doption @click="() => menuCopySelectedFile(istree, 'cut')">
+          <a-doption v-show='isShowBtn' @click="() => menuCopySelectedFile(istree, 'cut')">
             <template #icon><i class='iconfont iconscissor' /></template>
             <template #default>移动到...</template>
           </a-doption>
-          <a-doption @click="() => menuCopySelectedFile(istree, 'copy')">
+          <a-doption v-show='isShowBtn' @click="() => menuCopySelectedFile(istree, 'copy')">
             <template #icon><i class='iconfont iconcopy' /></template>
             <template #default>复制到...</template>
           </a-doption>
@@ -172,7 +181,8 @@ const props = defineProps({
             <template #icon><i class='iconfont iconlist' /></template>
             <template #default>复制文件名</template>
           </a-doption>
-          <a-doption v-show='isselected && !isselectedmulti' @click='() => menuCopyFileTree()'>
+          <a-doption v-show='!dirtype.includes("pic") && isselected && !isselectedmulti'
+                     @click='() => menuCopyFileTree()'>
             <template #icon><i class='iconfont iconnode-tree1' /></template>
             <template #default>复制目录树</template>
           </a-doption>

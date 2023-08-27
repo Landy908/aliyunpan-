@@ -1103,6 +1103,7 @@ const onPanDragEnd = (ev: any) => {
                    :isselected='panfileStore.IsListSelected'
                    :isselectedmulti='panfileStore.IsListSelectedMulti'
                    :inputsearchType='inputsearchType'
+                   :inputpicType='inputpicType'
                    :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashRightMenu :dirtype='panfileStore.SelectDirType' />
   </div>

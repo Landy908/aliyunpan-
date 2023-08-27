@@ -60,7 +60,7 @@ export default defineComponent({
         || props.dirtype === 'mypic' || props.dirtype === 'pan'
     })
     const isPic = computed(() => {
-      return (props.dirtype === 'pic' && props.inputpicType != 'pic_root') || props.dirtype === 'mypic'
+      return (props.dirtype === 'pic' && props.inputpicType == 'mypic')
     })
     return {
       istree,
@@ -117,7 +117,7 @@ export default defineComponent({
               @click='() => menuTrashSelectFile(istree, false, isPic)'>
       <i class='iconfont iconqingkong' />移出相册
     </a-button>
-    <a-button v-show='dirtype === "pic"' type='text' size='small' tabindex='-1'
+    <a-button v-show='dirtype === "pic" && inputpicType === "pic"' type='text' size='small' tabindex='-1'
               @click='() => menuAddAlbumSelectFile()'>
       <i class='iconfont iconmoveto' />添加到相册
     </a-button>
@@ -151,11 +151,11 @@ export default defineComponent({
           <template #icon><i class='iconfont iconedit-square' /></template>
           <template #default>重命名</template>
         </a-doption>
-        <a-doption title='Ctrl+X' @click="() => menuCopySelectedFile(istree, 'cut')">
+        <a-doption v-show='isShowBtn' title='Ctrl+X' @click="() => menuCopySelectedFile(istree, 'cut')">
           <template #icon><i class='iconfont iconscissor' /></template>
           <template #default>移动到...</template>
         </a-doption>
-        <a-doption title='Ctrl+C' @click="() => menuCopySelectedFile(istree, 'copy')">
+        <a-doption v-show='isShowBtn' title='Ctrl+C' @click="() => menuCopySelectedFile(istree, 'copy')">
           <template #icon><i class='iconfont iconcopy' /></template>
           <template #default>复制到...</template>
         </a-doption>
@@ -185,7 +185,8 @@ export default defineComponent({
           <template #icon><i class='iconfont iconlist' /></template>
           <template #default>复制文件名</template>
         </a-doption>
-        <a-doption v-show='isselected && !isselectedmulti' @click='() => menuCopyFileTree()'>
+        <a-doption v-show='!dirtype.includes("pic") && isselected && !isselectedmulti'
+                   @click='() => menuCopyFileTree()'>
           <template #icon><i class='iconfont iconnode-tree1' /></template>
           <template #default>复制目录树</template>
         </a-doption>
