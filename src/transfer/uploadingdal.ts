@@ -7,6 +7,7 @@ import { CheckWindowsBreakPath, FileSystemErrorMessage } from '../utils/filehelp
 import { humanSize, humanSizeSpeed } from '../utils/format'
 import message from '../utils/message'
 import UploadingData from './uploadingdata'
+
 const path = window.require('path')
 const fspromises = window.require('fs/promises')
 
@@ -63,9 +64,21 @@ export default class UploadingDAL {
 
       if (!isToStart) {
         if (all) {
-          window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: false, UploadIDList: [], TaskIDList: [uploadingStore.showTaskID] })
+          window.WinMsgToUpload({
+            cmd: 'UploadCmd',
+            Command: 'stop',
+            IsAll: false,
+            UploadIDList: [],
+            TaskIDList: [uploadingStore.showTaskID]
+          })
         } else {
-          window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: false, UploadIDList: UploadIDList, TaskIDList: [] })
+          window.WinMsgToUpload({
+            cmd: 'UploadCmd',
+            Command: 'stop',
+            IsAll: false,
+            UploadIDList: UploadIDList,
+            TaskIDList: []
+          })
         }
       }
     } else {
@@ -76,7 +89,13 @@ export default class UploadingDAL {
         if (all) {
           window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: true, UploadIDList: [], TaskIDList: [] })
         } else {
-          window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: false, UploadIDList: [], TaskIDList: TaskIDList })
+          window.WinMsgToUpload({
+            cmd: 'UploadCmd',
+            Command: 'stop',
+            IsAll: false,
+            UploadIDList: [],
+            TaskIDList: TaskIDList
+          })
         }
       }
     }
@@ -92,13 +111,25 @@ export default class UploadingDAL {
       const UploadIDList: number[] = [TaskOrUploadID]
       await UploadingData.UploadingStartTaskFile(uploadingStore.showTaskID, UploadIDList, isToStart)
 
-      if (!isToStart) window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: false, UploadIDList: UploadIDList, TaskIDList: [] })
+      if (!isToStart) window.WinMsgToUpload({
+        cmd: 'UploadCmd',
+        Command: 'stop',
+        IsAll: false,
+        UploadIDList: UploadIDList,
+        TaskIDList: []
+      })
     } else {
       const isToStart = UploadingData.GetTaskIsStop(TaskOrUploadID)
       const TaskIDList: number[] = [TaskOrUploadID]
       await UploadingData.UploadingStartTask(TaskIDList, isToStart)
 
-      if (!isToStart) window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'stop', IsAll: false, UploadIDList: [], TaskIDList: TaskIDList })
+      if (!isToStart) window.WinMsgToUpload({
+        cmd: 'UploadCmd',
+        Command: 'stop',
+        IsAll: false,
+        UploadIDList: [],
+        TaskIDList: TaskIDList
+      })
     }
     UploadingDAL.mUploadingRefresh()
   }
@@ -111,9 +142,21 @@ export default class UploadingDAL {
       let UploadIDList: number[] = all ? [] : Array.from(useUploadingStore().ListSelected)
       UploadIDList = await UploadingData.UploadingDeleteTaskFile(uploadingStore.showTaskID, UploadIDList)
       if (all) {
-        window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'delete', IsAll: false, UploadIDList: [], TaskIDList: [uploadingStore.showTaskID] })
+        window.WinMsgToUpload({
+          cmd: 'UploadCmd',
+          Command: 'delete',
+          IsAll: false,
+          UploadIDList: [],
+          TaskIDList: [uploadingStore.showTaskID]
+        })
       } else {
-        window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'delete', IsAll: false, UploadIDList: UploadIDList, TaskIDList: [] })
+        window.WinMsgToUpload({
+          cmd: 'UploadCmd',
+          Command: 'delete',
+          IsAll: false,
+          UploadIDList: UploadIDList,
+          TaskIDList: []
+        })
       }
     } else {
       let TaskIDList: number[] = all ? [] : Array.from(useUploadingStore().ListSelected)
@@ -121,7 +164,13 @@ export default class UploadingDAL {
       if (all) {
         window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'delete', IsAll: true, UploadIDList: [], TaskIDList: [] })
       } else {
-        window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'delete', IsAll: false, UploadIDList: [], TaskIDList: TaskIDList })
+        window.WinMsgToUpload({
+          cmd: 'UploadCmd',
+          Command: 'delete',
+          IsAll: false,
+          UploadIDList: [],
+          TaskIDList: TaskIDList
+        })
       }
     }
     UploadingDAL.mUploadingRefresh()
@@ -158,7 +207,13 @@ export default class UploadingDAL {
     if (check.delList.length > 0) {
 
       console.log('UploadingEventRunningCheck', check.delList)
-      window.WinMsgToUpload({ cmd: 'UploadCmd', Command: 'delete', IsAll: false, UploadIDList: check.delList, TaskIDList: [] })
+      window.WinMsgToUpload({
+        cmd: 'UploadCmd',
+        Command: 'delete',
+        IsAll: false,
+        UploadIDList: check.delList,
+        TaskIDList: []
+      })
     }
 
     const sendList = UploadingData.UploadingEventSendList(check.newList, LoadingKeys)
@@ -177,8 +232,6 @@ export default class UploadingDAL {
 
 
   static async aUploadLocalFiles(user_id: string, drive_id: string, parent_file_id: string, files: string[], check_name_mode: string, tip: boolean) {
-
-
     if (!user_id) return 0
     if (!files || files.length == 0) return 0
     const dateNow = Date.now()
@@ -261,13 +314,12 @@ export default class UploadingDAL {
               name: baseName,
               size: stat.size,
               sizeStr: isDir ? '' : humanSize(stat.size),
-              mtime: stat.mtime.getTime() ,
+              mtime: stat.mtime.getTime(),
               isDir: isDir,
               IsRoot: true,
               uploaded_is_rapid: false,
               uploaded_file_id: ''
             } as IStateUploadTaskFile)
-
             addList.push(task)
           })
           .catch((err: any) => {
@@ -278,7 +330,8 @@ export default class UploadingDAL {
       )
 
       if (plist.length >= 10) {
-        await Promise.all(plist).catch(() => {})
+        await Promise.all(plist).catch(() => {
+        })
         plist = []
         if (addList.length >= 1000) {
           await UploadingData.UploadingAddTask(addList)
@@ -287,7 +340,8 @@ export default class UploadingDAL {
         }
       }
     }
-    await Promise.all(plist).catch(() => {})
+    await Promise.all(plist).catch(() => {
+    })
     await UploadingData.UploadingAddTask(addList)
     addall += addList.length
     addList = []

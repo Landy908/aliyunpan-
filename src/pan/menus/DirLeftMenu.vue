@@ -85,12 +85,12 @@ const handleExpandAll = (isExpand: boolean) => {
         </template>
       </a-dsubmenu>
 
-      <a-doption @click="() => modalRename(istree, false)">
-        <template #icon> <i class="iconfont iconedit-square" /> </template>
+      <a-doption @click='() => modalRename(istree, false, false)'>
+        <template #icon><i class='iconfont iconedit-square' /></template>
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click='() => modalShuXing(istree, false, inputsearchType)'>
+      <a-doption @click='() => modalShuXing(istree, inputsearchType)'>
         <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>

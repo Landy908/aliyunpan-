@@ -1,19 +1,18 @@
 import { IUploadingModel } from '../down/UploadingStore'
 import PanDAL from '../pan/pandal'
-import { useSettingStore } from '../store'
+import { usePanTreeStore, useSettingStore } from '../store'
 import UploadDAL from './uploaddal'
 import DBUpload, { IStateUploadInfo, IStateUploadTask, IStateUploadTaskFile, IUploadingUI } from '../utils/dbupload'
 import { humanSize, humanSizeSpeed, humanTime, humanTimeFM } from '../utils/format'
 import { MapValueToArray } from '../utils/utils'
 import { throttle } from '../utils/debounce'
 import { SetProgressBar } from '../utils/electronhelper'
+import AliAlbum from '../aliapi/album'
+
 const path = window.require('path')
 
 const UploadingTaskList = new Map<number, IStateUploadTask>()
-
-
 const UploadingInfoList = new Map<number, IStateUploadInfo>()
-
 let UploadingTaskStop = new Set<number>()
 let UploadingInfoStop = new Set<number>()
 let _UploadingSendTime = 0
@@ -127,7 +126,7 @@ export default class UploadingData {
 
       const childrenList = task.Children
       for (let i = 0, maxi = childrenList.length; i < maxi; i++) {
-        if (UploadingInfoStop.has(childrenList[i].UploadID) == false) {
+        if (!UploadingInfoStop.has(childrenList[i].UploadID)) {
 
           UploadingTaskStop.delete(TaskID)
           return true
@@ -189,7 +188,7 @@ export default class UploadingData {
 
         if (fileMap.has(item.UploadID)) {
 
-          if (downAutoStart && UploadingInfoStop.has(item.UploadID) == false) {
+          if (downAutoStart && !UploadingInfoStop.has(item.UploadID)) {
             item.uploadState = '排队中'
           } else {
             item.uploadState = '已暂停'
@@ -425,10 +424,13 @@ export default class UploadingData {
       } else {
 
         for (let i = 0, maxi = childrenList.length; i < maxi; i++) {
-          if (UploadingInfoStop.has(childrenList[i].UploadID) == false) {
+          if (!UploadingInfoStop.has(childrenList[i].UploadID)) {
 
             UploadingTaskStop.delete(TaskID)
-            await DBUpload.saveUploadObj('UploadingStop', { TaskIDList: Array.from(UploadingTaskStop), UploadIDList: Array.from(UploadingInfoStop) })
+            await DBUpload.saveUploadObj('UploadingStop', {
+              TaskIDList: Array.from(UploadingTaskStop),
+              UploadIDList: Array.from(UploadingInfoStop)
+            })
             return IDList
           }
         }
@@ -459,7 +461,7 @@ export default class UploadingData {
 
           const UploadID = childrenList[i].UploadID
           UploadingInfoList.delete(UploadID)
-          if (childrenList[i].isDir == false && childrenList[i].size > 3 * 1024 * 1024) delInfoList.push(UploadID)
+          if (!childrenList[i].isDir && childrenList[i].size > 3 * 1024 * 1024) delInfoList.push(UploadID)
           UploadingInfoStop.delete(UploadID)
         }
 
@@ -490,7 +492,7 @@ export default class UploadingData {
           IDList.push(fileItem.UploadID)
           delInfoList.push(fileItem.UploadID)
           UploadingInfoList.delete(fileItem.UploadID)
-          if (fileItem.isDir == false && fileItem.size > 3 * 1024 * 1024) delInfoList.push(fileItem.UploadID)
+          if (!fileItem.isDir && fileItem.size > 3 * 1024 * 1024) delInfoList.push(fileItem.UploadID)
           UploadingInfoStop.delete(fileItem.UploadID)
         } else {
           newChildren.push(fileItem)
@@ -602,12 +604,11 @@ export default class UploadingData {
               delTaskList.push(TaskID)
               UploadingTaskStop.delete(TaskID)
               saveUploadedList.push(task)
-
-              PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
+              await PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
             }
 
             UploadingInfoList.delete(fileItem.UploadID)
-            if (fileItem.isDir == false && fileItem.size > 3 * 1024 * 1024) delInfoList.push(fileItem.UploadID)
+            if (!fileItem.isDir && fileItem.size > 3 * 1024 * 1024) delInfoList.push(fileItem.UploadID)
             UploadingInfoStop.delete(fileItem.UploadID)
           }
         }
@@ -623,8 +624,21 @@ export default class UploadingData {
 
       if (delTaskList.length > 0) await DBUpload.deleteUploadTaskBatch(delTaskList)
       if (saveUploadedList.length > 0) {
+        // 上传完毕，若为相册上传则添加到相册
+        let panTreeStore = usePanTreeStore()
+        let album_id = panTreeStore.selectDir.album_id || ''
+        if (album_id && album_id.length > 0) {
+          let drive_file_list: { drive_id: string, file_id: string }[] = []
+          saveUploadedList.forEach(info => {
+            drive_file_list.push({
+              drive_id: info.drive_id,
+              file_id: info.TaskFileID
+            })
+          })
+          await AliAlbum.ApiAlbumAddFiles(panTreeStore.user_id, album_id, drive_file_list)
+        }
         await DBUpload.saveUploadedBatch(saveUploadedList)
-        UploadDAL.aReloadUploaded()
+        await UploadDAL.aReloadUploaded()
       }
       if (useSettingStore().downAutoShutDown == 1) useSettingStore().downAutoShutDown = 2
     }
@@ -635,7 +649,7 @@ export default class UploadingData {
 
     let fixStop = 0
     for (let i = 0, maxi = StopKeys.length; i < maxi; i++) {
-      if (UploadingInfoStop.has(StopKeys[i]) == false) {
+      if (!UploadingInfoStop.has(StopKeys[i])) {
         UploadingInfoStop.add(StopKeys[i])
         fixStop++
       }
@@ -718,15 +732,26 @@ export default class UploadingData {
             info.speedStr = ''
           }
 
-          if (info.uploadState == '排队中' && (downSmallFileFirst == false || fileItem.size < 100 * 1024 * 1024)) {
+          if (info.uploadState == '排队中' && (!downSmallFileFirst || fileItem.size < 100 * 1024 * 1024)) {
             RunningKeys.push(fileItem.UploadID)
             info.uploadState = 'running'
-            sendList.push({ IsRunning: true, TaskID: task.TaskID, UploadID: fileItem.UploadID, user_id: task.user_id, parent_file_id: task.parent_file_id, drive_id: task.drive_id, check_name_mode: task.check_name_mode, localFilePath: task.localFilePath, File: fileItem, Info: info } as IUploadingUI)
+            sendList.push({
+              IsRunning: true,
+              TaskID: task.TaskID,
+              UploadID: fileItem.UploadID,
+              user_id: task.user_id,
+              parent_file_id: task.parent_file_id,
+              drive_id: task.drive_id,
+              check_name_mode: task.check_name_mode,
+              localFilePath: task.localFilePath,
+              File: fileItem,
+              Info: info
+            } as IUploadingUI)
           }
         }
       }
 
-      if (LoadingKeys.length < 2 && dirCount > 0 && fileCount < 2000 && downSmallFileFirst == false) {
+      if (LoadingKeys.length < 2 && dirCount > 0 && fileCount < 2000 && !downSmallFileFirst) {
 
         for (let j = 0, maxj = childrenList.length; j < maxj; j++) {
           const fileItem = childrenList[j]

@@ -1,7 +1,8 @@
 <script lang='ts'>
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 
 import {
+  menuAddAlbumSelectFile,
   menuCopyFileName,
   menuCopyFileTree,
   menuCopySelectedFile,
@@ -46,16 +47,30 @@ export default defineComponent({
     inputsearchType: {
       type: String,
       required: true
+    },
+    inputpicType: {
+      type: String,
+      required: true
     }
   },
   setup(props) {
     const istree = false
+    const isShowBtn = computed(() => {
+      return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
+        || props.dirtype === 'mypic' || props.dirtype === 'pan'
+    })
+    const isPic = computed(() => {
+      return (props.dirtype === 'pic' && props.inputpicType != 'pic_root') || props.dirtype === 'mypic'
+    })
     return {
       istree,
+      isShowBtn,
+      isPic,
       menuDownload,
       menuCreatShare,
       menuFavSelectFile,
       menuTrashSelectFile,
+      menuAddAlbumSelectFile,
       modalRename,
       menuCopySelectedFile,
       modalShuXing,
@@ -73,31 +88,46 @@ export default defineComponent({
 
 <template>
   <div v-show="isselected && dirtype !== 'trash' && dirtype !== 'recover'" class='toppanbtn'>
-    <a-button type='text' size='small' tabindex='-1' title='Ctrl+D' @click='() => menuDownload(istree)'><i
-      class='iconfont icondownload' />下载
+    <a-button v-show='isShowBtn' type='text' size='small' tabindex='-1' title='Ctrl+D'
+              @click='() => menuDownload(istree)'>
+      <i class='iconfont icondownload' />下载
     </a-button>
     <a-button v-show="dirtype == 'pan' && inputsearchType.includes('resource')" type='text' size='small' tabindex='-1'
               title='Ctrl+S'
-              @click="() => menuCreatShare(istree, 'pan', 'resource_root')"><i class='iconfont iconfenxiang' />分享
+              @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
+      <i class='iconfont iconfenxiang' />分享
     </a-button>
-    <a-button v-show="dirtype == 'pan'" type='text' size='small' tabindex='-1' title='Ctrl+S'
-              @click="() => menuCreatShare(istree, 'pan', 'backup_root')"><i class='iconfont iconrss' />快传
+    <a-button v-show='isShowBtn' type='text' size='small' tabindex='-1' title='Ctrl+T'
+              @click="() => menuCreatShare(istree, 'pan', 'backup_root')">
+      <i class='iconfont iconrss' />快传
     </a-button>
-    <a-button v-show='!isallfavored' type='text' size='small' tabindex='-1' title='Ctrl+G'
-              @click='() => menuFavSelectFile(istree, true)'><i class='iconfont iconcrown' />收藏
+    <a-button v-show='isShowBtn && !isallfavored' type='text' size='small' tabindex='-1' title='Ctrl+G'
+              @click='() => menuFavSelectFile(istree, true)'>
+      <i class='iconfont iconcrown' />收藏
     </a-button>
-    <a-button v-show='isallfavored' type='text' size='small' tabindex='-1' title='Ctrl+G'
-              @click='() => menuFavSelectFile(istree, false)'><i class='iconfont iconcrown2' />取消收藏
+    <a-button v-show='isShowBtn && isallfavored' type='text' size='small' tabindex='-1' title='Ctrl+G'
+              @click='() => menuFavSelectFile(istree, false)'>
+      <i class='iconfont iconcrown2' />取消收藏
     </a-button>
-    <a-button v-show='isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
-              @click="() => menuFileColorChange(istree, '')"><i class='iconfont iconfangkuang' />清除标记
+    <a-button v-show='isShowBtn && isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
+              @click="() => menuFileColorChange(istree, '')">
+      <i class='iconfont iconfangkuang' />清除标记
     </a-button>
-
+    <a-button v-show='dirtype === "mypic"' type='text' size='small' tabindex='-1'
+              @click='() => menuTrashSelectFile(istree, false, isPic)'>
+      <i class='iconfont iconqingkong' />移出相册
+    </a-button>
+    <a-button v-show='dirtype === "pic"' type='text' size='small' tabindex='-1'
+              @click='() => menuAddAlbumSelectFile()'>
+      <i class='iconfont iconmoveto' />添加到相册
+    </a-button>
     <a-dropdown v-if="dirtype !== 'video'" trigger='hover' class='rightmenu' position='bl'>
-      <a-button type='text' size='small' tabindex='-1' class='danger'><i class='iconfont icondelete' />删除<i
-        class='iconfont icondown' /></a-button>
+      <a-button type='text' size='small' tabindex='-1' class='danger'>
+        <i class='iconfont icondelete' />删除<i class='iconfont icondown' />
+      </a-button>
       <template #content>
-        <a-doption title='Ctrl+Delete' class='danger' @click='() => menuTrashSelectFile(istree, false)'>
+        <a-doption v-show='isShowBtn' title='Ctrl+Delete' class='danger'
+                   @click='() => menuTrashSelectFile(istree, false)'>
           <template #icon><i class='iconfont icondelete' /></template>
           <template #default>放回收站</template>
         </a-doption>
@@ -106,7 +136,7 @@ export default defineComponent({
             <span class='arco-dropdown-option-icon'><i class='iconfont iconrest'></i></span>彻底删除
           </template>
           <template #content>
-            <a-doption title='Ctrl+Shift+Delete' class='danger' @click='() => menuTrashSelectFile(istree, true)'>
+            <a-doption title='Ctrl+Shift+Delete' class='danger' @click='() => menuTrashSelectFile(istree, true, isPic)'>
               <template #default>删除后无法还原</template>
             </a-doption>
           </template>
@@ -117,7 +147,7 @@ export default defineComponent({
     <a-dropdown trigger='hover' class='rightmenu' position='bl'>
       <a-button type='text' size='small' tabindex='-1'>更多<i class='iconfont icondown' /></a-button>
       <template #content>
-        <a-doption title='F2 / Ctrl+E' @click='() => modalRename(istree, isselectedmulti)'>
+        <a-doption title='F2 / Ctrl+E' @click='() => modalRename(istree, isselectedmulti, isPic)'>
           <template #icon><i class='iconfont iconedit-square' /></template>
           <template #default>重命名</template>
         </a-doption>
@@ -129,7 +159,7 @@ export default defineComponent({
           <template #icon><i class='iconfont iconcopy' /></template>
           <template #default>复制到...</template>
         </a-doption>
-        <a-doption title='Ctrl+P' @click='() => modalShuXing(istree, isselectedmulti, inputsearchType)'>
+        <a-doption title='Ctrl+P' @click='() => modalShuXing(istree, inputsearchType, dirtype.includes("pic"))'>
           <template #icon><i class='iconfont iconshuxing' /></template>
           <template #default>属性</template>
         </a-doption>

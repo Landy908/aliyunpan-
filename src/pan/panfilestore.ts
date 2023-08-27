@@ -25,6 +25,7 @@ export interface GridItem {
 export interface PanFileState {
   DriveID: string
   DirID: string
+  AlbumID: string
   DirName: string
 
   ListLoading: boolean
@@ -60,6 +61,7 @@ const usePanFileStore = defineStore('panfile', {
   state: (): State => ({
     DriveID: '',
     DirID: '',
+    AlbumID: '',
     DirName: '',
 
     ListLoading: false,
@@ -87,7 +89,11 @@ const usePanFileStore = defineStore('panfile', {
     },
 
     IsListSelectedMulti(state: State): boolean {
-      return state.ListSelected.size > 1
+      let isMulti = state.ListSelected.size > 1
+      if (isMulti && state.DirID === 'mypic') {
+        return false
+      }
+      return isMulti
     },
     ListSelectedCount(state: State): number {
       return state.ListSelected.size
@@ -137,6 +143,8 @@ const usePanFileStore = defineStore('panfile', {
       if (file_id == 'recover') return 'recover'
       if (file_id == 'trash') return 'trash'
       if (file_id == 'favorite') return 'favorite'
+      if (file_id.includes('pic')) return 'pic'
+      if (state.AlbumID) return 'mypic'
       if (file_id.startsWith('search')) return 'search'
       if (file_id.startsWith('color')) return 'color'
       if (file_id.startsWith('video')) return 'video'
@@ -156,6 +164,10 @@ const usePanFileStore = defineStore('panfile', {
           return '大小 · 降'
         case 'size asc':
           return '大小 · 升'
+        case 'file_count desc':
+          return '数量 · 降'
+        case 'file_count asc':
+          return '数量 · 升'
       }
       return '选择文件排序'
     }
@@ -163,12 +175,13 @@ const usePanFileStore = defineStore('panfile', {
 
   actions: {
 
-    mSaveDirFileLoading(drive_id: string, dirID: string, dirName: string) {
+    mSaveDirFileLoading(drive_id: string, dirID: string, dirName: string, albumID: string = '') {
       const order = TreeStore.GetDirOrder(drive_id, dirID)
-      if (this.DirID != dirID || this.DriveID != drive_id) {
+      if (this.DirID != dirID || this.DriveID != drive_id || this.AlbumID != albumID) {
         this.$patch({
           DriveID: drive_id,
           DirID: dirID,
+          AlbumID: albumID,
           DirName: dirName,
           ListOrderKey: order,
           ListLoading: true,
@@ -185,6 +198,7 @@ const usePanFileStore = defineStore('panfile', {
         this.$patch({
           DriveID: drive_id,
           DirID: dirID,
+          AlbumID: albumID,
           DirName: dirName,
           ListOrderKey: order,
           ListLoading: true,
@@ -195,7 +209,7 @@ const usePanFileStore = defineStore('panfile', {
           ListDataGrid: []
         })
       }
-      useFootStore().mSaveDirInfo('pan', '文件列表加载中...')
+      useFootStore().mSaveDirInfo('文件列表加载中...')
     },
 
     mSaveDirFileLoadingPart(pageIndex: number, partDir: IAliFileResp, itemsTotal: number = 0) {
@@ -205,7 +219,7 @@ const usePanFileStore = defineStore('panfile', {
         this.ListLoadingIndex++
         this.ListDataRaw = this.ListDataRaw.concat(partDir.items)
         this.mRefreshListDataShow(true)
-        if (itemsTotal > 0) useFootStore().mSaveDirInfo('pan', '文件列表加载中...　总:' + itemsTotal)
+        if (itemsTotal > 0) useFootStore().mSaveDirInfo('文件列表加载中...　总:' + itemsTotal)
       }
     },
 
@@ -231,7 +245,7 @@ const usePanFileStore = defineStore('panfile', {
         })
         panInfo = '文件夹:' + dirCount + '　文件:' + fileCount + '　总:' + itemsTotal
       }
-      useFootStore().mSaveDirInfo('pan', panInfo)
+      useFootStore().mSaveDirInfo(panInfo)
     },
 
     mSearchListData(value: string) {
@@ -431,6 +445,7 @@ const usePanFileStore = defineStore('panfile', {
       if (isChange) this.mRefreshListDataShow(false)
     },
     mSaveFileScrollTo(file_id: string) {
+      if (file_id == 'refresh') file_id = this.ListSelectKey
       this.scrollToFile = file_id
     }
   }

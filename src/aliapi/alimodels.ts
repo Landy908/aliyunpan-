@@ -5,6 +5,7 @@ export interface IAliFileVideoMeta {
   duration?: string
   fps?: string
 }
+
 export interface IAliFileAudioMeta {
   bit_rate?: string
   channel_layout?: string
@@ -14,12 +15,25 @@ export interface IAliFileAudioMeta {
   sample_rate?: string
 }
 
+export interface IAliAlbumInfo {
+  owner: string
+  name: string
+  description: string
+  coverUrl: string
+  album_id: string
+  file_count: number
+  image_count: number
+  video_count: number
+  created_at: number
+  updated_at: number,
+}
 
 export interface IAliFileItem {
   drive_id: string
   domain_id: string
   description?: string
   file_id: string
+  album_id?: string
   compilation_id?: string
   name: string
   type: string
@@ -32,6 +46,9 @@ export interface IAliFileItem {
   gmt_deleted?: string
   file_extension?: string
   hidden: boolean
+  file_count?: number
+  image_count?: number
+  video_count?: number
   size: number
   starred: boolean
   status: string
@@ -83,68 +100,68 @@ export interface IAliFileItem {
 
 
 export interface IAliOtherFollowingModel {
-  avatar: string 
-  description: string 
-  is_following: boolean 
-  nick_name: string 
-  phone: string 
-  user_id: string 
+  avatar: string
+  description: string
+  is_following: boolean
+  nick_name: string
+  phone: string
+  user_id: string
   follower_count: number
 }
 
 interface IAliMyFollowingMessageModel {
-  action: string 
+  action: string
   content: {
     file_id_list: string[]
     share: { popularity: number; popularity_emoji: string; popularity_str: string; share_id: string; share_pwd: string }
   }
-  created: number 
-  createdstr: string 
+  created: number
+  createdstr: string
   creator: IAliOtherFollowingModel
-  creator_id: string 
-  display_action: string 
-  sequence_id: number 
+  creator_id: string
+  display_action: string
+  sequence_id: number
 }
 
 
 export interface IAliMyFollowingModel {
-  avatar: string 
-  description: string 
-  has_unread_message: boolean 
-  is_following: boolean 
+  avatar: string
+  description: string
+  has_unread_message: boolean
+  is_following: boolean
   latest_messages: IAliMyFollowingMessageModel[]
-  nick_name: string 
-  phone: string 
-  user_id: string 
+  nick_name: string
+  phone: string
+  user_id: string
   SearchName: string
 }
 
 
 export interface IAliShareItem {
-  created_at: string 
-  creator: string 
-  description: string 
+  created_at: string
+  creator: string
+  description: string
   display_name: string
   display_label: string
   download_count: number
-  drive_id: string 
-  expiration: string 
+  drive_id: string
+  expiration: string
   expired: boolean
-  file_id: string 
-  file_id_list: string[] 
+  file_id: string
+  file_id_list: string[]
   icon: string
-  first_file?: IAliFileItem 
+  first_file?: IAliFileItem
   preview_count: number
   save_count: number
-  share_id: string 
-  
+  share_id: string
+
   share_msg: string
   full_share_msg: string
   share_name: string
-  share_policy: string 
-  share_pwd: string 
-  share_url: string 
-  status: string 
+  share_policy: string
+  share_pwd: string
+  share_url: string
+  status: string
   updated_at: string
 
   is_share_saved: boolean
@@ -157,15 +174,15 @@ export interface IAliShareAnonymous {
     creator_id: string
     creator_name: string
     creator_phone: string
-    display_name: string 
-    expiration: string 
+    display_name: string
+    expiration: string
     file_count: number
-    share_name: string 
-    created_at: string 
-    updated_at: string 
-    vip: string 
-    is_photo_collection: boolean 
-    album_id: string 
+    share_name: string
+    created_at: string
+    updated_at: string
+    vip: string
+    is_photo_collection: boolean
+    album_id: string
   }
   shareinfojson: string
   error: string
@@ -186,7 +203,7 @@ export interface IAliShareFileItem {
   parent_file_id: string
   // encrypt_mode: string
   // revision_id: string
-  
+
   file_extension?: string
   mime_extension: string
   mime_type: string
@@ -196,7 +213,7 @@ export interface IAliShareFileItem {
   category: string
   punish_flag: number
 
-  
+
   isDir: boolean
   sizeStr: string
   icon: string
@@ -215,12 +232,14 @@ export interface IAliGetDirModel {
   __v_skip: true
   drive_id: string
   file_id: string
+  album_id?: string
+  album_type?: string
   parent_file_id: string
   name: string
   namesearch: string
   size: number
   time: number
-  
+
   description: string
 }
 
@@ -235,6 +254,7 @@ export interface IAliGetFileModel {
   ext: string
   category: string
   icon: string
+  file_count?: number
   size: number
   sizeStr: string
   time: number
@@ -243,6 +263,7 @@ export interface IAliGetFileModel {
   isDir: boolean
   thumbnail: string
   description: string
+  album_id?: string
   compilation_id?: string
   download_url?: string
   media_width?: number

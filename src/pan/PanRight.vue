@@ -21,7 +21,7 @@ import {
   TestKeyboardScroll,
   TestKeyboardSelect
 } from '../utils/keyboardhelper'
-import { onMounted, ref, watch, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 import PanDAL from './pandal'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
@@ -55,6 +55,7 @@ import { GetDriveID, GetDriveType } from '../aliapi/utils'
 const viewlist = ref()
 const inputsearch = ref()
 const isresourcedrive = ref(false)
+const inputpicType = ref('pic_root')
 const inputsearchType = ref('backup')
 const videoSelectType = ref('recent')
 
@@ -87,15 +88,10 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
 watchEffect(() => {
   const scrollToFile = panfileStore.scrollToFile
   if (scrollToFile) {
-    if (viewlist.value) viewlist.value.scrollIntoView({ key: scrollToFile, align: 'top', offset: 220 })
+    if (viewlist.value) {
+      viewlist.value.scrollIntoView({ key: scrollToFile, offset: 50 })
+    }
     panfileStore.mSaveFileScrollTo('')
-  }
-})
-
-watch(inputsearchType, (n: any, o: any) => {
-  if (n != o) {
-    DriveID = GetDriveID(panTreeStore.user_id, n)
-    handleRefresh()
   }
 })
 
@@ -128,8 +124,8 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKey('f5', state.KeyDownEvent, handleRefresh)) return
   if (TestKey('f6', state.KeyDownEvent, handleDingWei)) return
   if (TestKey('Backspace', state.KeyDownEvent, handleBack)) return
-  if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
-  if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti))) return
+  if (TestKey('f2', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti, false))) return
+  if (TestCtrl('e', state.KeyDownEvent, () => modalRename(false, panfileStore.IsListSelectedMulti, false))) return
   if (TestCtrl('s', state.KeyDownEvent, () => {
     isresourcedrive && menuCreatShare(false, 'pan', 'resource_root')
   })) return
@@ -148,7 +144,8 @@ mouseStore.$subscribe((_m: any, state: MouseState) => {
   if (TestButton(0, mouseEvent, () => {
     if (mouseEvent.srcElement) {
       // @ts-ignore
-      if (mouseEvent.srcElement.className && mouseEvent.srcElement.className.toString().startsWith('arco-virtual-list')) {
+      const className = mouseEvent.srcElement.className
+      if (className && className.toString().startsWith('arco-virtual-list')) {
         onSelectCancel()
       }
     }
@@ -156,11 +153,26 @@ mouseStore.$subscribe((_m: any, state: MouseState) => {
   if (TestButton(3, mouseEvent, () => handleBack())) return
 })
 const handleRefresh = () => {
-  PanDAL.aReLoadOneDirToShow(DriveID, 'refresh', false)
+  let album_id = ''
+  if (panfileStore.SelectDirType.includes('pic')) {
+    album_id = panTreeStore.selectDir.file_id
+  }
+  PanDAL.aReLoadOneDirToShow(DriveID, 'refresh', false, album_id)
 }
 const handleDingWei = () => {
   PanDAL.aTreeScrollToDir('refresh')
 }
+
+const handleChangePic = (value: any) => {
+  panTreeStore.selectDir.album_type = value
+  PanDAL.aReLoadOneDirToShow(DriveID, value, false)
+}
+
+const handleChangeDrive = (value: any) => {
+  DriveID = GetDriveID(panTreeStore.user_id, value)
+  handleRefresh()
+}
+
 const handleBack = () => {
   if (!usePanTreeStore().PanHistoryCount) return
   PanDAL.aReLoadOneDirToShow(DriveID, 'back', false)
@@ -230,7 +242,7 @@ const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
   if (!file) return
 
   if (file.isDir) {
-    PanDAL.aReLoadOneDirToShow('', file.compilation_id ? 'video' + file.name : file.file_id, true)
+    PanDAL.aReLoadOneDirToShow('', file.compilation_id ? 'video' + file.name : file.file_id, true, file.album_id)
     return
   }
 
@@ -534,14 +546,21 @@ const onPanDragEnd = (ev: any) => {
         </template>
       </a-button>
     </div>
-    <div v-show="panfileStore.SelectDirType !== 'pan' &&
-                 panfileStore.SelectDirType !== 'video' &&
-                 panfileStore.SelectDirType !== 'recover'"
-         class='toppanbtn'>
+    <div v-show="panfileStore.SelectDirType.includes('pic')" class='toppanbtn'>
+      <a-select v-model:model-value='inputpicType' size='small' tabindex='-1'
+                @update:model-value='handleChangePic'
+                style='width: 120px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
+        <a-option value='pic_root'>全部相册</a-option>
+        <a-option value='mypic'>我的相册</a-option>
+      </a-select>
+    </div>
+    <div v-show="!['pan', 'pic', 'mypic', 'video', 'recover'].includes(panfileStore.SelectDirType)" class='toppanbtn'>
       <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
+                @update:model-value='handleChangeDrive'
                 style='width: 100px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
         <a-option value='backup'>备份盘</a-option>
         <a-option value='resource'>资源盘</a-option>
+        <a-option v-show="['trash', 'favorite'].includes(panfileStore.SelectDirType)" value='pic'>相册</a-option>
       </a-select>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
@@ -579,11 +598,13 @@ const onPanDragEnd = (ev: any) => {
     </div>
 
     <PanTopbtn :dirtype='panfileStore.SelectDirType'
+               :inputpicType='inputpicType'
                :isselected='panfileStore.IsListSelected' />
     <FileTopbtn :dirtype='panfileStore.SelectDirType'
                 :isselected='panfileStore.IsListSelected'
                 :isvideo='menuShowVideo'
                 :inputsearchType='inputsearchType'
+                :inputpicType='inputpicType'
                 :isselectedmulti='panfileStore.IsListSelectedMulti'
                 :isallfavored='panfileStore.IsListSelectedFavAll'
                 :isallcolored='panfileStore.IsListSelectedColorAll' />
@@ -639,11 +660,13 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
     <div style='flex-grow: 1'></div>
-    <div class='fileorder'>
+    <div class='fileorder' v-if='panfileStore.SelectDirType !== "pic"'>
       <a-dropdown trigger='hover' position='bl' @select='(val:any)=>handleFileListOrder(val as string)'>
-        <a-button type='text' size='small' tabindex='-1' :disabled='panfileStore.ListLoading'><i
-          class='iconfont iconpaixu1' />{{ panfileStore.FileOrderDesc }} <i class='iconfont icondown' /></a-button>
-
+        <a-button type='text' size='small' tabindex='-1' :disabled='panfileStore.ListLoading'>
+          <i class='iconfont iconpaixu1' />
+          {{ panfileStore.FileOrderDesc }}
+          <i class='iconfont icondown' />
+        </a-button>
         <template #content>
           <a-doption value='name asc'>
             <template #default>　名称 · 升序　</template>
@@ -754,7 +777,7 @@ const onPanDragEnd = (ev: any) => {
               </div>
             </div>
             <div class='filebtn'>
-              <a-button v-if='item.description' type='text' tabindex='-1' class='label' title='标记'>
+              <a-button v-if='!item.album_id && item.description' type='text' tabindex='-1' class='label' title='标记'>
                 <i class='iconfont iconwbiaoqian' :class='item.description' />
               </a-button>
               <a-popover v-if='item.thumbnail' content-class='popimg' position='lt'>
@@ -770,7 +793,8 @@ const onPanDragEnd = (ev: any) => {
               <a-button v-else type='text' tabindex='-1' class='gengduo' disabled></a-button>
             </div>
 
-            <div class='filesize'>{{ item.sizeStr }}</div>
+            <div v-show='!item.album_id' class='filesize'>{{ item.sizeStr }}</div>
+            <div v-show='item.file_count' class='filesize'>{{ '文件数: ' + item.file_count }}</div>
             <div class='filetime'>{{ item.timeStr }}</div>
           </div>
           <div

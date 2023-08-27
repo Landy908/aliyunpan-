@@ -135,8 +135,9 @@ export default class TreeStore {
   static async SaveOneDirFileList(oneDir: IAliFileResp, hasFiles: boolean): Promise<void> {
     console.log('SaveOneDirFileList', oneDir.dirID)
     if (oneDir.dirID == 'favorite' || oneDir.dirID == 'trash'
-      || oneDir.dirID == 'recover' || oneDir.dirID.startsWith('search')
-      || oneDir.dirID.startsWith('color') || oneDir.dirID.startsWith('video')) {
+      || oneDir.dirID == 'recover' || oneDir.dirID.includes('pic')
+      || oneDir.dirID.startsWith('search') || oneDir.dirID.startsWith('video')
+      || oneDir.dirID.startsWith('color')) {
       return
     }
     let driverData = DriverData.get(oneDir.m_drive_id)
@@ -281,6 +282,28 @@ export default class TreeStore {
       time: 0,
       description: ''
     }
+    if (file_id == 'pic_root') return {
+      __v_skip: true,
+      drive_id,
+      file_id: 'pic_root',
+      parent_file_id: '',
+      name: '全部相册',
+      namesearch: '',
+      size: 0,
+      time: 0,
+      description: ''
+    }
+    if (file_id == 'mypic') return {
+      __v_skip: true,
+      drive_id,
+      file_id: 'mypic',
+      parent_file_id: '',
+      name: '我的相册',
+      namesearch: '',
+      size: 0,
+      time: 0,
+      description: ''
+    }
     if (file_id == 'favorite') return {
       __v_skip: true,
       drive_id,
@@ -390,6 +413,28 @@ export default class TreeStore {
       file_id: 'resource_root',
       parent_file_id: '',
       name: '资源盘',
+      namesearch: '',
+      size: 0,
+      time: 0,
+      description: ''
+    }]
+    if (file_id == 'pic_root') return [{
+      __v_skip: true,
+      drive_id,
+      file_id: 'pic_root',
+      parent_file_id: '',
+      name: '全部相册',
+      namesearch: '',
+      size: 0,
+      time: 0,
+      description: ''
+    }]
+    if (file_id == 'mypic') return [{
+      __v_skip: true,
+      drive_id,
+      file_id: 'mypic',
+      parent_file_id: '',
+      name: '我的相册',
       namesearch: '',
       size: 0,
       time: 0,

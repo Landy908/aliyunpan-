@@ -106,7 +106,8 @@ mouseStore.$subscribe((_m: any, state: MouseState) => {
   if (TestButton(0, mouseEvent, () => {
     if (mouseEvent.srcElement) {
       // @ts-ignore
-      if (mouseEvent.srcElement.className && mouseEvent.srcElement.className.toString().startsWith('arco-virtual-list')) {
+      const className = mouseEvent.srcElement.className
+      if (className && className.toString().startsWith('arco-virtual-list')) {
         onSelectCancel()
       }
     }

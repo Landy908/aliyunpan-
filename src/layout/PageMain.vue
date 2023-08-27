@@ -20,7 +20,6 @@ import Rss from '../rss/index.vue'
 import Share from '../share/index.vue'
 import Down from '../down/index.vue'
 import Pan from '../pan/index.vue'
-import Pic from '../pic/index.vue'
 
 import UserInfo from '../user/UserInfo.vue'
 import UserLogin from '../user/UserLogin.vue'
@@ -64,11 +63,10 @@ const handleHelpPage = () => {
 
 keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestAlt('1', state.KeyDownEvent, () => appStore.toggleTab('pan'))) return
-  if (TestAlt('2', state.KeyDownEvent, () => appStore.toggleTab('pic'))) return
-  if (TestAlt('3', state.KeyDownEvent, () => appStore.toggleTab('down'))) return
-  if (TestAlt('4', state.KeyDownEvent, () => appStore.toggleTab('share'))) return
-  if (TestAlt('5', state.KeyDownEvent, () => appStore.toggleTab('rss'))) return
-  if (TestAlt('6', state.KeyDownEvent, () => appStore.toggleTab('setting'))) return
+  if (TestAlt('2', state.KeyDownEvent, () => appStore.toggleTab('down'))) return
+  if (TestAlt('3', state.KeyDownEvent, () => appStore.toggleTab('share'))) return
+  if (TestAlt('4', state.KeyDownEvent, () => appStore.toggleTab('rss'))) return
+  if (TestAlt('5', state.KeyDownEvent, () => appStore.toggleTab('setting'))) return
   if (TestAlt('f4', state.KeyDownEvent, () => handleHideClick(undefined))) return
   if (TestAlt('m', state.KeyDownEvent, () => handleMinClick(undefined))) return
   if (TestAlt('enter', state.KeyDownEvent, () => handleMaxClick(undefined))) return
@@ -178,12 +176,12 @@ const handleCheckVer = () => {
         </a-button>
         <div class="title">阿里云盘</div>
 
-        <a-menu mode="horizontal" :selected-keys="[appStore.appTab]" @update:selected-keys="appStore.toggleTab($event[0])">
-          <a-menu-item key="pan" title="Alt+1">网盘</a-menu-item>
-<!--          <a-menu-item key="pic" title="Alt+2">相册</a-menu-item>-->
-          <a-menu-item key="down" title="Alt+3">传输</a-menu-item>
-          <a-menu-item key="share" title="Alt+4">分享</a-menu-item>
-          <a-menu-item key="rss" title="Alt+5">插件</a-menu-item>
+        <a-menu mode='horizontal' :selected-keys='[appStore.appTab]'
+                @update:selected-keys='appStore.toggleTab($event[0])'>
+          <a-menu-item key='pan' title='Alt+1'>网盘</a-menu-item>
+          <a-menu-item key='down' title='Alt+2'>传输</a-menu-item>
+          <a-menu-item key='share' title='Alt+3'>分享</a-menu-item>
+          <a-menu-item key='rss' title='Alt+4'>插件</a-menu-item>
         </a-menu>
 
         <div class="flexauto"></div>
@@ -205,13 +203,22 @@ const handleCheckVer = () => {
       </div>
     </a-layout-header>
     <a-layout-content id="xbybody">
-      <a-tabs type="text" :direction="'horizontal'" class="hidetabs" :justify="true" :active-key="appStore.appTab">
-        <a-tab-pane key="pan" title="1"><Pan :visible="panVisible"/></a-tab-pane>
-        <a-tab-pane key="pic" title="2"><Pic /></a-tab-pane>
-        <a-tab-pane key="down" title="3"><Down /></a-tab-pane>
-        <a-tab-pane key="share" title="4"><Share /></a-tab-pane>
-        <a-tab-pane key="rss" title="5"><Rss /></a-tab-pane>
-        <a-tab-pane key="setting" title="6"><Setting /></a-tab-pane>
+      <a-tabs type='text' :direction="'horizontal'" class='hidetabs' :justify='true' :active-key='appStore.appTab'>
+        <a-tab-pane key='pan' title='1'>
+          <Pan :visible='panVisible' />
+        </a-tab-pane>
+        <a-tab-pane key='down' title='2'>
+          <Down />
+        </a-tab-pane>
+        <a-tab-pane key='share' title='3'>
+          <Share />
+        </a-tab-pane>
+        <a-tab-pane key='rss' title='4'>
+          <Rss />
+        </a-tab-pane>
+        <a-tab-pane key='setting' title='5'>
+          <Setting />
+        </a-tab-pane>
       </a-tabs>
     </a-layout-content>
     <a-layout-footer id="xbyfoot" draggable="false">

@@ -1,11 +1,12 @@
-<script lang="ts">
-import { IAliGetFileModel } from '../../aliapi/alimodels'
-import AliFileCmd from '../../aliapi/filecmd'
+<script lang='ts'>
 import { usePanFileStore, usePanTreeStore } from '../../store'
 import message from '../../utils/message'
 import { modalCloseAll, modalRename } from '../../utils/modal'
 import { CheckFileName, ClearFileName } from '../../utils/filehelper'
-import { defineComponent, ref, reactive, nextTick } from 'vue'
+import { defineComponent, nextTick, reactive, ref } from 'vue'
+import { IAliGetFileModel } from '../../aliapi/alimodels'
+import AliFileCmd from '../../aliapi/filecmd'
+import AliAlbum from '../../aliapi/album'
 import PanDAL from '../pandal'
 
 export default defineComponent({
@@ -15,6 +16,10 @@ export default defineComponent({
       required: true
     },
     istree: {
+      type: Boolean,
+      required: true
+    },
+    ispic: {
       type: Boolean,
       required: true
     }
@@ -28,6 +33,7 @@ export default defineComponent({
       parent_file_id: '',
       isDir: false,
       fileName: '',
+      fileContext: '',
       bakName: ''
     })
 
@@ -40,7 +46,17 @@ export default defineComponent({
 
       if (props.istree) {
         const pantreeStore = usePanTreeStore()
-        fileList = [{ ...pantreeStore.selectDir, isDir: true, ext: '', category: '', icon: '', sizeStr: '', timeStr: '', starred: false, thumbnail: '' } as IAliGetFileModel]
+        fileList = [{
+          ...pantreeStore.selectDir,
+          isDir: true,
+          ext: '',
+          category: '',
+          icon: '',
+          sizeStr: '',
+          timeStr: '',
+          starred: false,
+          thumbnail: ''
+        } as IAliGetFileModel]
       } else {
         const panfileStore = usePanFileStore()
         fileList = panfileStore.GetSelected()
@@ -55,27 +71,27 @@ export default defineComponent({
         form.parent_file_id = ''
         form.isDir = false
         form.fileName = ''
+        form.fileContext = ''
         form.bakName = ''
         nextTick(() => {
           modalCloseAll()
         })
       } else {
-        
         form.file_id = fileList[0].file_id
         form.parent_file_id = fileList[0].parent_file_id
         form.isDir = fileList[0].isDir
         form.fileName = fileList[0].name
+        form.fileContext = fileList[0].description
         form.bakName = fileList[0].name
       }
     }
 
     const handleClose = () => {
-      
       if (okLoading.value) okLoading.value = false
       formRef.value.resetFields()
     }
 
-    const rules = [
+    const file_rules = [
       { required: true, message: '文件名必填' },
       { minLength: 1, message: '文件夹不能为空' },
       { maxLength: 100, message: '文件夹太长(100)' },
@@ -87,11 +103,23 @@ export default defineComponent({
       }
     ]
 
+    const album_rules = [
+      { required: true, message: '相册名必填' },
+      { minLength: 1, message: '相册名不能为空' },
+      { maxLength: 100, message: '相册名太长(100)' },
+      {
+        validator: (value: string, cb: any) => {
+          const chk = CheckFileName(value)
+          if (chk) cb('相册名' + chk)
+        }
+      }
+    ]
+
     const handleMulti = () => {
-      modalRename(props.istree, true)
+      modalRename(props.istree, true, props.ispic)
     }
 
-    return { okLoading, form, formRef, handleOpen, handleClose, rules, handleMulti }
+    return { okLoading, form, formRef, handleOpen, handleClose, file_rules, album_rules, handleMulti }
   },
   methods: {
     handleHide() {
@@ -99,47 +127,63 @@ export default defineComponent({
     },
     handleOK() {
       this.formRef.validate((data: any) => {
-        if (data) return 
+        if (data) return
 
         const newName = ClearFileName(this.form.fileName)
         if (!newName) {
-          message.error('重命名失败 文件名不能为空')
+          message.error(`重命名失败 ${this.ispic ? '相册名' : '文件名'}不能为空`)
           return
         }
 
         if (newName == this.form.bakName) {
-          
           modalCloseAll()
           return
         }
 
         const pantreeStore = usePanTreeStore()
         if (!pantreeStore.user_id || !pantreeStore.drive_id || !pantreeStore.selectDir.file_id) {
-          message.error('重命名失败 父文件夹错误')
+          message.error(`重命名失败 ${this.ispic ? '相册文件夹' : '父文件夹'} 错误`)
           return
         }
 
         this.okLoading = true
-        AliFileCmd.ApiRenameBatch(pantreeStore.user_id, pantreeStore.drive_id, [this.form.file_id], [newName])
-          .then((data) => {
-            if (data.length == 1) {
-              
-              usePanTreeStore().mRenameFiles(data)
-              
-              if (!this.istree) usePanFileStore().mRenameFiles(data)
-              
-              PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id) 
-              message.success('重命名 成功')
-            } else {
-              message.error('重命名 失败')
-            }
-          })
-          .catch((err: any) => {
-            message.error('重命名 失败', err)
-          })
-          .then(() => {
-            modalCloseAll()
-          })
+        if (!this.ispic) {
+          AliFileCmd.ApiRenameBatch(pantreeStore.user_id, pantreeStore.drive_id, [this.form.file_id], [newName])
+            .then((data) => {
+              if (data.length == 1) {
+                usePanTreeStore().mRenameFiles(data)
+                if (!this.istree) usePanFileStore().mRenameFiles(data)
+                PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id)
+                message.success('重命名 成功')
+              } else {
+                message.error('重命名 失败')
+              }
+            })
+            .catch((err: any) => {
+              message.error('重命名 失败', err)
+            })
+            .then(() => {
+              modalCloseAll()
+            })
+        } else {
+          let album_id = this.form.file_id
+          let description = this.form.fileContext
+          AliAlbum.ApiAlbumUpdate(pantreeStore.user_id, album_id, newName, description)
+            .then((data) => {
+              if (data) {
+                PanDAL.aReLoadOneDirToShow(pantreeStore.drive_id, 'refresh', false, album_id)
+                message.success('相册重命名 成功')
+              } else {
+                message.error('相册重命名 失败')
+              }
+            })
+            .catch((err: any) => {
+              message.error('相册重命名 失败', err)
+            })
+            .then(() => {
+              modalCloseAll()
+            })
+        }
       })
     }
   }
@@ -147,24 +191,32 @@ export default defineComponent({
 </script>
 
 <template>
-  <a-modal :visible="visible" modal-class="modalclass" :footer="false" :unmount-on-close="true" :mask-closable="false" @cancel="handleHide" @before-open="handleOpen" @close="handleClose">
+  <a-modal :visible='visible' modal-class='modalclass' :footer='false' :unmount-on-close='true' :mask-closable='false'
+           @cancel='handleHide' @before-open='handleOpen' @close='handleClose'>
     <template #title>
-      <span class="modaltitle">重命名一个文件</span>
+      <span class='modaltitle'>{{ ispic ? '重命名相册' : '重命名一个文件' }}</span>
     </template>
-    <div class="modalbody" style="width: 440px">
-      <a-form ref="formRef" :model="form" layout="vertical">
-        <a-form-item field="fileName" :rules="rules">
-          <template #label>文件名：<span class="opblue" style="margin-left: 16px; font-size: 12px"> 不要有特殊字符 &lt; > : * ? \\ / \' " </span> </template>
-          <a-input v-model.trim="form.fileName" :placeholder="form.bakName" allow-clear :input-attrs="{ id: 'RenameInput', autofocus: 'autofocus' }" />
+    <div class='modalbody' style='width: 440px'>
+      <a-form ref='formRef' :model='form' layout='vertical'>
+        <a-form-item field='fileName' :rules='ispic ? album_rules : file_rules'>
+          <template #label>{{ ispic ? '相册名' : '文件名' }}：<span class='opblue'
+                                                                   style='margin-left: 16px; font-size: 12px'> 不要有特殊字符 &lt; > : * ? \\ / \' " </span>
+          </template>
+          <a-input v-model.trim='form.fileName' :placeholder='form.bakName' allow-clear
+                   :input-attrs="{ id: 'RenameInput', autofocus: 'autofocus' }" />
+        </a-form-item>
+        <a-form-item v-if='ispic' field='fileContext' label='相册描述：' class='textareafill'>
+          <a-textarea v-model='form.fileContext' placeholder='修改相册描述' show-word-limit
+                      @keydown='(e:any) => e.stopPropagation()' />
         </a-form-item>
       </a-form>
       <br />
     </div>
-    <div class="modalfoot">
-      <a-button type="outline" size="small" @click="handleMulti">批量重命名</a-button>
-      <div style="flex-grow: 1"></div>
-      <a-button v-if="!okLoading" type="outline" size="small" @click="handleHide">取消</a-button>
-      <a-button type="primary" size="small" :loading="okLoading" @click="handleOK">重命名</a-button>
+    <div class='modalfoot'>
+      <a-button type='outline' size='small' @click='handleMulti' v-if='!ispic'>批量重命名</a-button>
+      <div style='flex-grow: 1'></div>
+      <a-button v-if='!okLoading' type='outline' size='small' @click='handleHide'>取消</a-button>
+      <a-button type='primary' size='small' :loading='okLoading' @click='handleOK'>重命名</a-button>
     </div>
   </a-modal>
 </template>

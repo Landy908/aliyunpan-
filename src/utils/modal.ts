@@ -13,6 +13,14 @@ export function modalCreatNewFile() {
   useModalStore().showModal('creatfile', {})
 }
 
+export function modalCreatNewAlbum() {
+  useModalStore().showModal('creatalbum', {})
+}
+
+export function modalMoveToAlbum() {
+  useModalStore().showModal('movetoalbum', {})
+}
+
 export function modalCreatNewDir(dirtype: string, parentdirid: string = '', callback: any = undefined) {
   useModalStore().showModal('creatdir', { dirtype, parentdirid, callback })
 }
@@ -29,8 +37,8 @@ export function modalDaoRuShareLinkMulti() {
   useModalStore().showModal('daorusharemulti', {})
 }
 
-export function modalRename(istree: boolean, ismulti: boolean) {
-  useModalStore().showModal(ismulti ? 'renamemulti' : 'rename', { istree })
+export function modalRename(istree: boolean, ismulti: boolean, ispic: boolean) {
+  useModalStore().showModal(ismulti ? 'renamemulti' : 'rename', { istree, ispic })
 }
 
 export function modalEditShareLink(sharelist: IAliShareItem[]) {
@@ -48,9 +56,8 @@ export function modalSelectPanDir(selecttype: string, selectid: string,
   useModalStore().showModal('selectpandir', { selecttype, selectid, category, extFilter, callback })
 }
 
-export function modalShuXing(istree: boolean, ismulti: boolean, inputsearchType: string) {
-  ismulti = false
-  useModalStore().showModal(ismulti ? 'shuxingmulti' : 'shuxing', { istree, inputsearchType })
+export function modalShuXing(istree: boolean, inputsearchType: string, ispic: boolean = false) {
+  useModalStore().showModal('shuxing', { istree, inputsearchType, ispic })
 }
 
 export function modalSearchPan(inputsearchType: string) {
@@ -85,8 +92,8 @@ export function modalArchivePassword(user_id: string, drive_id: string, file_id:
   })
 }
 
-export function modalUpload(file_id: string, filelist: string[]) {
-  useModalStore().showModal('upload', { file_id, filelist })
+export function modalUpload(file_id: string, filelist: string[], ispic: boolean = false) {
+  useModalStore().showModal('upload', { file_id, filelist, ispic })
 }
 
 export function modalDownload(istree: boolean) {

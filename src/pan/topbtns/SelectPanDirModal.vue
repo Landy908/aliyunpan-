@@ -335,7 +335,7 @@ export default defineComponent({
             else {
               newdirid = data.file_id
               message.success('新建文件夹 成功')
-              return PanDAL.GetDirFileList(this.user_id, this.drive_id, this.selectDir.dirID, '', false)
+              return PanDAL.GetDirFileList(this.user_id, this.drive_id, this.selectDir.dirID, '', '', false)
             }
           })
           .catch((err: any) => {

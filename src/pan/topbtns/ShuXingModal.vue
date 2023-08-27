@@ -23,6 +23,10 @@ export default defineComponent({
     inputsearchType: {
       type: String,
       required: true
+    },
+    ispic: {
+      type: Boolean,
+      required: true
     }
   },
   setup(props) {
@@ -33,7 +37,7 @@ export default defineComponent({
     const handleOpen = async () => {
       const pantreeStore = usePanTreeStore()
       let file_id = ''
-      let drive_id = GetDriveID(pantreeStore.user_id, props.inputsearchType)
+      let drive_id = GetDriveID(pantreeStore.user_id, props.ispic ? 'pic' : props.inputsearchType)
       if (props.istree) {
         file_id = pantreeStore.selectDir.file_id
       } else {
@@ -49,8 +53,10 @@ export default defineComponent({
       if (!file_id) {
         message.error('没有选中任何文件')
       } else {
-        AliFile.ApiFileGetPathString(pantreeStore.user_id, drive_id, file_id, '/').then((data) => {
-          dirPath.value = '/' + data
+        let path_file_id = props.ispic ? 'pic_root' : file_id
+        let fileName = pantreeStore.selectDir.name
+        AliFile.ApiFileGetPathString(pantreeStore.user_id, drive_id, path_file_id, '/').then((data) => {
+          dirPath.value = '/' + data + (props.ispic ? '/' + fileName : '')
         })
         fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, drive_id, file_id)
 

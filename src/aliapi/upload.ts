@@ -54,12 +54,10 @@ export default class AliUpload {
     }
 
     const resp = await AliHttp.Post(url, postData, user_id, '')
-
     if (typeof resp.body === 'object' && JSON.stringify(resp.body).indexOf('file size is exceed') > 0) {
       result.errormsg = '创建文件失败(单文件最大100GB/2TB)'
       return result
     }
-
 
     if (resp.body && resp.body.code) {
       if (resp.body?.code == 'PreHashMatched') {
@@ -70,7 +68,6 @@ export default class AliUpload {
         result.errormsg = resp.body?.code || '创建失败，网络错误'
         DebugLog.mSaveDanger('createWithFolders', result.errormsg + ' ' + name)
       }
-
       return result
     }
 
@@ -78,14 +75,10 @@ export default class AliUpload {
     if (AliHttp.IsSuccess(resp.code)) {
       result.file_id = resp.body.file_id
       if (resp.body.exist) {
-
         if (check_name_mode == 'ignore') {
-
-          await AliUpload.UploadFileDelete(user_id, drive_id, result.file_id).catch(() => {
-          })
+          await AliUpload.UploadFileDelete(user_id, drive_id, result.file_id).catch()
           return await AliUpload.UploadCreatFileWithPreHash(user_id, drive_id, parent_file_id, name, fileSize, prehash, check_name_mode)
         } else {
-
           result.errormsg = '出错暂停，网盘内有重名文件'
         }
       }
@@ -279,20 +272,14 @@ export default class AliUpload {
     let resp = await AliHttp.Post(url, postData, user_id, '')
     if (resp.code == 400 || resp.code == 429) {
       resp = await AliHttp.Post(url, postData, user_id, '')
-
-
     }
-
     if (AliHttp.IsSuccess(resp.code)) {
       if (resp.body.size == fileSize) {
         if (fileSha1) {
-
           if (resp.body.content_hash && resp.body.content_hash == fileSha1) {
             return true
           } else {
-
-            await AliUpload.UploadFileDelete(user_id, drive_id, file_id, true).catch(() => {
-            })
+            await AliUpload.UploadFileDelete(user_id, drive_id, file_id, true).catch()
             DebugLog.mSaveDanger('UploadFileComplete', '合并文件后发现SHA1不一致，删除已上传的文件，重新上传')
             return false
           }
@@ -302,9 +289,7 @@ export default class AliUpload {
           return true
         }
       } else {
-
-        await AliUpload.UploadFileDelete(user_id, drive_id, file_id, true).catch(() => {
-        })
+        await AliUpload.UploadFileDelete(user_id, drive_id, file_id, true).catch()
         DebugLog.mSaveDanger('UploadFileComplete', '合并文件后发现大小不一致，删除已上传的文件，重新上传')
         return false
       }

@@ -1,35 +1,156 @@
-import { IAliFileItem } from './alimodels'
-import AliHttp from './alihttp'
+import { IAliAlbumInfo, IAliGetDirModel } from './alimodels'
+import AliHttp, { IUrlRespData } from './alihttp'
 import DebugLog from '../utils/debuglog'
+import { HanToPin } from '../utils/utils'
 
 export default class AliAlbum {
 
-    static async ApiAlbumFileList(user_id: string, drive_id: string, file_id: string, orderby: string, order: string, limit: number): Promise<IAliFileItem | undefined> {
-        const url = 'adrive/v3/file/search'
-        const postData = {
-            drive_id: drive_id,
-            file_id: file_id,
-            limit: limit,
-            image_thumbnail_process: "image/resize,w_400/format,jpeg",
-            image_url_process: "image/resize,w_1920/format,jpeg",
-            video_thumbnail_process: "video/snapshot,t_0,f_jpg,ar_auto,w_1000",
-            query: 'type="file"',
-            order_by: (orderby + ' ' + order).toLowerCase(),
+  /**
+   * 创建相册
+   */
+  static async ApiAlbumCreate(user_id: string, album_name: string, album_description: string): Promise<string> {
+    const url = 'adrive/v1/album/create'
+    const postData = { name: album_name, description: album_description }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      const result = resp.body as IAliAlbumInfo
+      if (result) return 'success'
+      else return '创建相册出错'
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumCreate err=' + (resp.code || ''))
+    }
+    return '创建相册出错'
+  }
+
+  /**
+   * 获取相册路径
+   */
+  static async ApiAlbumGetPath(user_id: string, drive_id: string, album_id: string): Promise<IAliGetDirModel[]> {
+    if (!user_id || !drive_id || !album_id) return []
+    const url = 'adrive/v1/album/get'
+    const postData = { album_id: album_id }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      const list: IAliGetDirModel[] = []
+      list.push({
+        __v_skip: true,
+        drive_id: drive_id,
+        file_id: 'mypic',
+        parent_file_id: '',
+        name: '我的相册',
+        namesearch: '',
+        size: 0,
+        time: 0,
+        description: ''
+      } as IAliGetDirModel)
+      if (resp.body.name.length > 0) {
+        list.push({
+          __v_skip: true,
+          drive_id: drive_id,
+          file_id: resp.body.album_id,
+          album_id: resp.body.album_id,
+          parent_file_id: 'mypic',
+          name: resp.body.name,
+          namesearch: HanToPin(resp.body.name),
+          size: 0,
+          time: new Date(resp.body.updated_at).getTime(),
+          description: resp.body.description || ''
+        } as IAliGetDirModel)
+      }
+      return list
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumGetPath err=' + album_id + ' ' + (resp.code || ''), resp.body)
+    }
+    return []
+  }
+
+  /**
+   * 列出相册
+   */
+  static async ApiAlbumList(user_id: string, limit?: string, order_by?: string, order_direction?: string) {
+    const url = 'adrive/v1/album/list'
+    const postData = {
+      limit: limit || 20,
+      order_by: order_by || 'updated_at',
+      order_direction: order_direction || 'DESC'
+    }
+    const data: IAliAlbumInfo[] = []
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      const items = resp.body.items
+      if (items && items.length > 0) {
+        for (let item of items) {
+          const coverUrl = item.cover && item.cover.list[0].download_url
+          data.push({ ...item, coverUrl })
         }
-        const resp = await AliHttp.Post(url, postData, user_id, '')
-        if (AliHttp.IsSuccess(resp.code)) {
-            return resp.body as IAliFileItem
-        } else if (!AliHttp.HttpCodeBreak(resp.code)) {
-            DebugLog.mSaveWarning('ApiAlbumFileList err=' + file_id + ' ' + (resp.code || ''), resp.body)
-        }
-        return undefined
+      }
+      return data
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumList err=' + (resp.code || ''))
     }
+    return []
+  }
 
-    static async ApiAlbumGetFiles(user_id: string, drive_id: string, file_id: string) {
-
+  /**
+   * 更新相册
+   */
+  static async ApiAlbumUpdate(user_id: string, album_id: string, name: string, description: string): Promise<IUrlRespData | undefined> {
+    const url = 'adrive/v1/album/update'
+    const postData = { name, album_id, description }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body as IUrlRespData
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumUpdate err=' + (resp.code || ''))
     }
+    return undefined
+  }
 
-    static async ApiAlbumDeleteFiles() {
-
+  /**
+   * 删除相册（不会删除文件）
+   */
+  static async ApiAlbumDelete(user_id: string, album_id: string): Promise<IUrlRespData | undefined> {
+    const url = 'adrive/v1/album/delete'
+    const resp = await AliHttp.Post(url, { album_id }, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body as IUrlRespData
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumDelete err=' + (resp.code || ''))
     }
+    return undefined
+  }
+
+  /**
+   * 添加文件到相册
+   */
+  static async ApiAlbumAddFiles(user_id: string, album_id: string, drive_file_list: {
+    drive_id: string,
+    file_id: string
+  }[]): Promise<IUrlRespData | undefined> {
+    const url = 'adrive/v1/album/add_files'
+    const resp = await AliHttp.Post(url, { album_id, drive_file_list }, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body as IUrlRespData
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumAddFiles err=' + (resp.code || ''))
+    }
+    return undefined
+  }
+
+  /**
+   * 文件移出相册（不会删除文件）
+   */
+  static async ApiAlbumDeleteFiles(user_id: string, album_id: string, drive_file_list: {
+    drive_id: string,
+    file_id: string
+  }[]): Promise<IUrlRespData | undefined> {
+    const url = 'adrive/v1/album/delete_files'
+    const resp = await AliHttp.Post(url, { album_id, drive_file_list }, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body as IUrlRespData
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiAlbumDeleteFiles err=' + (resp.code || ''))
+    }
+    return undefined
+  }
 }

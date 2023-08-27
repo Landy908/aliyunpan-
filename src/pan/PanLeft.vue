@@ -325,6 +325,10 @@ const handleQuickSelect = (index: number) => {
   color: #a760ef;
 }
 
+.dirtree .iconfont.iconjietu {
+  color: #a77566;
+}
+
 .colortree .iconfont.iconrss_video {
   color: #a760ef;
 }

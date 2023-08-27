@@ -12,6 +12,7 @@ import {
   modalDLNAPlayer,
   modalDownload,
   modalM3U8Download,
+  modalMoveToAlbum,
   modalSearchPan,
   modalSelectPanDir,
   modalUpload
@@ -27,11 +28,12 @@ import { copyToClipboard } from '../../utils/electronhelper'
 import DownDAL from '../../down/DownDAL'
 import { isEmpty } from 'lodash'
 import { GetDriveID } from '../../aliapi/utils'
+import AliAlbum from '../../aliapi/album'
 
 const topbtnLock = new Set()
 
 
-export function handleUpload(uploadType: string) {
+export function handleUpload(uploadType: string, isPic: boolean = false) {
   const pantreeStore = usePanTreeStore()
   if (!pantreeStore.user_id || !pantreeStore.drive_id || !pantreeStore.selectDir.file_id) {
     message.error('上传操作失败 父文件夹错误')
@@ -46,6 +48,20 @@ export function handleUpload(uploadType: string) {
     }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
         modalUpload(pantreeStore.selectDir.file_id, files)
+      }
+    })
+  } else if (uploadType == 'pic_file') {
+    window.WebShowOpenDialogSync({
+      title: '选择多个照片/视频上传到网盘',
+      buttonLabel: '上传选中的照片/视频',
+      filters: [
+        { name: 'Images', extensions: ['jfif', 'pjpeg', 'pjp', 'jpg', 'jpeg', 'png', 'heic', 'gif', '3gp'] },
+        { name: 'Video', extensions: ['mp4', 'mkv', 'avi', 'mov', 'mpg', 'mpeg', 'm4v', 'webm', 'wmv'] }
+      ],
+      properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
+    }, (files: string[] | undefined) => {
+      if (files && files.length > 0) {
+        modalUpload(pantreeStore.selectDir.file_id, files, isPic)
       }
     })
   } else {
@@ -150,7 +166,7 @@ export async function menuFavSelectFile(istree: boolean, isFavor: boolean) {
 }
 
 
-export async function menuTrashSelectFile(istree: boolean, isDelete: boolean) {
+export async function menuTrashSelectFile(istree: boolean, isDelete: boolean, ispic: boolean = false) {
   const selectedData = PanDAL.GetPanSelectedData(istree)
   if (selectedData.isError) {
     message.error('删除操作失败 父文件夹错误')
@@ -168,11 +184,40 @@ export async function menuTrashSelectFile(istree: boolean, isDelete: boolean) {
   if (topbtnLock.has('menuTrashSelectFile')) return
   topbtnLock.add('menuTrashSelectFile')
   try {
-    let successList: string[]
-    if (isDelete) {
-      successList = await AliFileCmd.ApiDeleteBatch(selectedData.user_id, selectedData.drive_id, selectedData.selectedKeys)
+    let successList: string[] = []
+    if (ispic) {
+      if (!isDelete) {
+        const drive_file_list: { drive_id: string, file_id: string }[] = []
+        selectedData.selectedKeys.forEach(key => {
+          drive_file_list.push({
+            drive_id: selectedData.drive_id,
+            file_id: key
+          })
+        })
+        let data = await AliAlbum.ApiAlbumDeleteFiles(selectedData.user_id, selectedData.dirID, drive_file_list)
+        if (data) {
+          message.success('移出相册成功')
+        } else {
+          message.error('移出相册失败')
+        }
+      } else {
+        let result = []
+        for (const album_id of selectedData.selectedKeys) {
+          let res = await AliAlbum.ApiAlbumDelete(selectedData.user_id, album_id)
+          result.push(res)
+        }
+        if (result.length > 0) {
+          message.success('删除相册成功')
+        } else {
+          message.error('删除相册失败')
+        }
+      }
     } else {
-      successList = await AliFileCmd.ApiTrashBatch(selectedData.user_id, selectedData.drive_id, selectedData.selectedKeys)
+      if (isDelete) {
+        successList = await AliFileCmd.ApiDeleteBatch(selectedData.user_id, selectedData.drive_id, selectedData.selectedKeys)
+      } else {
+        successList = await AliFileCmd.ApiTrashBatch(selectedData.user_id, selectedData.drive_id, selectedData.selectedKeys)
+      }
     }
 
     if (istree) {
@@ -189,6 +234,21 @@ export async function menuTrashSelectFile(istree: boolean, isDelete: boolean) {
     DebugLog.mSaveDanger('menuTrashSelectFile', err)
   }
   topbtnLock.delete('menuTrashSelectFile')
+}
+
+export async function menuAddAlbumSelectFile() {
+  const selectedData = PanDAL.GetPanSelectedData(false)
+  if (selectedData.isErrorSelected) return
+  if (selectedData.isError) {
+    message.error('添加到相册操作失败 父文件夹错误')
+    return
+  }
+  const selectedFiles = usePanFileStore().GetSelected()
+  if (selectedFiles.length == 0) {
+    message.error('没有可以添加到相册的文件！')
+    return
+  }
+  modalMoveToAlbum()
 }
 
 export async function topRestoreSelectedFile() {

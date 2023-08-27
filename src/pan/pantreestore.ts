@@ -46,6 +46,7 @@ const usePanTreeStore = defineStore('pantree', {
       __v_skip: true,
       drive_id: '',
       file_id: '',
+      album_id: '',
       parent_file_id: '',
       name: '',
       namesearch: '',
@@ -55,13 +56,62 @@ const usePanTreeStore = defineStore('pantree', {
     },
     selectDirPath: [],
     treeData: [
-      { __v_skip: true, title: '收藏夹', namesearch: '', key: 'favorite', icon: () => fileiconfn('iconcrown'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '放映室', namesearch: '', key: 'video', icon: () => fileiconfn('iconrss_video'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '回收站', namesearch: '', key: 'trash', icon: () => fileiconfn('icondelete'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '文件恢复', namesearch: '', key: 'recover', icon: () => fileiconfn('iconrecover'), isLeaf: true, children: [] },
-      { __v_skip: true, title: '全盘搜索', namesearch: '', key: 'search', icon: () => fileiconfn('iconsearch'), isLeaf: true, children: [] },
+      {
+        __v_skip: true,
+        title: '收藏夹',
+        namesearch: '',
+        key: 'favorite',
+        icon: () => fileiconfn('iconcrown'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '放映室',
+        namesearch: '',
+        key: 'video',
+        icon: () => fileiconfn('iconrss_video'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '回收站',
+        namesearch: '',
+        key: 'trash',
+        icon: () => fileiconfn('icondelete'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '文件恢复',
+        namesearch: '',
+        key: 'recover',
+        icon: () => fileiconfn('iconrecover'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '全盘搜索',
+        namesearch: '',
+        key: 'search',
+        icon: () => fileiconfn('iconsearch'),
+        isLeaf: true,
+        children: []
+      },
+      {
+        __v_skip: true,
+        title: '相册管理',
+        namesearch: '',
+        key: 'pic_root',
+        icon: () => fileiconfn('iconjietu'),
+        isLeaf: true,
+        children: []
+      },
       { __v_skip: true, title: '备份盘', namesearch: '', key: 'backup_root', children: [] },
-      { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] },
+      { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] }
     ],
     treeExpandedKeys: ['backup_root', 'resource_root'],
     treeSelectedKeys: [],
@@ -88,6 +138,7 @@ const usePanTreeStore = defineStore('pantree', {
       if (is_refresh_drive_id && drive_id) {
         this.drive_id = drive_id
       }
+      if (key === 'pic_root') key = this.selectDir.album_type || 'pic_root'
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
     mTreeExpand(key: string) {
