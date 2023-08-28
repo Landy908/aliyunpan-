@@ -7,7 +7,7 @@
     "name": "Odomu",
     "email": "xxx@xx.com"
   },
-  "license": "MIT",
+  "license": "GPL",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && node version.mjs && vite build",
